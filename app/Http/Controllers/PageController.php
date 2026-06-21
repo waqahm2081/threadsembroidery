@@ -1,0 +1,41 @@
+<?php
+
+namespace App\Http\Controllers;
+
+class PageController extends Controller
+{
+    public function home()
+    {
+        return view('home');
+    }
+
+    public function about()
+    {
+        return view('about');
+    }
+
+    public function contact()
+    {
+        return view('contact');
+    }
+
+    public function login()
+    {
+        return view('login');
+    }
+
+    public function signup()
+    {
+        return view('signup');
+    }
+
+    public function forgotPassword()
+    {
+        return view('forgot-password');
+    }
+
+    public function userDashboard()
+    {
+        return view('user-dashboard');
+    }
+}
