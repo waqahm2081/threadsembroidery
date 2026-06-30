@@ -132,6 +132,9 @@
 
             <div class="sb-active-filters" id="sbActiveFilters"></div>
             <div class="sb-products-grid" id="sbProductsGrid"></div>
+            <div class="sb-load-sentinel" id="sbLoadSentinel" aria-hidden="true">
+                <span class="sb-load-spinner"></span>
+            </div>
             <div class="sb-empty-state" id="sbEmptyState" style="display:none;">
                 <i class="bi bi-search"></i>
                 <p>No products match your filters.</p>

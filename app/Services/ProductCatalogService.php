@@ -232,7 +232,7 @@ class ProductCatalogService
         }
 
         $index = [];
-        $rows = PcProduct::active()->whereNotNull('categories')->get(['categories']);
+        $rows = PcProduct::active()->whereNotNull('categories')->get(['categories', 'style_code']);
 
         foreach ($rows as $row) {
             foreach ($this->parseCategoryNames($row->categories) as $name) {
@@ -242,11 +242,21 @@ class ProductCatalogService
                         'name' => $name,
                         'slug' => $slug,
                         'count' => 0,
+                        'style_codes' => [],
                     ];
                 }
-                $index[$slug]['count']++;
+
+                if (!isset($index[$slug]['style_codes'][$row->style_code])) {
+                    $index[$slug]['style_codes'][$row->style_code] = true;
+                    $index[$slug]['count']++;
+                }
             }
         }
+
+        foreach ($index as &$category) {
+            unset($category['style_codes']);
+        }
+        unset($category);
 
         uasort($index, fn ($a, $b) => strcasecmp($a['name'], $b['name']));
 

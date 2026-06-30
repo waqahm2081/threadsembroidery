@@ -25,8 +25,13 @@
   let sortMode  = 'featured';
   let viewMode  = 'grid';
 
+  const PAGE_SIZE = 25;
+  let visibleCount = PAGE_SIZE;
+  let loadObserver = null;
+
   /* ── DOM refs ── */
   const grid         = document.getElementById('sbProductsGrid');
+  const loadSentinel = document.getElementById('sbLoadSentinel');
   const resultCount  = document.getElementById('sbResultCount');
   const activeFilters= document.getElementById('sbActiveFilters');
   const filterCount  = document.getElementById('sbFilterCount');
@@ -132,55 +137,130 @@
     }
   }
 
-  function renderProducts() {
-    if (!grid) return;
-    const list = getSorted(getFiltered());
-    if (resultCount) {
-      resultCount.innerHTML = `Showing <strong>${list.length}</strong> products`;
+  function getCurrentList() {
+    return getSorted(getFiltered());
+  }
+
+  function productCardHtml(p) {
+    const badgeHtml = p.badge ? `<span class="shop-card-badge">${p.badge}</span>` : '';
+    const whole = Math.floor(p.min_price);
+    const dec = String(Math.round((p.min_price - whole) * 100)).padStart(2, '0');
+    const price = `£${whole}.${dec}`;
+    const url = p.url || '#';
+    return `
+      <article class="shop-card">
+        <div class="shop-card-img">
+          <img src="${p.image}" alt="${p.title}" loading="lazy">
+          <div class="shop-card-actions">
+            <a href="${url}" class="shop-card-action-btn">
+              <i class="bi bi-magic"></i> Customise
+            </a>
+          </div>
+          ${badgeHtml}
+        </div>
+        <div class="shop-card-body">
+          <div class="shop-card-meta">
+            <span class="shop-card-cat"><i class="bi bi-tag"></i> ${p.category_name || ''}</span>
+            <span class="shop-card-rating"><i class="bi bi-star-fill"></i> ${p.rating}</span>
+          </div>
+          <h3 class="shop-card-name">${p.title}</h3>
+          <div class="shop-card-footer">
+            <div class="shop-card-price">
+              <span class="shop-card-from">From</span>
+              <span class="shop-card-amount">${price}</span>
+              <span class="shop-card-unit">/ unit</span>
+            </div>
+            <a href="${url}" class="shop-card-btn">
+              <i class="bi bi-magic"></i> Customise
+            </a>
+          </div>
+        </div>
+      </article>
+    `;
+  }
+
+  function updateResultCount(shown, total) {
+    if (!resultCount) return;
+    if (total === 0) {
+      resultCount.innerHTML = 'Showing <strong>0</strong> products';
+    } else if (shown < total) {
+      resultCount.innerHTML = `Showing <strong>${shown}</strong> of <strong>${total}</strong> products`;
+    } else {
+      resultCount.innerHTML = `Showing <strong>${total}</strong> products`;
     }
+  }
+
+  function updateLoadSentinel(total) {
+    if (!loadSentinel) return;
+
+    const hasMore = visibleCount < total;
+    loadSentinel.style.display = hasMore ? 'flex' : 'none';
+
+    if (loadObserver) {
+      loadObserver.disconnect();
+      loadObserver = null;
+    }
+
+    if (!hasMore) return;
+
+    loadObserver = new IntersectionObserver((entries) => {
+      if (entries.some(entry => entry.isIntersecting)) {
+        loadMoreProducts();
+      }
+    }, { rootMargin: '240px' });
+
+    loadObserver.observe(loadSentinel);
+  }
+
+  function loadMoreProducts() {
+    const list = getCurrentList();
+    if (visibleCount >= list.length) {
+      updateLoadSentinel(list.length);
+      return;
+    }
+
+    if (loadObserver) {
+      loadObserver.disconnect();
+      loadObserver = null;
+    }
+
+    visibleCount = Math.min(visibleCount + PAGE_SIZE, list.length);
+    renderProducts(false);
+  }
+
+  function renderProducts(reset = true) {
+    if (!grid) return;
+
+    const list = getCurrentList();
+
+    if (reset) {
+      visibleCount = Math.min(PAGE_SIZE, list.length);
+      grid.innerHTML = '';
+    }
+
+    const toShow = list.slice(0, visibleCount);
+    updateResultCount(toShow.length, list.length);
+
     if (emptyState) emptyState.style.display = list.length ? 'none' : 'block';
+    if (loadSentinel) loadSentinel.style.display = list.length && visibleCount < list.length ? 'flex' : 'none';
+
     if (viewMode === 'list') {
       grid.classList.add('list-view');
     } else {
       grid.classList.remove('list-view');
     }
-    grid.innerHTML = list.map(p => {
-      const badgeHtml = p.badge ? `<span class="shop-card-badge">${p.badge}</span>` : '';
-      const whole = Math.floor(p.min_price);
-      const dec = String(Math.round((p.min_price - whole) * 100)).padStart(2, '0');
-      const price = `£${whole}.${dec}`;
-      const url = p.url || '#';
-      return `
-        <article class="shop-card">
-          <div class="shop-card-img">
-            <img src="${p.image}" alt="${p.title}" loading="lazy">
-            <div class="shop-card-actions">
-              <a href="${url}" class="shop-card-action-btn">
-                <i class="bi bi-magic"></i> Customise
-              </a>
-            </div>
-            ${badgeHtml}
-          </div>
-          <div class="shop-card-body">
-            <div class="shop-card-meta">
-              <span class="shop-card-cat"><i class="bi bi-tag"></i> ${p.category_name || ''}</span>
-              <span class="shop-card-rating"><i class="bi bi-star-fill"></i> ${p.rating}</span>
-            </div>
-            <h3 class="shop-card-name">${p.title}</h3>
-            <div class="shop-card-footer">
-              <div class="shop-card-price">
-                <span class="shop-card-from">From</span>
-                <span class="shop-card-amount">${price}</span>
-                <span class="shop-card-unit">/ unit</span>
-              </div>
-              <a href="${url}" class="shop-card-btn">
-                <i class="bi bi-magic"></i> Customise
-              </a>
-            </div>
-          </div>
-        </article>
-      `;
-    }).join('');
+
+    if (reset) {
+      grid.innerHTML = toShow.map(productCardHtml).join('');
+    } else {
+      const rendered = grid.children.length;
+      const newItems = list.slice(rendered, visibleCount);
+      if (newItems.length) {
+        grid.insertAdjacentHTML('beforeend', newItems.map(productCardHtml).join(''));
+      }
+    }
+
+    updateLoadSentinel(list.length);
   }
 
   /* ── Active filter pills ── */
