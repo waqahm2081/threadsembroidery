@@ -32,6 +32,20 @@ document.addEventListener('DOMContentLoaded', function () {
     || (customizerData.colours || [])[0]
     || { name: 'White', hex: '#ffffff', code: 'default' };
 
+  const pricing = customizerData.pricing || {};
+  const PLACEMENT_FEES = pricing.placement_fees || (window.TEDesignPrintArea?.PLACEMENT_FEES || {
+    left_chest: 3.50,
+    back_print: 6.00,
+    back_embroidery: 8.00,
+  });
+  const LOGO_SETUP_FEE = pricing.logo_setup_fee || 12.00;
+  const hasLogoSetup = parseFloat(customizerData.logo_setup_fee || 0) > 0;
+
+  const garmentImages = {
+    front: customizerData.customizer_image || customizerData.fallback_customizer_front || '',
+    back: customizerData.customizer_image_back || customizerData.fallback_customizer_back || '',
+  };
+
   const state = {
     garment: customizerData.type || 'garment',
     garmentLabel: customizerData.type || customizerData.title || 'Garment',
@@ -42,6 +56,9 @@ document.addEventListener('DOMContentLoaded', function () {
     size: customizerData.default_size || 'M',
     qty: customizerData.default_qty || 1,
     view: 'front',
+    placement: null,
+    placementLabel: null,
+    allowedViews: null,
     layers: [],
     selectedLayerId: null,
     nextId: 1
@@ -89,9 +106,10 @@ document.addEventListener('DOMContentLoaded', function () {
   const layersList      = document.getElementById('pcLayersList');
   const layersBadge     = document.getElementById('pcLayersBadge');
 
-  const summaryGarment  = document.getElementById('pcSummaryGarment');
-  const summaryColour   = document.getElementById('pcSummaryColour');
-  const summaryElements = document.getElementById('pcSummaryElements');
+  const summaryGarment   = document.getElementById('pcSummaryGarment');
+  const summaryColour    = document.getElementById('pcSummaryColour');
+  const summaryPlacement = document.getElementById('pcSummaryPlacement');
+  const summaryElements  = document.getElementById('pcSummaryElements');
   const summaryTotal    = document.getElementById('pcSummaryTotal');
 
   const addToCartBtn    = document.getElementById('pcAddToCartBtn');
@@ -107,10 +125,21 @@ document.addEventListener('DOMContentLoaded', function () {
 
   let activeTextColour  = '#ffffff';
 
-  if (customizerData.customizer_image) {
-    [garmentImg, pcmGarmentImg, document.getElementById('pclProductThumb')].forEach(el => {
-      if (el) el.src = customizerData.customizer_image;
-    });
+  function getGarmentImageForView(view) {
+    return view === 'back' ? garmentImages.back : garmentImages.front;
+  }
+
+  function updateGarmentImageSrc() {
+    const src = getGarmentImageForView(state.view);
+    if (!src) return;
+    if (garmentImg) garmentImg.src = src;
+    applyColourToGarment();
+  }
+
+  if (garmentImages.front) {
+    const thumb = document.getElementById('pclProductThumb');
+    if (thumb) thumb.src = garmentImages.front;
+    updateGarmentImageSrc();
   }
 
   if (initialColour.code && swatchRow) {
@@ -131,6 +160,11 @@ document.addEventListener('DOMContentLoaded', function () {
 
     if (sizeParam) state.size = sizeParam;
     if (!isNaN(qtyParam) && qtyParam > 0) state.qty = qtyParam;
+
+    if (customizerData.size_breakdown && customizerData.size_breakdown.length) {
+      state.sizeBreakdown = customizerData.size_breakdown;
+      state.qty = customizerData.size_breakdown.reduce((sum, r) => sum + (r.qty || 0), 0);
+    }
 
     if (colourParam && customizerData.colours) {
       const match = customizerData.colours.find(c => c.code === colourParam);
@@ -157,8 +191,16 @@ document.addEventListener('DOMContentLoaded', function () {
     syncTopBar();
   })();
 
+  function getSizeDisplay() {
+    if (customizerData.size_display) return customizerData.size_display;
+    if (state.sizeBreakdown && state.sizeBreakdown.length) {
+      return state.sizeBreakdown.map(r => `${r.size} × ${r.qty}`).join(', ');
+    }
+    return state.size;
+  }
+
   function syncTopBar() {
-    if (topSize) topSize.textContent = state.size;
+    if (topSize) topSize.textContent = getSizeDisplay();
     if (topQty)  topQty.textContent  = state.qty;
   }
 
@@ -319,10 +361,97 @@ document.addEventListener('DOMContentLoaded', function () {
   }
 
   /* ============================================================
+     4b. DECORATION PLACEMENT — modal on load
+     ============================================================ */
+  const pcApp = document.getElementById('pc-app');
+  const placementModalEl = document.getElementById('pcPlacementModal');
+  let placementModal = null;
+
+  function getDefaultLayerPosition(type) {
+    if (state.placement === 'left_chest') {
+      return type === 'text'
+        ? { x: 52, y: 28, w: 22, h: 12 }
+        : { x: 54, y: 26, w: 16, h: 18 };
+    }
+    if (state.placement === 'back_print' || state.placement === 'back_embroidery') {
+      return type === 'text'
+        ? { x: 25, y: 28, w: 50, h: 14 }
+        : { x: 22, y: 22, w: 56, h: 40 };
+    }
+    return type === 'text'
+      ? { x: 28, y: 42, w: 44, h: 14 }
+      : { x: 32, y: 28, w: 36, h: 36 };
+  }
+
+  function applyViewToggleRestrictions() {
+    [viewToggle, viewToggleTop].forEach(toggle => {
+      if (!toggle) return;
+      toggle.querySelectorAll('[data-view]').forEach(btn => {
+        const allowed = !state.allowedViews || state.allowedViews.includes(btn.dataset.view);
+        btn.disabled = !allowed;
+      });
+    });
+  }
+
+  function applyPlacement(key) {
+    const pa = window.TEDesignPrintArea;
+    const placement = pa ? pa.getPlacement(key) : null;
+    if (!placement) return;
+
+    state.placement = key;
+    state.placementLabel = placement.label;
+    state.allowedViews = placement.allowedViews;
+
+    if (printArea && pa) {
+      pa.applyToElement(printArea, placement.printArea);
+    }
+    if (layersContainer && pa) {
+      pa.applyClip(layersContainer, placement.printArea);
+    }
+
+    setView(placement.view);
+    applyViewToggleRestrictions();
+
+    if (pcApp) pcApp.classList.remove('pc-awaiting-placement');
+    if (summaryPlacement) summaryPlacement.textContent = placement.label;
+
+    state.layers = state.layers.filter(l => state.allowedViews.includes(l.view));
+    renderLayers();
+    renderLayersList();
+    updateSummary();
+  }
+
+  function initPlacementModal() {
+    if (pcApp) pcApp.classList.add('pc-awaiting-placement');
+
+    if (!placementModalEl || typeof bootstrap === 'undefined') return;
+
+    placementModal = new bootstrap.Modal(placementModalEl);
+    placementModal.show();
+
+    placementModalEl.querySelectorAll('[data-placement]').forEach(btn => {
+      btn.addEventListener('click', function () {
+        applyPlacement(btn.dataset.placement);
+        placementModal.hide();
+        updateSummary();
+      });
+    });
+  }
+
+  function requirePlacement() {
+    if (state.placement) return true;
+    if (placementModal) placementModal.show();
+    return false;
+  }
+
+  /* ============================================================
      5. VIEW TOGGLE (Front / Back) — synced left panel + toolbar
      ============================================================ */
   function setView(view) {
+    if (state.allowedViews && !state.allowedViews.includes(view)) return;
+
     state.view = view;
+    updateGarmentImageSrc();
 
     [viewToggle, viewToggleTop].forEach(toggle => {
       if (!toggle) return;
@@ -382,6 +511,7 @@ document.addEventListener('DOMContentLoaded', function () {
   }
 
   function handleFiles(files) {
+    if (!requirePlacement()) return;
     if (!files || !files.length) return;
     Array.from(files).forEach(file => {
       if (!file.type.match(/^image\/(png|jpeg|jpg|svg\+xml)/)) return;
@@ -395,12 +525,13 @@ document.addEventListener('DOMContentLoaded', function () {
   }
 
   function addImageLayer(src, name) {
+    const pos = getDefaultLayerPosition('image');
     const layer = {
       id: state.nextId++,
       type: 'image',
       view: state.view,
-      x: 32, y: 28,
-      w: 36, h: 36,
+      x: pos.x, y: pos.y,
+      w: pos.w, h: pos.h,
       src: src,
       name: name || 'Uploaded artwork'
     };
@@ -462,6 +593,8 @@ document.addEventListener('DOMContentLoaded', function () {
   // using the current style controls — multiple text layers can coexist.
   if (addTextBtn) {
     addTextBtn.addEventListener('click', function () {
+      if (!requirePlacement()) return;
+
       const text = (textInput.value || '').trim();
       if (!text) {
         textInput.focus();
@@ -473,13 +606,14 @@ document.addEventListener('DOMContentLoaded', function () {
       // Stagger new layers slightly so they don't all stack exactly on
       // top of one another.
       const offset = (state.layers.filter(l => l.type === 'text' && l.view === state.view).length % 5) * 4;
+      const pos = getDefaultLayerPosition('text');
 
       const layer = {
         id: state.nextId++,
         type: 'text',
         view: state.view,
-        x: 28 + offset, y: 42 + offset,
-        w: 44, h: 14,
+        x: pos.x + offset, y: pos.y + offset,
+        w: pos.w, h: pos.h,
         text: text,
         font: fontSelect.value,
         fontSize: parseInt(fontSizeRange.value, 10),
@@ -506,7 +640,7 @@ document.addEventListener('DOMContentLoaded', function () {
     return state.layers.find(l => l.id === state.selectedLayerId) || null;
   }
 
-  function buildLayerElement(layer, isSelected) {
+  function buildLayerElement(layer, isSelected, scaleFactor) {
     const el = document.createElement('div');
     el.className = 'pcc-layer-item';
     if (isSelected) el.classList.add('selected');
@@ -522,16 +656,23 @@ document.addEventListener('DOMContentLoaded', function () {
       img.src = layer.src;
       img.alt = layer.name || 'Custom artwork';
       img.draggable = false;
+      const pa = window.TEDesignPrintArea;
+      if (pa) pa.styleImageLayerElement(el, img);
       el.appendChild(img);
     } else {
+      const pa = window.TEDesignPrintArea;
+      const type = pa ? pa.scaledTypography(layer, scaleFactor || 1) : {
+        fontSize: layer.fontSize,
+        letterSpacing: layer.letterSpacing,
+      };
       const span = document.createElement('span');
       span.className = 'pcc-layer-text';
       span.textContent = layer.text;
       span.style.fontFamily = layer.font;
-      span.style.fontSize = layer.fontSize + 'px';
+      span.style.fontSize = type.fontSize + 'px';
       span.style.fontWeight = (layer.fontWeight === 'italic') ? '400' : layer.fontWeight;
       span.style.fontStyle = (layer.fontWeight === 'italic') ? 'italic' : 'normal';
-      span.style.letterSpacing = layer.letterSpacing + 'px';
+      span.style.letterSpacing = type.letterSpacing + 'px';
       span.style.color = layer.colour;
       el.appendChild(span);
       el.style.height = 'auto';
@@ -816,12 +957,24 @@ document.addEventListener('DOMContentLoaded', function () {
   /* ============================================================
      13. PRICING & SUMMARY
      ============================================================ */
-  const DECORATION_FEE_PER_ITEM = 1.50;
-
-  function calculateUnitPrice() {
-    const elementCount = state.layers.length;
-    return state.basePrice + (elementCount * DECORATION_FEE_PER_ITEM);
+  function getPlacementFee() {
+    if (!state.placement) return 0;
+    const pa = window.TEDesignPrintArea;
+    if (pa && typeof pa.getPlacementFee === 'function') {
+      return pa.getPlacementFee(state.placement);
+    }
+    return PLACEMENT_FEES[state.placement] || 0;
   }
+
+  function calculateUnitPriceExVat() {
+    return state.basePrice + getPlacementFee();
+  }
+
+  function calculateLineSubtotalExVat() {
+    return (calculateUnitPriceExVat() * state.qty) + (hasLogoSetup ? LOGO_SETUP_FEE : 0);
+  }
+
+  const VAT_NOTE_HTML = ' <small class="pc-vat-note">+ VAT</small>';
 
   function formatPrice(val) {
     const fixed = val.toFixed(2);
@@ -830,50 +983,254 @@ document.addEventListener('DOMContentLoaded', function () {
   }
 
   function updateSummary() {
-    const unitPrice = calculateUnitPrice();
+    const unitPrice = calculateUnitPriceExVat();
+    const lineSubtotal = calculateLineSubtotalExVat();
 
     if (summaryGarment)  summaryGarment.textContent = state.garmentLabel;
     if (summaryColour)   summaryColour.textContent = state.colourName;
     if (summaryElements) summaryElements.textContent = state.layers.length;
-    if (summaryTotal)    summaryTotal.innerHTML = formatPrice(unitPrice);
+    if (summaryTotal)    summaryTotal.innerHTML = formatPrice(lineSubtotal) + VAT_NOTE_HTML;
 
-    if (topPrice) topPrice.textContent = `£${unitPrice.toFixed(2)}`;
+    if (topPrice) topPrice.textContent = `£${unitPrice.toFixed(2)} + VAT`;
   }
 
   /* ============================================================
-     14. ADD TO CART — build preview modal
-     The modal preview canvas shares the exact same aspect ratio
-     (4:5) and the same .pcc-garment-img / .pcc-layer-item markup
-     as the live canvas, so every layer's stored x/y/w/h percentages
-     map to identical positions and proportions in both places.
+     14. ADD TO CART — save design & show success modal
      ============================================================ */
+  const previewModalEl = document.getElementById('pcPreviewModal');
+  const pcmConfirmAddBtn = document.getElementById('pcmConfirmAddBtn');
+  const pcmEditingActions = document.getElementById('pcmEditingActions');
+  const pcmSuccessActions = document.getElementById('pcmSuccessActions');
+  const pcmCheckoutNowBtn = document.getElementById('pcmCheckoutNowBtn');
+  const pcmViewCartBtn = document.getElementById('pcmViewCartBtn');
+  let previewModal = null;
+
+  if (previewModalEl) {
+    previewModal = new bootstrap.Modal(previewModalEl);
+    previewModalEl.addEventListener('hidden.bs.modal', () => {
+      if (pcmEditingActions) pcmEditingActions.style.display = '';
+      if (pcmSuccessActions) pcmSuccessActions.style.display = 'none';
+    });
+    previewModalEl.addEventListener('shown.bs.modal', buildPreviewModal);
+  }
+
   if (addToCartBtn) {
     addToCartBtn.addEventListener('click', function () {
-      buildPreviewModal();
+      if (!requirePlacement()) return;
+      if (previewModal) previewModal.show();
+    });
+  }
+
+  if (pcmConfirmAddBtn) {
+    pcmConfirmAddBtn.addEventListener('click', saveToCart);
+  }
+
+  async function saveToCart() {
+    if (!customizerData.cart_item_id || !customizerData.customize_url) {
+      alert('No cart item found. Please go back to the product page and try again.');
+      return;
+    }
+
+    const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content;
+    const unitPrice = state.basePrice;
+    const decorationFee = getPlacementFee();
+
+    const designPayload = {
+      garment: state.garmentLabel,
+      colour: { name: state.colourName, hex: state.colourHex, code: state.colourCode },
+      customizer_image: customizerData.customizer_image || null,
+      customizer_image_back: customizerData.customizer_image_back || garmentImages.back || null,
+      canvas_width: canvas.getBoundingClientRect().width,
+      decoration_placement: state.placement,
+      decoration_placement_label: state.placementLabel,
+      print_area: getPrintAreaBounds(),
+      size: state.size,
+      qty: state.qty,
+      view: state.view,
+      layers: state.layers,
+    };
+
+    const formData = new FormData();
+    formData.append('design_data', JSON.stringify(designPayload));
+    formData.append('unit_price', String(unitPrice));
+    formData.append('decoration_fee', String(decorationFee));
+    formData.append('quantity', String(state.qty));
+    formData.append('size', state.size);
+    formData.append('colour_name', state.colourName);
+
+    try {
+      const previewBlob = await exportPreviewBlob();
+      if (previewBlob) {
+        formData.append('preview_image', previewBlob, 'preview.png');
+      }
+    } catch {
+      // Preview export is optional
+    }
+
+    pcmConfirmAddBtn.disabled = true;
+    pcmConfirmAddBtn.classList.add('pcm-saving');
+    pcmConfirmAddBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span> Saving…';
+
+    try {
+      const res = await fetch(customizerData.customize_url, {
+        method: 'POST',
+        headers: {
+          'X-CSRF-TOKEN': csrfToken,
+          'Accept': 'application/json',
+        },
+        body: formData,
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        throw new Error(data.message || 'Failed to save design');
+      }
+
+      if (pcmCheckoutNowBtn) pcmCheckoutNowBtn.href = data.checkout_url;
+      if (pcmViewCartBtn) pcmViewCartBtn.href = data.cart_url;
+
+      if (pcmEditingActions) pcmEditingActions.style.display = 'none';
+      if (pcmSuccessActions) pcmSuccessActions.style.display = 'flex';
+
+      const modalTitle = document.getElementById('pcPreviewModalLabel');
+      const modalSub = document.querySelector('.pcm-sub');
+      if (modalTitle) {
+        modalTitle.innerHTML = '<i class="bi bi-check-circle-fill"></i> Added to Cart!';
+      }
+      if (modalSub) {
+        modalSub.textContent = 'Your custom design has been saved successfully.';
+      }
+    } catch (err) {
+      alert(err.message || 'Could not save your design. Please try again.');
+    } finally {
+      pcmConfirmAddBtn.disabled = false;
+      pcmConfirmAddBtn.classList.remove('pcm-saving');
+      pcmConfirmAddBtn.innerHTML = '<i class="bi bi-cart-plus"></i> Confirm &amp; Add to Cart';
+    }
+  }
+
+  function getPrintAreaBounds() {
+    const pa = window.TEDesignPrintArea;
+    if (state.placement && pa) {
+      const placement = pa.getPlacement(state.placement);
+      if (placement) return { ...placement.printArea };
+    }
+    if (!pa) return { x: 57, y: 24, w: 18, h: 20, centered: false };
+    return pa.fromElements(canvas, printArea);
+  }
+
+  async function exportPreviewBlob() {
+    const wrap = document.getElementById('pcmPreviewCanvas');
+    if (!wrap) return null;
+
+    const canvas = document.createElement('canvas');
+    const w = 400;
+    const h = 500;
+    canvas.width = w;
+    canvas.height = h;
+    const ctx = canvas.getContext('2d');
+    ctx.fillStyle = '#f0f0f0';
+    ctx.fillRect(0, 0, w, h);
+
+    const garment = wrap.querySelector('#pcmGarmentImg');
+    if (garment && garment.complete) {
+      await drawImageToCanvas(ctx, garment, 0, 0, w, h);
+    }
+
+    const previewW = wrap.getBoundingClientRect().width || 260;
+    const exportScale = w / previewW;
+
+    const bounds = getPrintAreaBounds();
+    const pa = window.TEDesignPrintArea;
+    const clip = pa ? pa.clipRect(w, h, bounds) : null;
+
+    if (clip) {
+      ctx.save();
+      ctx.beginPath();
+      ctx.rect(clip.x, clip.y, clip.w, clip.h);
+      ctx.clip();
+    }
+
+    const layerEls = wrap.querySelectorAll('.pcc-layer-item');
+    for (const el of layerEls) {
+      const img = el.querySelector('img');
+      if (img) {
+        const lx = (parseFloat(el.style.left) / 100) * w;
+        const ly = (parseFloat(el.style.top) / 100) * h;
+        const lw = (parseFloat(el.style.width) / 100) * w;
+        const lh = (parseFloat(el.style.height) / 100) * h;
+        await drawImageToCanvas(ctx, img, lx, ly, lw, lh);
+      } else {
+        const span = el.querySelector('.pcc-layer-text');
+        const lx = (parseFloat(el.style.left) / 100) * w;
+        const ly = (parseFloat(el.style.top) / 100) * h;
+        const lw = (parseFloat(el.style.width) / 100) * w;
+        const domFontSize = parseInt(span?.style.fontSize, 10) || 16;
+        const fontSize = Math.max(1, Math.round(domFontSize * exportScale));
+        ctx.fillStyle = span?.style.color || el.style.color || '#fff';
+        ctx.font = `${span?.style.fontStyle === 'italic' ? 'italic ' : ''}${span?.style.fontWeight || 'normal'} ${fontSize}px ${span?.style.fontFamily || 'sans-serif'}`;
+        ctx.textAlign = 'center';
+        ctx.fillText((span?.textContent || el.textContent || '').trim(), lx + lw / 2, ly + fontSize);
+      }
+    }
+
+    if (clip) ctx.restore();
+
+    return new Promise(resolve => canvas.toBlob(resolve, 'image/png'));
+  }
+
+  function drawImageToCanvas(ctx, img, x, y, w, h) {
+    return new Promise(resolve => {
+      if (img.complete && img.naturalWidth) {
+        ctx.drawImage(img, x, y, w, h);
+        resolve();
+      } else {
+        img.onload = () => { ctx.drawImage(img, x, y, w, h); resolve(); };
+        img.onerror = resolve;
+      }
     });
   }
 
   function buildPreviewModal() {
+    if (pcmEditingActions) pcmEditingActions.style.display = '';
+    if (pcmSuccessActions) pcmSuccessActions.style.display = 'none';
+
+    const modalTitle = document.getElementById('pcPreviewModalLabel');
+    const modalSub = document.querySelector('.pcm-sub');
+    if (modalTitle) modalTitle.innerHTML = '<i class="bi bi-eye"></i> Preview Your Design';
+    if (modalSub) modalSub.textContent = 'Review your design before adding to cart';
+
     if (pcmLayers) pcmLayers.innerHTML = '';
 
-    // Keep the modal garment image in sync with the live canvas
+    const printBounds = getPrintAreaBounds();
+    const pa = window.TEDesignPrintArea;
+    const previewCanvas = document.getElementById('pcmPreviewCanvas');
+    const scaleFactor = pa ? pa.previewScaleFactor(canvas, previewCanvas, 260) : 1;
     if (pcmGarmentImg) {
-      pcmGarmentImg.style.filter = garmentImg.style.filter || 'none';
+      pcmGarmentImg.src = getGarmentImageForView(state.view);
+      pcmGarmentImg.style.filter = garmentImg?.style.filter || 'none';
     }
 
-    state.layers
+    if (pcmLayers && pa) {
+      pa.applyClip(pcmLayers, printBounds);
+    }
+
+    const visibleLayers = state.layers
       .filter(l => l.view === state.view)
-      .forEach(layer => {
-        const el = buildLayerElement(layer, false);
-        if (pcmLayers) pcmLayers.appendChild(el);
-      });
+      .filter(l => !pa || pa.intersects(l, printBounds));
+
+    visibleLayers.forEach(layer => {
+      const el = buildLayerElement(layer, false, scaleFactor);
+      if (pcmLayers) pcmLayers.appendChild(el);
+    });
 
     pcmGarment.textContent = state.garmentLabel;
     pcmColour.textContent  = state.colourName;
-    pcmSize.textContent    = state.size;
+    pcmSize.textContent    = getSizeDisplay();
     pcmQty.textContent     = state.qty;
-    pcmElements.textContent = state.layers.length;
-    pcmTotal.innerHTML     = formatPrice(calculateUnitPrice() * state.qty);
+    pcmElements.textContent = visibleLayers.length;
+    pcmTotal.innerHTML     = formatPrice(calculateLineSubtotalExVat()) + VAT_NOTE_HTML;
   }
 
   /* ============================================================
@@ -883,5 +1240,6 @@ document.addEventListener('DOMContentLoaded', function () {
   renderLayers();
   renderLayersList();
   updateSummary();
+  initPlacementModal();
 
 });

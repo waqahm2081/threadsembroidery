@@ -4,8 +4,12 @@
     $subtitle = collect([$product['brand'], $product['material'], $product['type'], $product['gender']])->filter()->implode(' · ');
     $priceWhole = floor($product['min_price']);
     $priceDecimal = str_pad((string) round(($product['min_price'] - $priceWhole) * 100), 2, '0', STR_PAD_LEFT);
+    $sizeBreakdown = $cartItem?->size_breakdown ?? null;
     $defaultSize = request('size', $activeColour['sizes'][0]['size'] ?? 'M');
-    $defaultQty = max(1, (int) request('qty', 1));
+    $defaultQty = max(1, (int) request('qty', $cartItem?->quantity ?? 1));
+    $sizeDisplay = $sizeBreakdown
+        ? collect($sizeBreakdown)->map(fn ($r) => $r['size'].' × '.$r['qty'])->implode(', ')
+        : $defaultSize;
 @endphp
 
 @extends('layouts.customizer')
@@ -17,7 +21,7 @@ pc-body
 @endsection
 
 @push('styles')
-<link rel="stylesheet" href="{{ asset('assets/css/product-customizer.css') }}">
+<link rel="stylesheet" href="{{ asset('assets/css/product-customizer.css') }}?v=1.5">
 @endpush
 
 @section('content')
@@ -39,18 +43,16 @@ pc-body
             </div>
 
             <div class="pct-center">
-                <span class="pct-product-name" id="pctProductName">{{ $product['title'] }}</span>
-                <span class="pct-product-sep" aria-hidden="true"></span>
-                <span class="pct-product-meta"><i class="bi bi-rulers"></i> Size: <strong id="pctSize">{{ $defaultSize }}</strong></span>
+                <span class="pct-product-meta"><i class="bi bi-rulers"></i> Sizes: <strong id="pctSize">{{ $sizeDisplay }}</strong></span>
                 <span class="pct-product-meta"><i class="bi bi-stack"></i> Qty: <strong id="pctQty">{{ $defaultQty }}</strong></span>
             </div>
 
             <div class="pct-right">
                 <div class="pct-price-box">
                     <span class="pct-price-label">Unit Price</span>
-                    <span class="pct-price-value" id="pctPrice">£{{ $priceWhole }}.{{ $priceDecimal }}</span>
+                    <span class="pct-price-value" id="pctPrice">£{{ $priceWhole }}.{{ $priceDecimal }} + VAT</span>
                 </div>
-                <button class="pct-cart-btn" id="pcAddToCartBtn" data-bs-toggle="modal" data-bs-target="#pcPreviewModal">
+                <button class="pct-cart-btn" id="pcAddToCartBtn">
                     <i class="bi bi-cart-plus"></i>
                     <span>Add to Cart</span>
                 </button>
@@ -226,13 +228,17 @@ pc-body
                             <strong id="pcSummaryColour">{{ $activeColour['name'] ?? '—' }}</strong>
                         </div>
                         <div class="pcl-summary-row">
+                            <span>Decoration</span>
+                            <strong id="pcSummaryPlacement">—</strong>
+                        </div>
+                        <div class="pcl-summary-row">
                             <span>Design Elements</span>
                             <strong id="pcSummaryElements">0</strong>
                         </div>
                         <div class="pcl-summary-divider"></div>
                         <div class="pcl-summary-row pcl-summary-total">
-                            <span>Estimated Unit Price</span>
-                            <strong id="pcSummaryTotal">£{{ $priceWhole }}.{{ $priceDecimal }}</strong>
+                            <span>Estimated Total <small class="pc-vat-note">(ex. VAT)</small></span>
+                            <strong id="pcSummaryTotal">£{{ $priceWhole }}.{{ $priceDecimal }} <small class="pc-vat-note">+ VAT</small></strong>
                         </div>
                     </div>
                 </div>
@@ -243,8 +249,8 @@ pc-body
 
                 <div class="pcc-toolbar">
                     <div class="pcc-view-toggle" id="pcViewToggleTop">
-                        <button class="pcc-view-btn active" data-view="front"><i class="bi bi-square"></i> <span>Front</span></button>
-                        <button class="pcc-view-btn" data-view="back"><i class="bi bi-square"></i> <span>Back</span></button>
+                        <button class="pcc-view-btn active" data-view="front"><i class="bi bi-person-standing" aria-hidden="true"></i> <span>Front</span></button>
+                        <button class="pcc-view-btn" data-view="back"><i class="bi bi-person-standing pcc-view-icon--back" aria-hidden="true"></i> <span>Back</span></button>
                     </div>
                     <div class="pcc-toolbar-actions">
                         <button class="pcc-tool-btn" id="pcUndoBtn" title="Remove selected element"><i class="bi bi-trash3"></i></button>
@@ -271,13 +277,51 @@ pc-body
 
     </div>
 
+    {{-- Decoration placement modal (shown on load) --}}
+    <div class="modal fade" id="pcPlacementModal" tabindex="-1" aria-labelledby="pcPlacementModalLabel" aria-hidden="true" data-bs-backdrop="static" data-bs-keyboard="false">
+        <div class="modal-dialog modal-dialog-centered pcm-placement-dialog">
+            <div class="modal-content pcm-placement-content">
+                <div class="modal-header pcm-placement-header">
+                    <div>
+                        <h5 class="modal-title pcm-placement-title" id="pcPlacementModalLabel">
+                            <i class="bi bi-bounding-box"></i> Choose Decoration Area
+                        </h5>
+                        <p class="pcm-placement-sub">Select where your design will be applied on the garment.</p>
+                    </div>
+                </div>
+                <div class="modal-body pcm-placement-body">
+                    <div class="pcm-placement-options">
+                        <button type="button" class="pcm-placement-option" data-placement="left_chest">
+                            <span class="pcm-placement-icon"><i class="bi bi-heart"></i></span>
+                            <span class="pcm-placement-label">Left Chest</span>
+                            <span class="pcm-placement-desc">Classic logo position on the front</span>
+                            <span class="pcm-placement-price">£3.50 + VAT</span>
+                        </button>
+                        <button type="button" class="pcm-placement-option" data-placement="back_print">
+                            <span class="pcm-placement-icon"><i class="bi bi-printer"></i></span>
+                            <span class="pcm-placement-label">Back Print</span>
+                            <span class="pcm-placement-desc">Full back print area</span>
+                            <span class="pcm-placement-price">£6.00 + VAT</span>
+                        </button>
+                        <button type="button" class="pcm-placement-option" data-placement="back_embroidery">
+                            <span class="pcm-placement-icon"><i class="bi bi-magic"></i></span>
+                            <span class="pcm-placement-label">Back Embroidery</span>
+                            <span class="pcm-placement-desc">Full back embroidery area</span>
+                            <span class="pcm-placement-price">£8.00 + VAT</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <div class="modal fade" id="pcPreviewModal" tabindex="-1" aria-labelledby="pcPreviewModalLabel" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered pcm-dialog">
             <div class="modal-content pcm-content">
                 <div class="modal-header pcm-header">
                     <div>
-                        <h5 class="modal-title pcm-title" id="pcPreviewModalLabel"><i class="bi bi-check-circle-fill"></i> Added to Cart</h5>
-                        <p class="pcm-sub">Here's a preview of your custom design</p>
+                        <h5 class="modal-title pcm-title" id="pcPreviewModalLabel"><i class="bi bi-eye"></i> Preview Your Design</h5>
+                        <p class="pcm-sub">Review your design before adding to cart</p>
                     </div>
                     <button type="button" class="pcm-close" data-bs-dismiss="modal" aria-label="Close">
                         <i class="bi bi-x-lg"></i>
@@ -293,16 +337,22 @@ pc-body
                     <div class="pcm-details">
                         <div class="pcm-detail-row"><span>Garment</span><strong id="pcmGarment">{{ $product['type'] ?: $product['title'] }}</strong></div>
                         <div class="pcm-detail-row"><span>Colour</span><strong id="pcmColour">{{ $activeColour['name'] ?? '—' }}</strong></div>
-                        <div class="pcm-detail-row"><span>Size</span><strong id="pcmSize">{{ $defaultSize }}</strong></div>
+                        <div class="pcm-detail-row"><span>Sizes</span><strong id="pcmSize">{{ $sizeDisplay }}</strong></div>
                         <div class="pcm-detail-row"><span>Quantity</span><strong id="pcmQty">{{ $defaultQty }}</strong></div>
                         <div class="pcm-detail-row"><span>Design Elements</span><strong id="pcmElements">0</strong></div>
                         <div class="pcm-detail-divider"></div>
-                        <div class="pcm-detail-row pcm-detail-total"><span>Estimated Total</span><strong id="pcmTotal">£{{ $priceWhole }}.{{ $priceDecimal }}</strong></div>
+                        <div class="pcm-detail-row pcm-detail-total"><span>Estimated Total <small class="pc-vat-note">(ex. VAT)</small></span><strong id="pcmTotal">£{{ $priceWhole }}.{{ $priceDecimal }} <small class="pc-vat-note">+ VAT</small></strong></div>
                     </div>
                 </div>
-                <div class="modal-footer pcm-footer">
-                    <button type="button" class="pcm-continue-btn" data-bs-dismiss="modal">Continue Editing</button>
-                    <a href="{{ $productUrl }}" class="pcm-checkout-btn"><i class="bi bi-arrow-left"></i> Back to Product</a>
+                <div class="modal-footer pcm-footer" id="pcmFooter">
+                    <div class="pcm-editing-actions" id="pcmEditingActions">
+                        <button type="button" class="pcm-continue-btn" data-bs-dismiss="modal">Continue Editing</button>
+                        <button type="button" class="pcm-checkout-btn" id="pcmConfirmAddBtn"><i class="bi bi-cart-plus"></i> Confirm &amp; Add to Cart</button>
+                    </div>
+                    <div class="pcm-success-actions" id="pcmSuccessActions" style="display:none">
+                        <a href="{{ route('checkout') }}" class="pcm-checkout-now-btn" id="pcmCheckoutNowBtn"><i class="bi bi-credit-card"></i> Checkout Now</a>
+                        <a href="{{ route('cart') }}" class="pcm-view-cart-btn" id="pcmViewCartBtn"><i class="bi bi-cart3"></i> View Cart</a>
+                    </div>
                 </div>
             </div>
         </div>
@@ -317,16 +367,28 @@ pc-body
         'title' => $product['title'],
         'type' => $product['type'],
         'brand' => $product['brand'],
-        'min_price' => $product['min_price'],
+        'min_price' => $cartItem?->unit_price ?? $product['min_price'],
         'customizer_image' => $product['customizer_image'],
+        'customizer_image_back' => asset('assets/images/customizer/tshirtcustom-back.png'),
+        'fallback_customizer_front' => asset('assets/images/customizer/tshirtcustom.png'),
+        'fallback_customizer_back' => asset('assets/images/customizer/tshirtcustom-back.png'),
         'colours' => $product['colours'],
         'default_size' => $defaultSize,
         'default_qty' => $defaultQty,
         'default_colour' => request('colour'),
+        'size_breakdown' => $sizeBreakdown,
+        'size_display' => $sizeDisplay,
+        'cart_item_id' => request('cart_item_id'),
+        'logo_setup_fee' => $cartItem?->logo_setup_fee ?? 0,
+        'customize_url' => request('cart_item_id') ? route('cart.customize', request('cart_item_id')) : null,
+        'cart_url' => route('cart'),
+        'checkout_url' => route('checkout'),
+        'pricing' => \App\Services\PricingService::clientConfig(),
     ];
 @endphp
 window.__CUSTOMIZER_DATA__ = @json($customizerData);
 </script>
+<script src="{{ asset('assets/js/design-print-area.js') }}?v=1.2"></script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-<script src="{{ asset('assets/js/product-customizer.js?v=1.2') }}"></script>
+<script src="{{ asset('assets/js/product-customizer.js?v=1.8') }}"></script>
 @endpush

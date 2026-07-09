@@ -39,7 +39,7 @@
                 <div class="ctb-form-card">
                     <div class="ctb-form-header">
                         <h2 class="ctb-form-title">Send Us a Message</h2>
-                        <p class="ctb-form-sub">Fill in the form and we'll get back to you within 24 hours.</p>
+                        <p class="ctb-form-sub">Fill in the form and we'll get back to you as soon as possible.</p>
                     </div>
 
                     <form class="ctb-form" id="contactForm" novalidate>
@@ -121,7 +121,7 @@
                             <i class="bi bi-check-circle-fill"></i>
                             <div>
                                 <strong>Message sent!</strong>
-                                <span>Thanks for reaching out — we'll be in touch within 24 hours.</span>
+                                <span>Thanks for reaching out — we'll be in touch shortly.</span>
                             </div>
                         </div>
 
@@ -155,7 +155,7 @@
                         <div class="ctb-info-content">
                             <h4 class="ctb-info-title">Email</h4>
                             <a href="mailto:customerservice@threadsembroideryprint.co.uk" class="ctb-info-value">customerservice@threadsembroideryprint.co.uk</a>
-                            <span class="ctb-info-note">We reply within 24 hours</span>
+                            <span class="ctb-info-note">We aim to reply within 1–2 working days</span>
                         </div>
                     </div>
 
@@ -181,10 +181,10 @@
 
                 <!-- Express quote strip -->
                 <div class="ctb-express-strip">
-                    <div class="ctb-express-icon"><i class="bi bi-lightning-charge-fill"></i></div>
+                    <div class="ctb-express-icon"><i class="bi bi-calendar-check"></i></div>
                     <div>
-                        <strong>Need it fast?</strong>
-                        <span>Ask about our 48-hour express turnaround service. Available on most products.</span>
+                        <strong>Order Turnaround</strong>
+                        <span>Standard orders are completed within 7 to 10 working days from artwork approval.</span>
                     </div>
                 </div>
 

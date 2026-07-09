@@ -260,6 +260,93 @@
   font-weight: 900;
 }
 
+#pd-detail .pd-addon-option {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 16px;
+  border: 1.5px solid rgba(0,0,0,0.08);
+  border-radius: 12px;
+  cursor: pointer;
+  transition: border-color 0.2s ease, background 0.2s ease;
+}
+
+#pd-detail .pd-addon-option:hover {
+  border-color: rgba(238,96,35,0.35);
+  background: #fdf9f7;
+}
+
+#pd-detail .pd-addon-option input {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+
+#pd-detail .pd-addon-check {
+  width: 20px;
+  height: 20px;
+  border: 2px solid rgba(0,0,0,0.15);
+  border-radius: 5px;
+  flex-shrink: 0;
+  position: relative;
+  transition: border-color 0.2s ease, background 0.2s ease;
+}
+
+#pd-detail .pd-addon-option input:checked + .pd-addon-check {
+  background: var(--c-primary);
+  border-color: var(--c-primary);
+}
+
+#pd-detail .pd-addon-option input:checked + .pd-addon-check::after {
+  content: '\F26B';
+  font-family: 'Bootstrap-icons';
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.7rem;
+  color: #fff;
+}
+
+#pd-detail .pd-addon-body {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+#pd-detail .pd-addon-title {
+  font-weight: 700;
+  font-size: 0.88rem;
+  color: #1a1a2e;
+}
+
+#pd-detail .pd-addon-desc {
+  font-size: 0.75rem;
+  color: #888;
+}
+
+#pd-detail .pd-addon-price {
+  font-weight: 700;
+  font-size: 0.88rem;
+  color: var(--c-primary);
+  white-space: nowrap;
+}
+
+#pd-detail .pd-price-vat {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: #888;
+  margin-left: 2px;
+}
+
+#pd-detail .pd-vat-note {
+  font-size: 0.7rem;
+  color: #888;
+  font-weight: 400;
+}
+
 #pd-detail .pd-swatches { display: flex; flex-wrap: wrap; gap: 10px; }
 #pd-detail .pd-swatch {
   width: 30px; height: 30px; border-radius: 50%;

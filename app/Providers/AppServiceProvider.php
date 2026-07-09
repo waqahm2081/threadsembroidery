@@ -11,11 +11,12 @@ class AppServiceProvider extends ServiceProvider
     public function register(): void
     {
         $this->app->singleton(ProductCatalogService::class);
+        $this->app->singleton(\App\Services\CartService::class);
     }
 
     public function boot(): void
     {
-        View::composer(['partials.header', 'partials.footer', 'home'], function ($view) {
+        View::composer(['partials.header', 'partials.footer', 'home', 'cart', 'checkout'], function ($view) {
             $catalog = app(ProductCatalogService::class);
             $categories = $catalog->getCategories();
 
@@ -31,9 +32,17 @@ class AppServiceProvider extends ServiceProvider
                 ])
             )->values()->all();
 
+            $cartCount = 0;
+            try {
+                $cartCount = app(\App\Services\CartService::class)->itemCount();
+            } catch (\Throwable) {
+                // Database may not be migrated yet
+            }
+
             $view->with([
                 'catalogCategories' => $categories,
                 'searchSuggestions' => $searchSuggestions,
+                'cartCount' => $cartCount,
             ]);
 
             if ($view->getName() === 'home') {

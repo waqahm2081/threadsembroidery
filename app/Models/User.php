@@ -21,6 +21,15 @@ class User extends Authenticatable
         'name',
         'email',
         'password',
+        'role',
+        'company_name',
+        'phone',
+        'address_line1',
+        'address_line2',
+        'city',
+        'postcode',
+        'country',
+        'avatar_path',
     ];
 
     /**
@@ -41,4 +50,33 @@ class User extends Authenticatable
     protected $casts = [
         'email_verified_at' => 'datetime',
     ];
+
+    public function carts()
+    {
+        return $this->hasMany(Cart::class);
+    }
+
+    public function orders()
+    {
+        return $this->hasMany(Order::class);
+    }
+
+    public function isAdmin(): bool
+    {
+        return $this->role === 'admin';
+    }
+
+    public function getAvatarUrlAttribute(): string
+    {
+        if ($this->avatar_path) {
+            return asset('storage/'.$this->avatar_path);
+        }
+
+        return asset('assets/images/about1.jpg');
+    }
+
+    public function getAccountTypeLabelAttribute(): string
+    {
+        return $this->company_name ? 'Business' : 'Personal';
+    }
 }

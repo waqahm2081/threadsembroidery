@@ -2,13 +2,16 @@
 
 namespace App\Http\Controllers;
 
+use App\Services\CartService;
 use App\Services\ProductCatalogService;
 use Illuminate\View\View;
 
 class ProductController extends Controller
 {
-    public function __construct(private ProductCatalogService $catalog)
-    {
+    public function __construct(
+        private ProductCatalogService $catalog,
+        private CartService $cartService,
+    ) {
     }
 
     public function show(string $categorySlug, string $productSlug): View
@@ -42,9 +45,15 @@ class ProductController extends Controller
         $product = $this->catalog->getProductDetail($summary['style_code'], $category['name']);
         abort_unless($product, 404);
 
+        $cartItem = null;
+        if ($cartItemId = request('cart_item_id')) {
+            $cartItem = $this->cartService->findItem((int) $cartItemId);
+        }
+
         return view('shop.customizer', [
             'category' => $category,
             'product' => $product,
+            'cartItem' => $cartItem,
         ]);
     }
 }

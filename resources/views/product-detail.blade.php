@@ -232,7 +232,7 @@
                 <div class="pd-trust-row">
                     <span class="pd-trust-item"><i class="bi bi-truck"></i> Free UK Delivery</span>
                     <span class="pd-trust-item"><i class="bi bi-pencil-square"></i> Free Artwork</span>
-                    <span class="pd-trust-item"><i class="bi bi-lightning-charge"></i> 48hr Turnaround</span>
+                    <span class="pd-trust-item"><i class="bi bi-calendar-check"></i> 7–10 Day Turnaround</span>
                 </div>
             </div>
 
@@ -283,7 +283,7 @@
                             <li>Suitable for corporate, hospitality, sports, and schoolwear</li>
                             <li>Shrink-resistant and shape-retaining after repeated washing</li>
                             <li>Available in 12+ colourways to match your brand palette</li>
-                            <li>Dispatched within 48 hours of artwork approval</li>
+                            <li>Completed within 7–10 working days of artwork approval</li>
                         </ul>
                     </div>
                 </div>

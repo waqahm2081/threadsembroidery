@@ -32,8 +32,8 @@
                     <span class="ticker-item"><i class="bi bi-envelope-fill"></i>
                         &nbsp;customerservice@threadsembroideryprint.co.uk</span>
                     <span class="ticker-sep">✦</span>
-                    <span class="ticker-item"><i class="bi bi-lightning-charge-fill"></i> &nbsp;48-Hour Express
-                        Turnaround Available</span>
+                    <span class="ticker-item"><i class="bi bi-calendar-check"></i> &nbsp;7–10 Working Day
+                        Turnaround on Orders</span>
                     <span class="ticker-sep">✦</span>
                     <span class="ticker-item"><i class="bi bi-brush-fill"></i> &nbsp;Free Logo Artwork Setup on Every
                         Order</span>
@@ -97,6 +97,10 @@
                             <a class="nav-link {{ request()->routeIs('about') ? 'active' : '' }}" href="{{ route('about') }}">About Us</a>
                         </li>
 
+                        <li class="nav-item">
+                            <a class="nav-link {{ request()->routeIs('branding-enquiry') ? 'active' : '' }}" href="{{ route('branding-enquiry') }}">Branding Enquiry</a>
+                        </li>
+
                         <!-- Catalogue with Mega Menu -->
                         <li class="nav-item mega-parent {{ request()->routeIs('shop.*') ? 'active' : '' }}" id="catalogueItem">
                             <a class="nav-link mega-trigger {{ request()->routeIs('shop.*') ? 'active' : '' }}" href="#" id="catalogueTrigger">
@@ -146,14 +150,33 @@
 
                     </ul>
 
-                    <!-- RIGHT: Search + Auth Button -->
+                    <!-- RIGHT: Search + Cart + Auth -->
                     <div class="nav-right-slot">
-                        <!-- Search toggle icon -->
                         <button class="nav-search-btn" id="navSearchToggle" aria-label="Search">
                             <i class="bi bi-search"></i>
                         </button>
-                        <a href="{{ route('login') }}" class="btn nav-quote-btn">Login / Signup <i
-                                class="bi bi-arrow-right ms-1"></i></a>
+                        <a href="{{ route('cart') }}" class="nav-cart-btn" aria-label="View cart">
+                            <i class="bi bi-cart3"></i>
+                            @if(($cartCount ?? 0) > 0)
+                                <span class="nav-cart-badge" id="navCartBadge">{{ $cartCount }}</span>
+                            @else
+                                <span class="nav-cart-badge" id="navCartBadge" style="display:none">0</span>
+                            @endif
+                        </a>
+                        @auth
+                            <div class="nav-user-menu">
+                                <a href="{{ route('user-dashboard') }}" class="nav-user-link">
+                                    <i class="bi bi-person-circle"></i>
+                                    <span>{{ Auth::user()->name }}</span>
+                                </a>
+                                <form action="{{ route('logout') }}" method="POST" class="nav-logout-form">
+                                    @csrf
+                                    <button type="submit" class="nav-logout-btn" title="Sign out"><i class="bi bi-box-arrow-right"></i></button>
+                                </form>
+                            </div>
+                        @else
+                            <a href="{{ route('login') }}" class="btn nav-quote-btn">Login / Signup <i class="bi bi-arrow-right ms-1"></i></a>
+                        @endauth
                     </div>
                 </div>
 

@@ -12,8 +12,9 @@
   ======================================================== -->
     <section id="hero">
 
-        <!-- Subtle bg gradient -->
+        <!-- Subtle bg gradient + grain texture -->
         <div class="hero-bg-gradient"></div>
+        <div class="hero-grain" aria-hidden="true"></div>
 
         <div class="hero-container">
             <div class="row g-0 align-items-center hero-row">
@@ -45,6 +46,23 @@
                             <span class="play-wrap"><i class="bi bi-play-fill"></i></span>
                             Get a Free Quote
                         </a>
+                    </div>
+
+                    <div class="hero-stats">
+                        <div class="stat-item">
+                            <span class="stat-num" data-target="15" data-suffix="+">15+</span>
+                            <span class="stat-label">Years Experience</span>
+                        </div>
+                        <div class="stat-divider"></div>
+                        <div class="stat-item">
+                            <span class="stat-num" data-target="5000" data-suffix="+">5,000+</span>
+                            <span class="stat-label">Happy Clients</span>
+                        </div>
+                        <div class="stat-divider"></div>
+                        <div class="stat-item">
+                            <span class="stat-num">7–10</span>
+                            <span class="stat-label">Day Turnaround</span>
+                        </div>
                     </div>
 
                 </div>
@@ -88,10 +106,10 @@
 
                         <!-- Floating delivery badge -->
                         <div class="hero-delivery-badge">
-                            <i class="bi bi-lightning-charge-fill"></i>
+                            <i class="bi bi-calendar-check"></i>
                             <div>
-                                <strong>48hr</strong>
-                                <span>Express</span>
+                                <strong>7–10</strong>
+                                <span>Days</span>
                             </div>
                         </div>
 
@@ -458,10 +476,7 @@
 
     </section>
 
-
-
-
-
+    @include('partials.branding-service')
 
 
     <!-- ============================================================
@@ -630,6 +645,25 @@
                 @endforeach
             </div><!-- /fp-grid -->
 
+            <!-- Trust strip -->
+            <div class="fp-trust-strip" data-fp-reveal>
+                <div class="fp-trust-item">
+                    <i class="bi bi-truck"></i> Free UK Delivery
+                </div>
+                <div class="fp-trust-divider"></div>
+                <div class="fp-trust-item">
+                    <i class="bi bi-patch-check-fill"></i> Quality Guaranteed
+                </div>
+                <div class="fp-trust-divider"></div>
+                <div class="fp-trust-item">
+                    <i class="bi bi-brush"></i> Free Artwork Setup
+                </div>
+                <div class="fp-trust-divider"></div>
+                <div class="fp-trust-item">
+                    <i class="bi bi-shield-check"></i> Secure Checkout
+                </div>
+            </div>
+
         </div><!-- /fp-container -->
     </section>
 
@@ -684,7 +718,7 @@
                     </li>
                     <li>
                         <span class="vs-point-icon"><i class="bi bi-check2"></i></span>
-                        Fast 48-hour turnaround with free UK delivery
+                        7–10 working day turnaround with free UK delivery
                     </li>
                     <li>
                         <span class="vs-point-icon"><i class="bi bi-check2"></i></span>

@@ -43,9 +43,7 @@ pc-body
             </div>
 
             <div class="pct-center">
-                <span class="pct-product-name">Custom T-Shirt</span>
-                <span class="pct-product-sep" aria-hidden="true"></span>
-                <span class="pct-product-meta"><i class="bi bi-rulers"></i> Size: <strong id="pctSize">M</strong></span>
+                <span class="pct-product-meta"><i class="bi bi-rulers"></i> Sizes: <strong id="pctSize">M</strong></span>
                 <span class="pct-product-meta"><i class="bi bi-stack"></i> Qty: <strong id="pctQty">25</strong></span>
             </div>
 
@@ -262,8 +260,8 @@ pc-body
 
                 <div class="pcc-toolbar">
                     <div class="pcc-view-toggle" id="pcViewToggleTop">
-                        <button class="pcc-view-btn active" data-view="front"><i class="bi bi-square"></i> <span>Front</span></button>
-                        <button class="pcc-view-btn" data-view="back"><i class="bi bi-square"></i> <span>Back</span></button>
+                        <button class="pcc-view-btn active" data-view="front"><i class="bi bi-person-standing" aria-hidden="true"></i> <span>Front</span></button>
+                        <button class="pcc-view-btn" data-view="back"><i class="bi bi-person-standing pcc-view-icon--back" aria-hidden="true"></i> <span>Back</span></button>
                     </div>
                     <div class="pcc-toolbar-actions">
                         <button class="pcc-tool-btn" id="pcUndoBtn" title="Remove selected element"><i class="bi bi-trash3"></i></button>

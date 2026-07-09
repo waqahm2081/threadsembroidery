@@ -14,6 +14,11 @@ class PageController extends Controller
         return view('about');
     }
 
+    public function brandingEnquiry()
+    {
+        return view('branding-enquiry');
+    }
+
     public function contact()
     {
         return view('contact');
@@ -32,10 +37,5 @@ class PageController extends Controller
     public function forgotPassword()
     {
         return view('forgot-password');
-    }
-
-    public function userDashboard()
-    {
-        return view('user-dashboard');
     }
 }

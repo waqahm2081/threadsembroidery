@@ -8,6 +8,8 @@
   'use strict';
 
   const productData = window.__PRODUCT_DATA__ || {};
+  const pricing = productData.pricing || {};
+  const LOGO_SETUP_FEE = pricing.logo_setup_fee || 12.00;
   let activeColourCode = productData.colours?.[0]?.code || null;
 
   function getActiveColour() {
@@ -19,6 +21,8 @@
     const dec = String(Math.round((amount - whole) * 100)).padStart(2, '0');
     return `£${whole}<small style="font-size:0.8em">.${dec}</small>`;
   }
+
+  const VAT_NOTE = ' <small class="pd-vat-note">+ VAT</small>';
 
   function updateThumbnails(images) {
     const mainImg = document.getElementById('pdMainImage');
@@ -116,7 +120,6 @@
     // Map of group ID → label element ID
     const LABEL_MAP = {
       tech: 'pdTechName',
-      area: 'pdAreaName',
     };
 
     document.querySelectorAll('#pd-detail .pd-option-tile').forEach(tile => {
@@ -175,8 +178,18 @@
         amount += v * unit;
       }
     });
+
+    const logoSetupChecked = document.getElementById('pdLogoSetup')?.checked;
+    if (logoSetupChecked) {
+      amount += LOGO_SETUP_FEE;
+    }
+
     if (totalUnitsEl) totalUnitsEl.textContent = total;
-    if (estTotalEl) estTotalEl.innerHTML = formatMoney(amount);
+    if (estTotalEl) {
+      estTotalEl.innerHTML = amount > 0
+        ? formatMoney(amount) + VAT_NOTE
+        : formatMoney(0);
+    }
   }
 
 
@@ -356,25 +369,91 @@
     initOptionTiles();
     recalcTotal();
 
+    const logoSetupCheckbox = document.getElementById('pdLogoSetup');
+    if (logoSetupCheckbox) {
+      logoSetupCheckbox.addEventListener('change', recalcTotal);
+    }
+
     const customizeBtn = document.getElementById('pdCustomizeBtn');
     if (customizeBtn && productData.customizer_url) {
-      customizeBtn.addEventListener('click', function (e) {
-        const selectedSize = document.querySelector('#pdSizeQtyGrid .pd-qty-input[value]:not([value="0"])');
-        let size = '';
-        let qty = 0;
+      customizeBtn.addEventListener('click', async function (e) {
+        e.preventDefault();
+
+        const sizeBreakdown = [];
+        let totalQty = 0;
+        let primarySize = '';
+
         document.querySelectorAll('#pdSizeQtyGrid .pd-size-row-item').forEach(row => {
           const input = row.querySelector('.pd-qty-input');
           const val = parseInt(input?.value || '0', 10);
           if (val > 0) {
-            qty += val;
-            if (!size) size = row.dataset.size;
+            totalQty += val;
+            if (!primarySize) primarySize = row.dataset.size;
+            sizeBreakdown.push({
+              size: row.dataset.size,
+              qty: val,
+              unit_price: parseFloat(input?.dataset.unitPrice || productData.min_price || 0),
+            });
           }
         });
-        const url = new URL(productData.customizer_url, window.location.origin);
-        if (size) url.searchParams.set('size', size);
-        if (qty > 0) url.searchParams.set('qty', String(qty));
-        if (activeColourCode) url.searchParams.set('colour', activeColourCode);
-        this.href = url.pathname + url.search;
+
+        if (totalQty === 0) {
+          alert('Please select a quantity for at least one size before customizing.');
+          return;
+        }
+
+        const colour = getActiveColour();
+        const avgPrice = sizeBreakdown.reduce((sum, r) => sum + r.unit_price * r.qty, 0) / totalQty;
+
+        const btn = this;
+        const originalHtml = btn.innerHTML;
+        btn.style.pointerEvents = 'none';
+        btn.querySelector('.pd-customize-btn-inner').innerHTML =
+          '<span class="spinner-border spinner-border-sm me-2"></span> Adding to cart…';
+
+        try {
+          const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content;
+          const res = await fetch('/cart', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'X-CSRF-TOKEN': csrfToken,
+              'Accept': 'application/json',
+            },
+            body: JSON.stringify({
+              style_code: productData.style_code,
+              product_title: productData.product_title,
+              category_slug: productData.category_slug,
+              product_slug: productData.product_slug,
+              colour_code: colour?.code || null,
+              colour_name: colour?.name || null,
+              colour_hex: colour?.hex || null,
+              size: primarySize,
+              size_breakdown: sizeBreakdown,
+              quantity: totalQty,
+              unit_price: avgPrice,
+              logo_setup: document.getElementById('pdLogoSetup')?.checked || false,
+            }),
+          });
+
+          const data = await res.json();
+
+          if (!res.ok) {
+            throw new Error(data.message || 'Failed to add to cart');
+          }
+
+          const badge = document.getElementById('navCartBadge');
+          if (badge && data.cart_count > 0) {
+            badge.textContent = data.cart_count;
+            badge.style.display = '';
+          }
+
+          window.location.href = data.customizer_url;
+        } catch (err) {
+          alert(err.message || 'Could not add to cart. Please try again.');
+          btn.style.pointerEvents = '';
+          btn.innerHTML = originalHtml;
+        }
       });
     }
   }

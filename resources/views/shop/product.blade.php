@@ -71,8 +71,9 @@
             <div class="pd-price-row">
                 <span class="pd-price-from">From</span>
                 <span class="pd-price">£{{ $priceWhole }}<small>.{{ $priceDecimal }}</small></span>
+                <span class="pd-price-vat">+ VAT</span>
                 <span class="pd-price-unit">per unit</span>
-                <span class="pd-price-note"><i class="bi bi-info-circle"></i> Price varies by quantity</span>
+                <span class="pd-price-note"><i class="bi bi-info-circle"></i> VAT calculated at checkout</span>
             </div>
 
             @if($product['brand'] || $product['type'])
@@ -130,25 +131,6 @@
 
             <div class="pd-option-group">
                 <div class="pd-option-label-row">
-                    <span class="pd-option-label">Decoration Area</span>
-                    <span class="pd-selected-option-name" id="pdAreaName">Full Front</span>
-                </div>
-                <div class="pd-option-tiles" id="pdAreaTiles">
-                    <button class="pd-option-tile active" data-option-group="area" data-value="Full Front">
-                        <span class="pd-tile-label">Full Front</span>
-                        <span class="pd-tile-sub">Max impact placement</span>
-                    </button>
-                    <button class="pd-option-tile" data-option-group="area" data-value="Left Chest">
-                        <span class="pd-tile-label">Left Chest</span>
-                        <span class="pd-tile-sub">Classic logo position</span>
-                    </button>
-                </div>
-            </div>
-
-            <div class="pd-divider"></div>
-
-            <div class="pd-option-group">
-                <div class="pd-option-label-row">
                     <span class="pd-option-label">Sizes &amp; Quantities</span>
                     <a href="#" class="pd-size-guide-link"><i class="bi bi-rulers"></i> Size Guide</a>
                 </div>
@@ -173,10 +155,27 @@
                     </div>
                     <div class="pd-qty-summary-divider"></div>
                     <div class="pd-qty-summary-item">
-                        <span>Estimated Total</span>
+                        <span>Estimated Total <small class="pd-vat-note">(ex. VAT)</small></span>
                         <strong id="pdEstTotal" class="pd-est-total">£0.00</strong>
                     </div>
                 </div>
+            </div>
+
+            <div class="pd-divider"></div>
+
+            <div class="pd-option-group">
+                <div class="pd-option-label-row">
+                    <span class="pd-option-label">Optional Add-ons</span>
+                </div>
+                <label class="pd-addon-option" id="pdLogoSetupOption">
+                    <input type="checkbox" id="pdLogoSetup" name="logo_setup" value="1">
+                    <span class="pd-addon-check"></span>
+                    <span class="pd-addon-body">
+                        <span class="pd-addon-title">Embroidery Logo Set Up</span>
+                        <span class="pd-addon-desc">One-time digitisation fee for new embroidery artwork</span>
+                    </span>
+                    <span class="pd-addon-price">+£12.00 <small class="pd-vat-note">+ VAT</small></span>
+                </label>
             </div>
 
             <div class="pd-divider"></div>
@@ -192,7 +191,7 @@
             <div class="pd-trust-row">
                 <span class="pd-trust-item"><i class="bi bi-truck"></i> Free UK Delivery</span>
                 <span class="pd-trust-item"><i class="bi bi-pencil-square"></i> Free Artwork</span>
-                <span class="pd-trust-item"><i class="bi bi-lightning-charge"></i> 48hr Turnaround</span>
+                <span class="pd-trust-item"><i class="bi bi-calendar-check"></i> 7–10 Day Turnaround</span>
             </div>
         </div>
     </div>
@@ -281,7 +280,7 @@
                         <span class="pd-related-cat"><i class="bi bi-tag"></i> {{ $category['name'] }}</span>
                         <h3 class="pd-related-name">{{ $item['title'] }}</h3>
                         <div class="pd-related-footer">
-                            <span class="pd-related-price">From £{{ $relWhole }}<small>.{{ $relDec }}</small></span>
+                            <span class="pd-related-price">From £{{ $relWhole }}<small>.{{ $relDec }}</small> <small class="pd-vat-note">+ VAT</small></span>
                             <a href="{{ $item['url'] }}" class="pd-related-btn">View <i class="bi bi-arrow-right"></i></a>
                         </div>
                     </div>
@@ -300,12 +299,17 @@
 <script>
 @php
     $productData = [
+        'style_code' => $product['style_code'],
+        'product_title' => $product['title'],
+        'category_slug' => $category['slug'],
+        'product_slug' => $product['slug'],
         'min_price' => $product['min_price'],
         'colours' => $product['colours'],
         'customizer_url' => $customizerUrl,
+        'pricing' => \App\Services\PricingService::clientConfig(),
     ];
 @endphp
 window.__PRODUCT_DATA__ = @json($productData);
 </script>
-<script src="{{ asset('assets/js/product-detail.js') }}"></script>
+<script src="{{ asset('assets/js/product-detail.js') }}?v=1.1"></script>
 @endpush
