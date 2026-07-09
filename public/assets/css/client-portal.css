@@ -678,6 +678,8 @@
 .cp-status--submitted  { background: rgba(52, 152, 219, 0.1);  color: #2980b9; }
 .cp-status--review     { background: rgba(243, 156, 18, 0.12); color: #d68910; }
 .cp-status--quoted     { background: rgba(39, 201, 63, 0.1);   color: #1e8449; }
+.cp-status--in_progress { background: rgba(155, 89, 182, 0.1); color: #7d3c98; }
+.cp-status--completed  { background: rgba(39, 201, 63, 0.1);   color: #1e8449; }
 
 
 /* ══════════════════════════════════════════════════════════

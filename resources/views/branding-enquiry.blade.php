@@ -89,6 +89,7 @@
                 </div>
 
                 <form class="be-form" id="brandingEnquiryForm" novalidate>
+                    @csrf
 
                     <!-- ── STEP 1: Welcome ── -->
                     <div class="be-step active" data-step="1">
@@ -130,7 +131,7 @@
                             <label class="be-label" for="beFullName">Hi! What's your Full Name? <span class="be-required">*</span></label>
                             <div class="be-input-wrap">
                                 <i class="bi bi-person be-input-icon"></i>
-                                <input type="text" id="beFullName" name="full_name" class="be-input" placeholder="John Smith" required />
+                                <input type="text" id="beFullName" name="full_name" class="be-input" placeholder="John Smith" value="{{ old('full_name', $user->name ?? '') }}" required />
                             </div>
                             <span class="be-error">Please enter your full name.</span>
                         </div>
@@ -139,7 +140,7 @@
                             <label class="be-label" for="beBusinessName">What's your business name? <span class="be-required">*</span></label>
                             <div class="be-input-wrap">
                                 <i class="bi bi-building be-input-icon"></i>
-                                <input type="text" id="beBusinessName" name="business_name" class="be-input" placeholder="Your Company Ltd" required />
+                                <input type="text" id="beBusinessName" name="business_name" class="be-input" placeholder="Your Company Ltd" value="{{ old('business_name', $user->company_name ?? '') }}" required />
                             </div>
                             <span class="be-error">Please enter your business name.</span>
                         </div>
@@ -149,7 +150,7 @@
                                 <label class="be-label" for="beEmail">Email Address <span class="be-required">*</span></label>
                                 <div class="be-input-wrap">
                                     <i class="bi bi-envelope be-input-icon"></i>
-                                    <input type="email" id="beEmail" name="email" class="be-input" placeholder="john@company.co.uk" required />
+                                    <input type="email" id="beEmail" name="email" class="be-input" placeholder="john@company.co.uk" value="{{ old('email', $user->email ?? '') }}" required />
                                 </div>
                                 <span class="be-error">Please enter a valid email address.</span>
                             </div>
@@ -158,7 +159,7 @@
                                 <label class="be-label" for="beWhatsapp">WhatsApp Number <span class="be-required">*</span></label>
                                 <div class="be-input-wrap">
                                     <i class="bi bi-whatsapp be-input-icon"></i>
-                                    <input type="tel" id="beWhatsapp" name="whatsapp" class="be-input" placeholder="+44 7700 900000" required />
+                                    <input type="tel" id="beWhatsapp" name="whatsapp" class="be-input" placeholder="+44 7700 900000" value="{{ old('whatsapp', $user->phone ?? '') }}" required />
                                 </div>
                                 <span class="be-error">Please enter your WhatsApp number.</span>
                             </div>
@@ -246,8 +247,13 @@
                     <div class="be-success" id="beSuccess" style="display:none">
                         <div class="be-success-icon"><i class="bi bi-check-circle-fill"></i></div>
                         <h3 class="be-success-title">Enquiry Submitted!</h3>
-                        <p class="be-success-text">Thank you for your enquiry. Our team will review your details and get back to you with a quote. Once confirmed, your branding will be completed within 10 to 14 working days.</p>
-                        <a href="{{ route('home') }}" class="be-success-btn">Back to Home</a>
+                        <p class="be-success-text">Thank you for your enquiry. Your reference is <strong id="beSuccessRef">—</strong>. Our team will review your details and get back to you with a quote. Once confirmed, your branding will be completed within 10 to 14 working days.</p>
+                        <div class="be-success-actions">
+                            @auth
+                                <a href="{{ route('user-dashboard') }}" class="be-success-btn">View in Dashboard</a>
+                            @endauth
+                            <a href="{{ route('home') }}" class="be-success-btn be-success-btn--ghost">Back to Home</a>
+                        </div>
                     </div>
 
 
@@ -274,5 +280,8 @@
 @endsection
 
 @push('scripts')
+<script>
+window.__BE_SUBMIT_URL__ = @json(route('branding-enquiry.store'));
+</script>
 <script src="{{ asset('assets/js/branding-enquiry.js') }}"></script>
 @endpush

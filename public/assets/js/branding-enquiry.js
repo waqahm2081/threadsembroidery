@@ -264,22 +264,73 @@
     if (currentStep > 1) goToStep(currentStep - 1);
   });
 
-  form.addEventListener('submit', (e) => {
+  form.addEventListener('submit', async (e) => {
     e.preventDefault();
     if (!validateStep(currentStep)) return;
+
+    const submitUrl = window.__BE_SUBMIT_URL__;
+    if (!submitUrl) return;
 
     submitBtn.disabled = true;
     submitBtn.innerHTML = '<span class="be-spinner"></span> Submitting…';
 
-    setTimeout(() => {
+    const formData = new FormData();
+    const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content')
+      || form.querySelector('input[name="_token"]')?.value;
+
+    formData.append('min_order_confirm', document.getElementById('beMinOrderConfirm')?.checked ? '1' : '0');
+    formData.append('full_name', document.getElementById('beFullName').value.trim());
+    formData.append('business_name', document.getElementById('beBusinessName').value.trim());
+    formData.append('email', document.getElementById('beEmail').value.trim());
+    formData.append('whatsapp', document.getElementById('beWhatsapp').value.trim());
+    formData.append('garments', document.getElementById('beGarments').value.trim());
+    formData.append('colours', document.getElementById('beColours').value.trim());
+
+    form.querySelectorAll('input[name="placements[]"]:checked').forEach(input => {
+      formData.append('placements[]', input.value);
+    });
+
+    const method = form.querySelector('input[name="branding_method"]:checked');
+    if (method) formData.append('branding_method', method.value);
+
+    selectedFiles.forEach(file => {
+      formData.append('design_files[]', file);
+    });
+
+    try {
+      const response = await fetch(submitUrl, {
+        method: 'POST',
+        headers: {
+          'X-CSRF-TOKEN': csrfToken,
+          'Accept': 'application/json',
+        },
+        body: formData,
+      });
+
+      const data = await response.json().catch(() => ({}));
+
+      if (!response.ok) {
+        const message = data.message
+          || (data.errors ? Object.values(data.errors).flat().join(' ') : 'Something went wrong. Please try again.');
+        throw new Error(message);
+      }
+
       steps.forEach(s => s.style.display = 'none');
       if (nav) nav.style.display = 'none';
       if (successEl) successEl.style.display = 'block';
+
+      const refEl = document.getElementById('beSuccessRef');
+      if (refEl && data.reference) refEl.textContent = data.reference;
+
       progressItems.forEach(item => {
         item.classList.remove('active');
         item.classList.add('completed');
       });
-    }, 1400);
+    } catch (err) {
+      submitBtn.disabled = false;
+      submitBtn.innerHTML = '<i class="bi bi-send-fill"></i> Submit Enquiry';
+      alert(err.message || 'Unable to submit your enquiry. Please try again.');
+    }
   });
 
   initChoiceBoxes();

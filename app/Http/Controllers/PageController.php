@@ -16,7 +16,9 @@ class PageController extends Controller
 
     public function brandingEnquiry()
     {
-        return view('branding-enquiry');
+        return view('branding-enquiry', [
+            'user' => auth()->user(),
+        ]);
     }
 
     public function contact()

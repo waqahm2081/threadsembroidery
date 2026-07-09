@@ -768,6 +768,26 @@
   color: #fff;
 }
 
+#be-body .be-success-actions {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+#be-body .be-success-btn--ghost {
+  background: transparent;
+  color: var(--c-primary);
+  border: 1.5px solid rgba(238,96,35,0.4);
+  box-shadow: none;
+}
+
+#be-body .be-success-btn--ghost:hover {
+  background: rgba(238,96,35,0.08);
+  color: var(--c-primary-dark);
+}
+
 
 /* ── RESPONSIVE ── */
 @media (max-width: 991.98px) {

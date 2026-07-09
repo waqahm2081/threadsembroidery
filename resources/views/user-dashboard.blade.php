@@ -12,33 +12,6 @@
 @php
     $spentWhole = floor($stats['total_spent']);
     $spentPence = str_pad((string) round(($stats['total_spent'] - $spentWhole) * 100), 2, '0', STR_PAD_LEFT);
-
-    $brandingEnquiries = [
-        [
-            'ref' => 'BE-2026-001',
-            'garments' => '20× Polo Shirts',
-            'service' => 'Left Chest Embroidery',
-            'status' => 'submitted',
-            'status_label' => 'Submitted',
-            'date' => '15 Jun 2026',
-        ],
-        [
-            'ref' => 'BE-2026-002',
-            'garments' => '50× Hoodies',
-            'service' => 'Full Back Print',
-            'status' => 'review',
-            'status_label' => 'Under Review',
-            'date' => '02 Jul 2026',
-        ],
-        [
-            'ref' => 'BE-2026-003',
-            'garments' => '12× Hi-Vis Vests',
-            'service' => 'Company Logo Print',
-            'status' => 'quoted',
-            'status_label' => 'Quote Sent',
-            'date' => '28 Jun 2026',
-        ],
-    ];
 @endphp
 
 <!-- PAGE HEADER -->
@@ -94,7 +67,9 @@
                 <button class="cp-nav-item" data-tab="branding">
                     <span class="cp-nav-icon"><i class="bi bi-palette-fill"></i></span>
                     <span class="cp-nav-text">Branding Enquiries</span>
-                    <span class="cp-nav-badge cp-nav-badge--muted">{{ count($brandingEnquiries) }}</span>
+                    @if($brandingEnquiries->isNotEmpty())
+                        <span class="cp-nav-badge cp-nav-badge--muted">{{ $brandingEnquiries->count() }}</span>
+                    @endif
                 </button>
                 <button class="cp-nav-item" data-tab="profile">
                     <span class="cp-nav-icon"><i class="bi bi-person-fill"></i></span>
@@ -368,7 +343,7 @@
 
                 <div class="cp-branding-banner">
                     <i class="bi bi-info-circle"></i>
-                    <p>Already have garments? Send them to us for professional embroidery or print. Enquiry status updates will appear here once your form submissions are connected.</p>
+                    <p>Already have garments? Send them to us for professional embroidery or print. Submit an enquiry below and track its status here.</p>
                 </div>
 
                 <div class="cp-section-block cp-section-block--flush">
@@ -384,15 +359,19 @@
                                 </tr>
                             </thead>
                             <tbody>
-                                @foreach($brandingEnquiries as $enquiry)
+                                @forelse($brandingEnquiries as $enquiry)
                                     <tr>
-                                        <td><span class="cp-order-num">{{ $enquiry['ref'] }}</span></td>
-                                        <td>{{ $enquiry['garments'] }}</td>
-                                        <td>{{ $enquiry['service'] }}</td>
-                                        <td>{{ $enquiry['date'] }}</td>
-                                        <td><span class="cp-status cp-status--{{ $enquiry['status'] }}">{{ $enquiry['status_label'] }}</span></td>
+                                        <td><span class="cp-order-num">{{ $enquiry->reference }}</span></td>
+                                        <td>{{ $enquiry->garmentsSummary() }}</td>
+                                        <td>{{ $enquiry->serviceSummary() }}</td>
+                                        <td>{{ $enquiry->created_at->format('d M Y') }}</td>
+                                        <td><span class="cp-status cp-status--{{ $enquiry->filterStatus() }}">{{ $enquiry->displayStatus() }}</span></td>
                                     </tr>
-                                @endforeach
+                                @empty
+                                    <tr>
+                                        <td colspan="5" class="cp-table-empty">No branding enquiries yet. <a href="{{ route('branding-enquiry') }}">Submit your first enquiry</a></td>
+                                    </tr>
+                                @endforelse
                             </tbody>
                         </table>
                     </div>

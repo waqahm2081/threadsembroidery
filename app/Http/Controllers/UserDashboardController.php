@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\BrandingEnquiry;
 use App\Models\Order;
 use App\Services\OrderTrackingService;
 use Illuminate\View\View;
@@ -21,11 +22,20 @@ class UserDashboardController extends Controller
             ->latest()
             ->get();
 
+        $brandingEnquiries = BrandingEnquiry::query()
+            ->where(function ($query) use ($user) {
+                $query->where('user_id', $user->id)
+                    ->orWhere('email', $user->email);
+            })
+            ->latest()
+            ->get();
+
         $stats = [
             'total_orders' => $orders->count(),
             'total_spent' => (float) $orders->sum('total'),
             'active_orders' => $orders->whereNotIn('status', ['delivered', 'cancelled'])->count(),
             'completed' => $orders->where('status', 'delivered')->count(),
+            'branding_enquiries' => $brandingEnquiries->count(),
         ];
 
         $recentOrders = $orders->take(3);
@@ -47,6 +57,7 @@ class UserDashboardController extends Controller
             'stats' => $stats,
             'orders' => $orders,
             'recentOrders' => $recentOrders,
+            'brandingEnquiries' => $brandingEnquiries,
             'trackingData' => $trackingData,
             'orderDetailsData' => $orderDetailsData,
             'trackingService' => $this->trackingService,
