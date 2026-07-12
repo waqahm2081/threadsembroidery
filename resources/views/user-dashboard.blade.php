@@ -3,7 +3,7 @@
 @section('title', 'Client Portal — Threads Embroidery &amp; Print Ltd')
 
 @push('styles')
-<link rel="stylesheet" href="{{ asset('assets/css/client-portal.css') }}?v=3.0">
+<link rel="stylesheet" href="{{ asset('assets/css/client-portal.css') }}?v=3.1">
 <link rel="stylesheet" href="{{ asset('assets/css/cart-checkout.css') }}?v=1.3">
 @endpush
 
@@ -586,5 +586,5 @@ window.__CP_ORDER_DATA__ = @json($orderDetailsData);
 window.__CP_PROFILE_URL__ = @json(route('user-dashboard.profile'));
 </script>
 <script src="{{ asset('assets/js/design-print-area.js') }}"></script>
-<script src="{{ asset('assets/js/client-portal.js') }}?v=3.1"></script>
+<script src="{{ asset('assets/js/client-portal.js') }}?v=3.2"></script>
 @endpush

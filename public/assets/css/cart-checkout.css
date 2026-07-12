@@ -291,6 +291,18 @@
   font-weight: 500;
 }
 
+button.cc-customize-link {
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  font-family: inherit;
+}
+
+button.cc-customize-link:hover {
+  text-decoration: underline;
+}
+
 .cc-item-actions-row {
   margin-top: 0.35rem;
 }

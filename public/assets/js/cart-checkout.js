@@ -17,6 +17,22 @@
     }
   }
 
+  function formatMoney(amount) {
+    return '£' + Number(amount).toFixed(2);
+  }
+
+  function updateCartSummary(totals) {
+    if (!totals) return;
+
+    const subtotalEl = document.getElementById('cartSummarySubtotal');
+    const vatEl = document.getElementById('cartSummaryVat');
+    const totalEl = document.getElementById('cartSummaryTotal');
+
+    if (subtotalEl && totals.subtotal != null) subtotalEl.textContent = formatMoney(totals.subtotal);
+    if (vatEl && totals.vat != null) vatEl.textContent = formatMoney(totals.vat);
+    if (totalEl && totals.total != null) totalEl.textContent = formatMoney(totals.total);
+  }
+
   /* ── Remove cart item ── */
   function initRemoveButtons() {
     document.querySelectorAll('[data-remove-item]').forEach(btn => {
@@ -36,6 +52,7 @@
           const data = await res.json();
           if (res.ok) {
             updateCartBadge(data.cart_count);
+            updateCartSummary(data);
             const item = btn.closest('.cc-item');
             if (item) {
               item.style.opacity = '0';
@@ -116,8 +133,26 @@
       return view === 'back' ? back : front;
     }
 
+    function resetWizardPreviewArtifacts() {
+      const previewWrap = document.querySelector('.cdm-preview-wrap');
+      const canvasEl = document.getElementById('cdmPreviewCanvas');
+      const artworkEl = document.getElementById('cdmArtworkPreview');
+      if (previewWrap) previewWrap.classList.remove('cdm-preview-wrap--artwork');
+      if (canvasEl) canvasEl.style.display = '';
+      if (artworkEl) artworkEl.remove();
+    }
+
     function openDesignPreview(preview) {
       const data = preview.design_data || {};
+
+      if (data.wizard_version === 2) {
+        resetWizardPreviewArtifacts();
+        openWizardDesignPreview(preview, data);
+        return;
+      }
+
+      resetWizardPreviewArtifacts();
+
       const pa = window.TEDesignPrintArea;
       const colourHex = preview.colour_hex || data.colour?.hex || '#ffffff';
       const colourName = preview.colour_name || data.colour?.name || '';
@@ -163,6 +198,77 @@
         ].join('');
       }
     }
+
+    function openWizardDesignPreview(preview, data) {
+      const previewWrap = document.querySelector('.cdm-preview-wrap');
+      const canvasEl = document.getElementById('cdmPreviewCanvas');
+      const detailsEl = document.getElementById('cdmDetails');
+      const colourName = preview.colour_name || data.colour?.name || '';
+      const methodLabel = data.application_method === 'embroidery'
+        ? 'Embroidery'
+        : (data.application_method === 'print' ? 'Print' : '');
+
+      if (titleEl) {
+        titleEl.innerHTML = '<i class="bi bi-palette"></i> ' + escapeHtml(preview.title);
+      }
+      if (subtitleEl) {
+        const parts = [colourName, data.decoration_placement_label, methodLabel].filter(Boolean);
+        subtitleEl.textContent = parts.length ? parts.join(' · ') : 'Your uploaded design';
+      }
+
+      if (previewWrap) {
+        previewWrap.classList.add('cdm-preview-wrap--artwork');
+      }
+      if (canvasEl) {
+        canvasEl.style.display = 'none';
+      }
+
+      let artworkEl = document.getElementById('cdmArtworkPreview');
+      if (!artworkEl) {
+        artworkEl = document.createElement('div');
+        artworkEl.id = 'cdmArtworkPreview';
+        artworkEl.className = 'cdm-artwork-preview';
+        previewWrap?.appendChild(artworkEl);
+      }
+      artworkEl.innerHTML = '';
+
+      const previewUrl = preview.preview_url
+        || (data.artwork?.asset_path ? preview.storage_base + '/' + data.artwork.asset_path : null);
+
+      if (data.design_type === 'text' && data.text_design) {
+        artworkEl.classList.add('cdm-artwork-preview--text');
+        const span = document.createElement('span');
+        const lines = [data.text_design.line1, data.text_design.line2, data.text_design.line3].filter(Boolean);
+        span.textContent = lines.join('\n');
+        span.style.fontFamily = data.text_design.font || 'Arial';
+        span.style.color = data.text_design.color_hex || '#ffffff';
+        span.style.fontSize = '1.5rem';
+        artworkEl.appendChild(span);
+      } else if (previewUrl) {
+        artworkEl.classList.remove('cdm-artwork-preview--text');
+        const img = document.createElement('img');
+        img.src = previewUrl;
+        img.alt = 'Uploaded artwork';
+        img.draggable = false;
+        artworkEl.appendChild(img);
+      }
+
+      if (detailsEl) {
+        const sizeLabel = preview.size_breakdown?.length
+          ? preview.size_breakdown.map(r => `${r.size} × ${r.qty}`).join(', ')
+          : (data.size || '—');
+        detailsEl.innerHTML = [
+          detailRow('Garment', data.garment || preview.title),
+          detailRow('Colour', colourName || '—'),
+          detailRow('Position', data.decoration_placement_label || '—'),
+          detailRow('Method', methodLabel || '—'),
+          detailRow('Sizes', sizeLabel),
+          detailRow('Quantity', String(preview.quantity || data.qty || '—')),
+        ].join('');
+      }
+    }
+
+    modalEl.addEventListener('hidden.bs.modal', resetWizardPreviewArtifacts);
 
     function detailRow(label, value) {
       return `<div class="cdm-detail-row"><span>${escapeHtml(label)}</span><strong>${escapeHtml(value)}</strong></div>`;
@@ -272,7 +378,29 @@
     initBillingToggle();
     initCheckoutForm();
     initDesignPreview();
+    initCompleteDesignButtons();
   });
+
+  function initCompleteDesignButtons() {
+    document.querySelectorAll('.cc-complete-design-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        if (!window.TEUploadWizard) return;
+        window.TEUploadWizard.open({
+          cart_item_id: parseInt(btn.dataset.cartItemId, 10),
+          customize_url: btn.dataset.customizeUrl,
+          product_title: btn.dataset.productTitle,
+          unit_price: parseFloat(btn.dataset.unitPrice || '0'),
+          quantity: parseInt(btn.dataset.quantity || '1', 10),
+          size: btn.dataset.size || '',
+          colour: {
+            name: btn.dataset.colourName || '',
+            hex: btn.dataset.colourHex || '',
+            code: btn.dataset.colourCode || '',
+          },
+        });
+      });
+    });
+  }
 
   window.TECart = { updateCartBadge };
 })();

@@ -1,9 +1,9 @@
 @php
     $activeColour = $product['colours'][0] ?? null;
     $mainImage = $activeColour['images'][0] ?? asset('assets/images/prod1.jpg');
-    $priceWhole = floor($product['min_price']);
-    $priceDecimal = str_pad((string) round(($product['min_price'] - $priceWhole) * 100), 2, '0', STR_PAD_LEFT);
-    $customizerUrl = route('shop.product.customizer', ['categorySlug' => $category['slug'], 'productSlug' => $product['slug']]);
+    $displayMinPrice = \App\Services\PricingService::displayUnitPrice($product['min_price']);
+    $priceWhole = floor($displayMinPrice);
+    $priceDecimal = str_pad((string) round(($displayMinPrice - $priceWhole) * 100), 2, '0', STR_PAD_LEFT);
 @endphp
 
 @extends('layouts.app')
@@ -12,6 +12,7 @@
 
 @push('styles')
 <link rel="stylesheet" href="{{ asset('assets/css/product-detail.css') }}">
+<link rel="stylesheet" href="{{ asset('assets/css/product-upload-wizard.css') }}?v=1.2">
 @endpush
 
 @section('content')
@@ -180,7 +181,7 @@
 
             <div class="pd-divider"></div>
 
-            <a href="{{ $customizerUrl }}" class="pd-customize-btn" id="pdCustomizeBtn">
+            <a href="#" class="pd-customize-btn" id="pdCustomizeBtn" role="button">
                 <span class="pd-customize-btn-inner">
                     <i class="bi bi-magic"></i>
                     Upload Your Design / Customize
@@ -293,6 +294,8 @@
 
 @include('shop.partials.reviews', ['productTitle' => $product['title']])
 
+@include('shop.partials.upload-wizard')
+
 @endsection
 
 @push('scripts')
@@ -304,12 +307,13 @@
         'category_slug' => $category['slug'],
         'product_slug' => $product['slug'],
         'min_price' => $product['min_price'],
+        'display_decoration_included' => \App\Services\PricingService::displayIncludedDecorationFee(),
         'colours' => $product['colours'],
-        'customizer_url' => $customizerUrl,
         'pricing' => \App\Services\PricingService::clientConfig(),
     ];
 @endphp
 window.__PRODUCT_DATA__ = @json($productData);
 </script>
-<script src="{{ asset('assets/js/product-detail.js') }}?v=1.1"></script>
+<script src="{{ asset('assets/js/product-upload-wizard.js') }}?v=1.2"></script>
+<script src="{{ asset('assets/js/product-detail.js') }}?v=1.3"></script>
 @endpush

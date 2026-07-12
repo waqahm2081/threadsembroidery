@@ -307,6 +307,8 @@ class ProductCatalogService
 
         return collect($groups)
             ->map(function (array $product) {
+                $product['min_price'] = PricingService::displayUnitPrice($product['min_price']);
+                $product['max_price'] = PricingService::displayUnitPrice($product['max_price']);
                 $product['url'] = route('shop.product', [
                     'categorySlug' => $product['category_slug'],
                     'productSlug' => $product['slug'],

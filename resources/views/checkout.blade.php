@@ -180,7 +180,7 @@ checkout-page
                             <strong>£{{ number_format($subtotal, 2) }}</strong>
                         </div>
                         <div class="cc-summary-row">
-                            <span>VAT (15%)</span>
+                            <span>VAT ({{ \App\Services\PricingService::vatPercent() }}%)</span>
                             <strong>£{{ number_format($vat, 2) }}</strong>
                         </div>
                         <div class="cc-summary-row cc-summary-total">

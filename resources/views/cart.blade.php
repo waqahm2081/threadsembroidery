@@ -8,6 +8,7 @@ cart-page
 
 @push('styles')
 <link rel="stylesheet" href="{{ asset('assets/css/cart-checkout.css') }}?v=1.6">
+<link rel="stylesheet" href="{{ asset('assets/css/product-upload-wizard.css') }}?v=1.2">
 @endpush
 
 @section('content')
@@ -94,9 +95,19 @@ cart-page
                                 @endif
                                 <div class="cc-item-actions-row">
                                     @if(!$item->is_customized)
-                                        <a href="{{ $item->customizerUrl() }}" class="cc-customize-link">
+                                        <button type="button"
+                                                class="cc-customize-link cc-complete-design-btn"
+                                                data-cart-item-id="{{ $item->id }}"
+                                                data-customize-url="{{ route('cart.customize', $item->id) }}"
+                                                data-product-title="{{ $item->product_title }}"
+                                                data-unit-price="{{ $item->unit_price }}"
+                                                data-quantity="{{ $item->quantity }}"
+                                                data-size="{{ $item->size }}"
+                                                data-colour-name="{{ $item->colour_name }}"
+                                                data-colour-hex="{{ $item->colour_hex }}"
+                                                data-colour-code="{{ $item->colour_code }}">
                                             <i class="bi bi-magic"></i> Complete your design
-                                        </a>
+                                        </button>
                                     @else
                                         <button type="button" class="cc-view-design-btn" data-design-id="{{ $item->id }}">
                                             <i class="bi bi-eye"></i> View Design
@@ -119,11 +130,11 @@ cart-page
                         <h2 class="cc-summary-title">Order Summary</h2>
                         <div class="cc-summary-row">
                             <span>Subtotal (ex. VAT)</span>
-                            <strong>£{{ number_format($subtotal, 2) }}</strong>
+                            <strong id="cartSummarySubtotal">£{{ number_format($subtotal, 2) }}</strong>
                         </div>
                         <div class="cc-summary-row">
-                            <span>VAT (15%)</span>
-                            <strong>£{{ number_format($vat, 2) }}</strong>
+                            <span>VAT ({{ \App\Services\PricingService::vatPercent() }}%)</span>
+                            <strong id="cartSummaryVat">£{{ number_format($vat, 2) }}</strong>
                         </div>
                         <div class="cc-summary-row cc-summary-note">
                             <span><i class="bi bi-truck"></i> Delivery calculated at checkout</span>
@@ -131,7 +142,7 @@ cart-page
                         <div class="cc-summary-divider"></div>
                         <div class="cc-summary-row cc-summary-total">
                             <span>Estimated Total (inc. VAT)</span>
-                            <strong>£{{ number_format($total, 2) }}</strong>
+                            <strong id="cartSummaryTotal">£{{ number_format($total, 2) }}</strong>
                         </div>
                         <a href="{{ route('checkout') }}" class="cc-btn-primary cc-btn-full">Proceed to Checkout <i class="bi bi-arrow-right"></i></a>
                         <a href="{{ route('shop') }}" class="cc-btn-secondary cc-btn-full">Continue Shopping</a>
@@ -168,6 +179,8 @@ cart-page
     </div>
 </div>
 
+@include('shop.partials.upload-wizard')
+
 @endsection
 
 @push('scripts')
@@ -175,5 +188,6 @@ cart-page
 window.__CART_DESIGNS__ = @json($designPreviews ?? []);
 </script>
 <script src="{{ asset('assets/js/design-print-area.js') }}"></script>
-<script src="{{ asset('assets/js/cart-checkout.js') }}?v=1.2"></script>
+<script src="{{ asset('assets/js/product-upload-wizard.js') }}?v=1.2"></script>
+<script src="{{ asset('assets/js/cart-checkout.js') }}?v=1.4"></script>
 @endpush

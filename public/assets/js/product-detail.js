@@ -170,9 +170,14 @@
   function recalcTotal() {
     let total = 0;
     let amount = 0;
+    const displayMarkup = productData.display_decoration_included
+      || productData.pricing?.display_included_decoration
+      || 0;
+
     document.querySelectorAll('#pd-detail .pd-qty-input').forEach(inp => {
       const v = parseInt(inp.value, 10);
-      const unit = parseFloat(inp.dataset.unitPrice || productData.min_price || 0);
+      const baseUnit = parseFloat(inp.dataset.unitPrice || productData.min_price || 0);
+      const unit = baseUnit + displayMarkup;
       if (!isNaN(v) && v > 0) {
         total += v;
         amount += v * unit;
@@ -375,7 +380,7 @@
     }
 
     const customizeBtn = document.getElementById('pdCustomizeBtn');
-    if (customizeBtn && productData.customizer_url) {
+    if (customizeBtn) {
       customizeBtn.addEventListener('click', async function (e) {
         e.preventDefault();
 
@@ -448,7 +453,22 @@
             badge.style.display = '';
           }
 
-          window.location.href = data.customizer_url;
+          btn.style.pointerEvents = '';
+          btn.innerHTML = originalHtml;
+
+          if (window.TEUploadWizard) {
+            window.TEUploadWizard.open({
+              cart_item_id: data.cart_item_id,
+              customize_url: data.customize_url,
+              product_title: productData.product_title,
+              unit_price: avgPrice,
+              quantity: totalQty,
+              size: primarySize,
+              colour: colour ? { name: colour.name, hex: colour.hex, code: colour.code } : {},
+            });
+          } else {
+            window.location.href = data.cart_url || '/cart';
+          }
         } catch (err) {
           alert(err.message || 'Could not add to cart. Please try again.');
           btn.style.pointerEvents = '';

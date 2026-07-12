@@ -396,8 +396,89 @@
     return `<div class="cdm-detail-row"><span>${escapeHtml(label)}</span><strong>${escapeHtml(value)}</strong></div>`;
   }
 
+  function resetWizardPreviewArtifacts() {
+    const previewWrap = designOverlay?.querySelector('.cdm-preview-wrap');
+    const canvasEl = document.getElementById('cpDesignPreviewCanvas');
+    const artworkEl = document.getElementById('cpArtworkPreview');
+    if (previewWrap) previewWrap.classList.remove('cdm-preview-wrap--artwork');
+    if (canvasEl) canvasEl.style.display = '';
+    if (artworkEl) artworkEl.remove();
+  }
+
+  function openWizardDesignPreview(preview, data) {
+    const previewWrap = designOverlay?.querySelector('.cdm-preview-wrap');
+    const canvasEl = document.getElementById('cpDesignPreviewCanvas');
+    const colourName = preview.colour_name || data.colour?.name || '';
+    const methodLabel = data.application_method === 'embroidery'
+      ? 'Embroidery'
+      : (data.application_method === 'print' ? 'Print' : '');
+
+    if (designTitle) {
+      designTitle.innerHTML = '<i class="bi bi-palette"></i> ' + escapeHtml(preview.title);
+    }
+    if (designSubtitle) {
+      const parts = [colourName, data.decoration_placement_label, methodLabel].filter(Boolean);
+      designSubtitle.textContent = parts.length ? parts.join(' · ') : 'Your uploaded design';
+    }
+
+    if (previewWrap) previewWrap.classList.add('cdm-preview-wrap--artwork');
+    if (canvasEl) canvasEl.style.display = 'none';
+
+    let artworkEl = document.getElementById('cpArtworkPreview');
+    if (!artworkEl) {
+      artworkEl = document.createElement('div');
+      artworkEl.id = 'cpArtworkPreview';
+      artworkEl.className = 'cdm-artwork-preview';
+      previewWrap?.appendChild(artworkEl);
+    }
+    artworkEl.innerHTML = '';
+
+    const previewUrl = preview.preview_url
+      || (data.artwork?.asset_path ? preview.storage_base + '/' + data.artwork.asset_path : null);
+
+    if (data.design_type === 'text' && data.text_design) {
+      artworkEl.classList.add('cdm-artwork-preview--text');
+      const span = document.createElement('span');
+      const lines = [data.text_design.line1, data.text_design.line2, data.text_design.line3].filter(Boolean);
+      span.textContent = lines.join('\n');
+      span.style.fontFamily = data.text_design.font || 'Arial';
+      span.style.color = data.text_design.color_hex || '#ffffff';
+      span.style.fontSize = '1.5rem';
+      artworkEl.appendChild(span);
+    } else if (previewUrl) {
+      artworkEl.classList.remove('cdm-artwork-preview--text');
+      const img = document.createElement('img');
+      img.src = previewUrl;
+      img.alt = 'Uploaded artwork';
+      img.draggable = false;
+      artworkEl.appendChild(img);
+    }
+
+    if (designDetails) {
+      const sizeLabel = preview.size_breakdown?.length
+        ? preview.size_breakdown.map(r => `${r.size} × ${r.qty}`).join(', ')
+        : (data.size || '—');
+      designDetails.innerHTML = [
+        designDetailRow('Garment', data.garment || preview.title),
+        designDetailRow('Colour', colourName || '—'),
+        designDetailRow('Position', data.decoration_placement_label || '—'),
+        designDetailRow('Method', methodLabel || '—'),
+        designDetailRow('Sizes', sizeLabel),
+        designDetailRow('Quantity', String(preview.quantity || data.qty || '—')),
+      ].join('');
+    }
+  }
+
   function openDesignPreview(preview) {
     const data = preview.design_data || {};
+
+    if (data.wizard_version === 2) {
+      resetWizardPreviewArtifacts();
+      openWizardDesignPreview(preview, data);
+      return;
+    }
+
+    resetWizardPreviewArtifacts();
     const pa = window.TEDesignPrintArea;
     const colourHex = preview.colour_hex || data.colour?.hex || '#ffffff';
     const colourName = preview.colour_name || data.colour?.name || '';
@@ -454,6 +535,7 @@
 
   function closeDesignModal() {
     if (!designOverlay) return;
+    resetWizardPreviewArtifacts();
     designOverlay.classList.remove('is-open');
     designOverlay.setAttribute('aria-hidden', 'true');
   }

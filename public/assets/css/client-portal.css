@@ -1768,6 +1768,40 @@
     flex: 1;
 }
 
+.cdm-preview-wrap.cdm-preview-wrap--artwork {
+    background: #f4f4f4;
+    border-radius: 12px;
+    padding: 24px;
+}
+
+.cdm-artwork-preview {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 240px;
+}
+
+.cdm-artwork-preview img {
+    max-width: 100%;
+    max-height: 320px;
+    object-fit: contain;
+    border-radius: 8px;
+    box-shadow: 0 4px 24px rgba(0, 0, 0, 0.12);
+}
+
+.cdm-artwork-preview.cdm-artwork-preview--text {
+    background: #2c3e50;
+    border-radius: 8px;
+    padding: 32px;
+}
+
+.cdm-artwork-preview.cdm-artwork-preview--text span {
+    font-weight: 700;
+    text-align: center;
+    white-space: pre-line;
+    line-height: 1.5;
+}
+
 
 /* ══════════════════════════════════════════════════════════
    RESPONSIVE

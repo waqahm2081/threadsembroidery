@@ -42,6 +42,9 @@ class CartController extends Controller
                     'quantity' => $item->quantity,
                     'design_data' => $item->design_data,
                     'storage_base' => asset('storage'),
+                    'preview_url' => $item->design_file_path
+                        ? asset('storage/'.$item->design_file_path)
+                        : null,
                 ],
             ])
             ->all();
@@ -104,7 +107,7 @@ class CartController extends Controller
             'message' => 'Product added to cart.',
             'cart_item_id' => $item->id,
             'cart_count' => $this->cartService->itemCount(),
-            'customizer_url' => $item->customizerUrl(),
+            'customize_url' => route('cart.customize', $item->id),
         ]);
     }
 
@@ -123,7 +126,8 @@ class CartController extends Controller
             'quantity' => ['nullable', 'integer', 'min:1'],
             'size' => ['nullable', 'string'],
             'colour_name' => ['nullable', 'string'],
-            'preview_image' => ['nullable', 'image', 'max:10240'],
+            'preview_image' => ['nullable', 'file', 'mimes:png,jpg,jpeg,svg,webp', 'max:10240'],
+            'artwork_file' => ['nullable', 'file', 'mimes:png,jpg,jpeg,svg,webp', 'max:10240'],
         ]);
 
         $designData = json_decode($validated['design_data'], true);
@@ -132,13 +136,28 @@ class CartController extends Controller
         $designDir = 'designs/'.$item->id;
         $assetPaths = $this->persistDesignAssets($designData, $designDir);
 
+        if ($request->hasFile('artwork_file')) {
+            $artworkPath = $request->file('artwork_file')->storeAs(
+                $designDir,
+                'artwork-'.Str::uuid().'.'.$request->file('artwork_file')->getClientOriginalExtension(),
+                'public'
+            );
+            $designData['artwork'] = [
+                'filename' => $request->file('artwork_file')->getClientOriginalName(),
+                'asset_path' => $artworkPath,
+            ];
+            $assetPaths[] = $artworkPath;
+        }
+
         $previewPath = null;
         if ($request->hasFile('preview_image')) {
             $previewPath = $request->file('preview_image')->storeAs(
                 $designDir,
-                'preview-'.Str::uuid().'.png',
+                'preview-'.Str::uuid().'.'.$request->file('preview_image')->getClientOriginalExtension(),
                 'public'
             );
+        } elseif (! empty($designData['artwork']['asset_path'])) {
+            $previewPath = $designData['artwork']['asset_path'];
         }
 
         $designJsonPath = $designDir.'/design-'.Str::uuid().'.json';
@@ -216,9 +235,14 @@ class CartController extends Controller
             return response()->json(['message' => 'Cart item not found.'], 404);
         }
 
+        $cart = $this->cartService->getCart();
+
         return response()->json([
             'message' => 'Item removed from cart.',
-            'cart_count' => $this->cartService->itemCount(),
+            'cart_count' => $cart->itemCount(),
+            'subtotal' => $cart->subtotal(),
+            'vat' => $cart->vatAmount(),
+            'total' => $cart->total(),
         ]);
     }
 }

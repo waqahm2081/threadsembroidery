@@ -241,6 +241,9 @@ class OrderTrackingService
             'quantity' => $item->quantity,
             'design_data' => $data,
             'storage_base' => asset('storage'),
+            'preview_url' => $item->design_file_path
+                ? asset('storage/'.$item->design_file_path)
+                : null,
         ];
     }
 }
