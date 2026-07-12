@@ -40,7 +40,9 @@
     panels.forEach(p => {
       p.classList.toggle('active', p.id === `cp-tab-${tabId}`);
     });
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    requestAnimationFrame(() => {
+      window.scrollTo({ top: 0, left: 0, behavior: 'smooth' });
+    });
   }
 
   navItems.forEach(item => {

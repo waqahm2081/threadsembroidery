@@ -77,7 +77,7 @@ class CheckoutController extends Controller
                 'order_number' => 'TE-'.strtoupper(Str::random(8)),
                 'user_id' => auth()->id(),
                 'status' => 'pending',
-                'estimated_delivery_at' => now()->addDays(7),
+                'estimated_delivery_at' => now()->addWeekdays(14),
                 'name' => $validated['name'],
                 'email' => $validated['email'],
                 'phone' => $validated['phone'],

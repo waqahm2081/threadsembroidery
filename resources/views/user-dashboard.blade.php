@@ -3,7 +3,7 @@
 @section('title', 'Client Portal — Threads Embroidery &amp; Print Ltd')
 
 @push('styles')
-<link rel="stylesheet" href="{{ asset('assets/css/client-portal.css') }}?v=2.1">
+<link rel="stylesheet" href="{{ asset('assets/css/client-portal.css') }}?v=3.0">
 <link rel="stylesheet" href="{{ asset('assets/css/cart-checkout.css') }}?v=1.3">
 @endpush
 
@@ -24,7 +24,7 @@
                 Client Portal
             </div>
             <h1 class="cp-page-title">Welcome back, <span class="cp-name-accent">{{ $firstName }}</span></h1>
-            <p class="cp-page-sub">Manage orders, track deliveries, and keep your account up to date.</p>
+            <p class="cp-page-sub">Your orders, tracking, and account — all in one place.</p>
         </div>
         <div class="cp-page-header-right">
             <div class="cp-header-card">
@@ -43,15 +43,13 @@
 
 <!-- PORTAL BODY -->
 <div id="cp-portal">
-    <div class="cp-portal-inner">
+    <div class="cp-shell">
 
-        <!-- Sidebar -->
-        <aside class="cp-sidebar">
-            <div class="cp-sidebar-label">Menu</div>
-            <nav class="cp-nav">
+        <div class="cp-toolbar" id="cp-toolbar">
+            <nav class="cp-topnav" aria-label="Portal sections">
                 <button class="cp-nav-item active" data-tab="summary">
                     <span class="cp-nav-icon"><i class="bi bi-grid-1x2-fill"></i></span>
-                    <span class="cp-nav-text">Summary</span>
+                    <span class="cp-nav-text">Overview</span>
                 </button>
                 <button class="cp-nav-item" data-tab="orders">
                     <span class="cp-nav-icon"><i class="bi bi-bag-check"></i></span>
@@ -62,11 +60,11 @@
                 </button>
                 <button class="cp-nav-item" data-tab="track">
                     <span class="cp-nav-icon"><i class="bi bi-geo-alt-fill"></i></span>
-                    <span class="cp-nav-text">Track Order</span>
+                    <span class="cp-nav-text">Track</span>
                 </button>
                 <button class="cp-nav-item" data-tab="branding">
                     <span class="cp-nav-icon"><i class="bi bi-palette-fill"></i></span>
-                    <span class="cp-nav-text">Branding Enquiries</span>
+                    <span class="cp-nav-text">Branding</span>
                     @if($brandingEnquiries->isNotEmpty())
                         <span class="cp-nav-badge cp-nav-badge--muted">{{ $brandingEnquiries->count() }}</span>
                     @endif
@@ -77,20 +75,21 @@
                 </button>
             </nav>
 
-            <div class="cp-sidebar-bottom">
-                <a href="{{ route('contact') }}" class="cp-sidebar-help">
-                    <i class="bi bi-headset"></i> Need Help?
+            <div class="cp-toolbar-actions">
+                <a href="{{ route('contact') }}" class="cp-toolbar-link">
+                    <i class="bi bi-headset"></i>
+                    <span>Help</span>
                 </a>
-                <form action="{{ route('logout') }}" method="POST" class="cp-sidebar-logout-form">
+                <form action="{{ route('logout') }}" method="POST" class="cp-toolbar-logout-form">
                     @csrf
-                    <button type="submit" class="cp-sidebar-logout">
-                        <i class="bi bi-box-arrow-right"></i> Sign Out
+                    <button type="submit" class="cp-toolbar-logout">
+                        <i class="bi bi-box-arrow-right"></i>
+                        <span>Sign Out</span>
                     </button>
                 </form>
             </div>
-        </aside>
+        </div>
 
-        <!-- Main content -->
         <main class="cp-main">
 
             <!-- TAB: SUMMARY -->
@@ -522,7 +521,7 @@
             </div>
 
         </main>
-    </div>
+    </div><!-- /.cp-shell -->
 </div>
 
 <!-- ORDER DETAIL MODAL -->
@@ -587,5 +586,5 @@ window.__CP_ORDER_DATA__ = @json($orderDetailsData);
 window.__CP_PROFILE_URL__ = @json(route('user-dashboard.profile'));
 </script>
 <script src="{{ asset('assets/js/design-print-area.js') }}"></script>
-<script src="{{ asset('assets/js/client-portal.js') }}?v=2.2"></script>
+<script src="{{ asset('assets/js/client-portal.js') }}?v=3.1"></script>
 @endpush

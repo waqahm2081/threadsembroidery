@@ -80,7 +80,7 @@
                         <div class="abs-pillar-icon"><i class="bi bi-calendar-check"></i></div>
                         <div class="abs-pillar-text">
                             <strong>Reliable Turnaround</strong>
-                            <span>7–10 working days on orders with free UK delivery over £150.</span>
+                            <span>10–14 working days on orders with free UK delivery over £150.</span>
                         </div>
                     </div>
                 </div>
@@ -109,7 +109,7 @@
             </div>
             <div class="abst-divider"></div>
             <div class="abst-item">
-                <span class="abst-num">7–10</span>
+                <span class="abst-num">10–14</span>
                 <span class="abst-label">Working Day Turnaround</span>
             </div>
             <div class="abst-divider"></div>
@@ -150,8 +150,8 @@
 
                 <div class="abw-card abw-card--featured">
                     <div class="abw-card-icon"><i class="bi bi-calendar-check"></i></div>
-                    <h3 class="abw-card-title">7–10 Working Days</h3>
-                    <p class="abw-card-text">Every order is completed within 7 to 10 working days from artwork approval — professional embroidery and print, delivered on time.</p>
+                    <h3 class="abw-card-title">10–14 Working Days</h3>
+                    <p class="abw-card-text">Every order is completed within 10 to 14 working days from artwork approval — professional embroidery and print, delivered on time.</p>
                     <span class="abw-card-badge">Standard Turnaround</span>
                 </div>
 

@@ -8,146 +8,126 @@
 
 @section('content')
 <!-- ========================================================
-       HERO SECTION
+       MAIN BANNER — Video hero (screenshot layout)
   ======================================================== -->
-    <section id="hero">
+    <section id="main-banner" aria-label="Threads Embroidery main banner">
 
-        <!-- Subtle bg gradient + grain texture -->
-        <div class="hero-bg-gradient"></div>
-        <div class="hero-grain" aria-hidden="true"></div>
+        <!-- Background video -->
+        <div class="mb-video-wrap" aria-hidden="true">
+            <video src="{{ asset('assets/images/herovideo.mp4') }}" autoplay muted loop playsinline preload="auto"></video>
+            <div class="mb-video-overlay"></div>
+        </div>
 
-        <div class="hero-container">
-            <div class="row g-0 align-items-center hero-row">
-
-                <!-- LEFT: Text Content -->
-                <div class="col-lg-6 hero-left">
-
-                    <div class="hero-eyebrow">
-                        <span class="eyebrow-dot"></span>
-                        UK's Trusted Custom Apparel Partner
+        <!-- Auto-sliding feature pills -->
+        <div class="mb-features-ticker" aria-hidden="true">
+            <div class="mb-features-track">
+                @php
+                    $mbFeatures = [
+                        ['icon' => 'bi-scissors', 'title' => 'Embroidery', 'sub' => 'Left Chest & Back'],
+                        ['icon' => 'bi-printer', 'title' => 'Screen Printing', 'sub' => 'Vibrant Colours'],
+                        ['icon' => 'bi-briefcase', 'title' => 'Workwear', 'sub' => 'Corporate Uniforms'],
+                        ['icon' => 'bi-mortarboard', 'title' => 'Schoolwear', 'sub' => 'Blazers & PE Kits'],
+                        ['icon' => 'bi-trophy', 'title' => 'Sportswear', 'sub' => 'Teams & Clubs'],
+                        ['icon' => 'bi-patch-check', 'title' => 'Custom Patches', 'sub' => 'Woven & Embroidered'],
+                        ['icon' => 'bi-droplet', 'title' => 'DTF Print', 'sub' => 'Full Colour'],
+                        ['icon' => 'bi-magic', 'title' => 'Live Customizer', 'sub' => 'Design Online'],
+                    ];
+                    $mbFeaturesLoop = array_merge($mbFeatures, $mbFeatures);
+                @endphp
+                @foreach($mbFeaturesLoop as $feat)
+                    <div class="mb-feature-pill">
+                        <span class="mb-feature-icon"><i class="bi {{ $feat['icon'] }}"></i></span>
+                        <span class="mb-feature-text">
+                            <strong>{{ $feat['title'] }}</strong>
+                            <span>{{ $feat['sub'] }}</span>
+                        </span>
                     </div>
-
-                    <h1 class="hero-headline">
-                        Your Brand, Stitched Into
-                        <span class="headline-accent"> Every Thread.</span>
-                    </h1>
-
-                    <p class="hero-body">
-                        From embroidered corporate uniforms to printed sportswear — precision, quality &amp; speed for
-                        businesses, schools &amp; sports teams across the UK.
-                    </p>
-
-                    <div class="hero-actions">
-                        <a href="{{ route('shop.category', $defaultCategorySlug ?? 'workwear') }}" class="btn hero-primary-btn">
-                            Browse Catalogue
-                            <i class="bi bi-arrow-right ms-2"></i>
-                        </a>
-                        <a href="{{ route('contact') }}" class="hero-ghost-btn">
-                            <span class="play-wrap"><i class="bi bi-play-fill"></i></span>
-                            Get a Free Quote
-                        </a>
-                    </div>
-
-                    <div class="hero-stats">
-                        <div class="stat-item">
-                            <span class="stat-num" data-target="15" data-suffix="+">15+</span>
-                            <span class="stat-label">Years Experience</span>
-                        </div>
-                        <div class="stat-divider"></div>
-                        <div class="stat-item">
-                            <span class="stat-num" data-target="5000" data-suffix="+">5,000+</span>
-                            <span class="stat-label">Happy Clients</span>
-                        </div>
-                        <div class="stat-divider"></div>
-                        <div class="stat-item">
-                            <span class="stat-num">7–10</span>
-                            <span class="stat-label">Day Turnaround</span>
-                        </div>
-                    </div>
-
-                </div>
-                <!-- END hero-left -->
-
-
-                <!-- RIGHT: Image Collage -->
-                <div class="col-lg-6 hero-right">
-                    <div class="hero-image-collage">
-
-                        <!-- Main large image -->
-                        <div class="hero-img-main">
-                            <img src="{{ asset('assets/images/about1.jpg') }}"
-                                alt="Custom embroidered polo shirts" loading="eager" />
-                            <!-- Overlay badge -->
-                            <div class="img-badge-uk">
-                                <i class="bi bi-geo-alt-fill"></i>
-                                <span>UK Based</span>
-                            </div>
-                        </div>
-
-                        <!-- Top-right stacked image -->
-                        <div class="hero-img-top-right">
-                            <img src="{{ asset('assets/images/about2.jpg') }}"
-                                alt="Branded corporate uniforms" loading="eager" />
-                        </div>
-
-                        <!-- Bottom-right stacked image -->
-                        <div class="hero-img-bottom-right">
-                            <video src="{{ asset('assets/images/herovideo.mp4') }}" autoplay muted loop playsinline style="width: 100%; height: 100%; object-fit: cover;"></video>
-                        </div>
-
-                        <!-- Floating info card -->
-                        <div class="hero-float-card">
-                            <div class="hfc-icon"><i class="bi bi-patch-check-fill"></i></div>
-                            <div class="hfc-text">
-                                <strong>Premium Quality</strong>
-                                <span>Embroidery &amp; Print</span>
-                            </div>
-                        </div>
-
-                        <!-- Floating delivery badge -->
-                        <div class="hero-delivery-badge">
-                            <i class="bi bi-calendar-check"></i>
-                            <div>
-                                <strong>7–10</strong>
-                                <span>Days</span>
-                            </div>
-                        </div>
-
-                        <!-- Decorative dot grid -->
-                        <div class="dot-grid"></div>
-
-                    </div>
-                </div>
-                <!-- END hero-right -->
-
+                @endforeach
             </div>
         </div>
 
-        <!-- Bottom stitch line -->
-        <div class="hero-stitch-bottom">
-            <span></span><span></span><span></span><span></span><span></span>
-            <span></span><span></span><span></span><span></span><span></span>
-            <span></span><span></span><span></span><span></span><span></span>
-            <span></span><span></span><span></span><span></span><span></span>
-        </div>
+        <div class="mb-content">
 
-        <!-- Scroll cue -->
-        <div class="hero-scroll-hint">
-            <div class="scroll-mouse">
-                <div class="scroll-dot"></div>
+            <!-- Trust badge -->
+            <div class="mb-trust-badge">
+                <span class="mb-trust-rating"><i class="bi bi-star-fill"></i> 4.9</span>
+                <span class="mb-trust-sep">|</span>
+                <span>5,000+ Clients</span>
+                <span class="mb-trust-sep">|</span>
+                <span>UK Nationwide</span>
+                <span class="mb-trust-sep">|</span>
+                <span class="mb-trust-highlight">Free Artwork Setup</span>
             </div>
-            <span>Scroll</span>
-        </div>
 
+            <!-- Headline -->
+            <h1 class="mb-headline">
+                Your Brand, Stitched Into
+                <span class="mb-headline-accent">Every Thread.</span>
+            </h1>
+
+            <!-- CTAs -->
+            <div class="mb-actions">
+                <a href="{{ route('login') }}" class="mb-btn mb-btn-primary">
+                    Sign In / Register
+                    <i class="bi bi-arrow-right"></i>
+                </a>
+                <a href="{{ route('shop.category', $defaultCategorySlug ?? 'workwear') }}" class="mb-btn mb-btn-outline">
+                    Browse Catalogue
+                    <i class="bi bi-grid-3x3-gap"></i>
+                </a>
+            </div>
+
+            <p class="mb-subtext">
+                <span><i class="bi bi-check2"></i> Free quote</span>
+                <span class="mb-subtext-dot">•</span>
+                <span><i class="bi bi-check2"></i> Free artwork setup</span>
+                <span class="mb-subtext-dot">•</span>
+                <span><i class="bi bi-check2"></i> 10–14 day turnaround</span>
+            </p>
+
+            <!-- Stats grid -->
+            <div class="mb-stats-grid">
+                <div class="mb-stat-card">
+                    <i class="bi bi-star mb-stat-icon"></i>
+                    <strong class="mb-stat-value">4.9/5</strong>
+                    <span class="mb-stat-label">500+ happy clients</span>
+                </div>
+                <div class="mb-stat-card">
+                    <i class="bi bi-file-earmark-check mb-stat-icon"></i>
+                    <strong class="mb-stat-value">5,000+</strong>
+                    <span class="mb-stat-label">Orders completed</span>
+                </div>
+                <div class="mb-stat-card">
+                    <i class="bi bi-clock mb-stat-icon"></i>
+                    <strong class="mb-stat-value">10–14</strong>
+                    <span class="mb-stat-label">Day turnaround</span>
+                </div>
+                <div class="mb-stat-card">
+                    <i class="bi bi-geo-alt mb-stat-icon"></i>
+                    <strong class="mb-stat-value">UK</strong>
+                    <span class="mb-stat-label">Nationwide delivery</span>
+                </div>
+                <div class="mb-stat-card">
+                    <i class="bi bi-shield-check mb-stat-icon"></i>
+                    <strong class="mb-stat-value">100%</strong>
+                    <span class="mb-stat-label">Quality guaranteed</span>
+                </div>
+                <div class="mb-stat-card">
+                    <i class="bi bi-brush mb-stat-icon"></i>
+                    <strong class="mb-stat-value">Free</strong>
+                    <span class="mb-stat-label">Artwork setup</span>
+                </div>
+            </div>
+
+        </div>
     </section>
-    <!-- END HERO -->
+    <!-- END MAIN BANNER -->
 
 
 
 
     <!-- ========================================================
      ABOUT US SECTION
-     Add this directly after the closing </section> of #hero
 ======================================================== -->
     <section id="about">
         <div class="about-container">
@@ -476,6 +456,387 @@
 
     </section>
 
+    <!-- ============================================================
+     ORDER PROCESS SECTION — light theme, connected flow
+     ============================================================ -->
+    <section id="order-process" aria-labelledby="op-heading">
+        <div class="op-container">
+
+            <div class="op-header" data-op-reveal>
+                <div class="op-eyebrow">
+                    <span class="op-eyebrow-dot"></span>
+                    How It Works
+                </div>
+                <h2 class="op-heading" id="op-heading">
+                    Order in Minutes, <span class="op-accent">Delivered Fast</span>
+                </h2>
+                <p class="op-subhead">
+                    From live customisation to your doorstep — a clear four-step journey trusted by 5,000+ UK businesses, schools and sports clubs.
+                </p>
+            </div>
+
+            <div class="op-flow" data-op-reveal>
+                <!-- Connecting progress track -->
+                <div class="op-track" aria-hidden="true">
+                    <div class="op-track-line"></div>
+                    <div class="op-track-fill"></div>
+                </div>
+
+                <div class="op-steps">
+                    @php
+                        $processSteps = [
+                            [
+                                'num' => '01',
+                                'icon' => 'bi-magic',
+                                'title' => 'Choose & Customise',
+                                'desc' => 'Browse our catalogue, pick your garment and colours, then use our live customizer to preview your logo on the product.',
+                            ],
+                            [
+                                'num' => '02',
+                                'icon' => 'bi-cloud-arrow-up',
+                                'title' => 'Upload Your Logo',
+                                'desc' => 'Add your artwork with placement and size details. Our team reviews every file — free artwork setup included.',
+                            ],
+                            [
+                                'num' => '03',
+                                'icon' => 'bi-scissors',
+                                'title' => 'We Brand Your Order',
+                                'desc' => 'Your garments are embroidered or printed in-house with precision machinery, then quality-checked before dispatch.',
+                            ],
+                            [
+                                'num' => '04',
+                                'icon' => 'bi-truck',
+                                'title' => 'Delivered to You',
+                                'desc' => 'Free UK delivery straight to your door. Typical turnaround is 10–14 working days from order confirmation.',
+                            ],
+                        ];
+                    @endphp
+
+                    @foreach($processSteps as $index => $step)
+                        <article class="op-step" data-op-step style="--op-delay: {{ $index * 0.12 }}s">
+                            <div class="op-node-wrap">
+                                <div class="op-node">
+                                    <span class="op-node-num">{{ $step['num'] }}</span>
+                                </div>
+                                @if($index < count($processSteps) - 1)
+                                    <div class="op-connector" aria-hidden="true">
+                                        <span class="op-connector-line"></span>
+                                        <span class="op-connector-arrow"><i class="bi bi-chevron-right"></i></span>
+                                    </div>
+                                @endif
+                            </div>
+
+                            <div class="op-card">
+                                <span class="op-card-step">Step {{ $step['num'] }}</span>
+                                <div class="op-card-icon">
+                                    <i class="bi {{ $step['icon'] }}"></i>
+                                </div>
+                                <h3 class="op-card-title">{{ $step['title'] }}</h3>
+                                <p class="op-card-desc">{{ $step['desc'] }}</p>
+                            </div>
+                        </article>
+                    @endforeach
+                </div>
+            </div>
+
+            <div class="op-cta-wrap" data-op-reveal>
+                <a href="{{ route('shop.category', $defaultCategorySlug ?? 'workwear') }}" class="op-cta-btn">
+                    <i class="bi bi-bag-plus"></i>
+                    Start Your First Order
+                    <i class="bi bi-arrow-right"></i>
+                </a>
+            </div>
+
+        </div>
+    </section>
+
+    <!-- ============================================================
+     STACK SHOWCASE — 3 full-width scroll-stacking cards
+     ============================================================ -->
+    <section id="stack-showcase" aria-label="Featured highlights">
+        <div class="ssc-stack">
+
+            @php
+                $sscImage = asset('assets/images/customizer/tshirtcustom.png');
+                $sscCards = [
+                    [
+                        'watermark' => 'CUSTOM',
+                        'title' => 'Design It.',
+                        'accent' => 'See It Live.',
+                        'quote' => 'Preview your logo on garments in real time.',
+                        'body' => 'Pick your product, choose colours, upload artwork and watch it appear on the garment instantly — before you add to cart.',
+                        'cta' => 'Start Customising',
+                        'cta_route' => 'shop.category',
+                        'tag1' => 'Live Preview',
+                        'tag2' => 'Your Logo',
+                        'rating' => '4.9',
+                        'reviews' => '500+',
+                    ],
+                    [
+                        'watermark' => 'STITCH',
+                        'title' => 'Precision Craft.',
+                        'accent' => 'Built to Last.',
+                        'quote' => 'Every stitch optimised for clarity, density and durability.',
+                        'body' => 'In-house embroidery and print with professional machinery — crisp detail that holds up wash after wash, order after order.',
+                        'cta' => 'Browse Workwear',
+                        'cta_route' => 'shop.category',
+                        'tag1' => 'Embroidery',
+                        'tag2' => 'Premium Finish',
+                        'rating' => '4.9',
+                        'reviews' => '5,000+',
+                    ],
+                    [
+                        'watermark' => 'BRAND',
+                        'title' => 'Your Team.',
+                        'accent' => 'Your Identity.',
+                        'quote' => 'Uniforms and kit that make your organisation stand out.',
+                        'body' => 'From corporate workwear to school and sports kit — we help teams across the UK look unified, professional and proud.',
+                        'cta' => 'Get a Free Quote',
+                        'cta_route' => 'contact',
+                        'tag1' => 'Workwear',
+                        'tag2' => 'School & Sport',
+                        'rating' => '4.9',
+                        'reviews' => '100+',
+                    ],
+                ];
+            @endphp
+
+            @foreach($sscCards as $index => $card)
+                <article class="ssc-card" data-ssc-card style="--ssc-i: {{ $index }}">
+                    <div class="ssc-card-inner">
+                        <div class="ssc-watermark" aria-hidden="true">{{ $card['watermark'] }}</div>
+
+                        <div class="ssc-left">
+                            <h3 class="ssc-title">
+                                {{ $card['title'] }}
+                                <span class="ssc-title-accent">{{ $card['accent'] }}</span>
+                            </h3>
+
+                            <div class="ssc-bracket-wrap">
+                                <span class="ssc-bracket ssc-bracket--tl" aria-hidden="true"></span>
+                                <p class="ssc-quote">{{ $card['quote'] }}</p>
+                                <span class="ssc-bracket ssc-bracket--br" aria-hidden="true"></span>
+                            </div>
+
+                            @if($card['cta_route'] === 'contact')
+                                <a href="{{ route('contact') }}" class="ssc-cta">
+                                    {{ $card['cta'] }}
+                                    <i class="bi bi-arrow-up-right"></i>
+                                </a>
+                            @else
+                                <a href="{{ route('shop.category', $defaultCategorySlug ?? 'workwear') }}" class="ssc-cta">
+                                    {{ $card['cta'] }}
+                                    <i class="bi bi-arrow-up-right"></i>
+                                </a>
+                            @endif
+                        </div>
+
+                        <div class="ssc-visual">
+                            <img src="{{ $sscImage }}" alt="{{ $card['title'] }} {{ $card['accent'] }}" loading="lazy" draggable="false">
+                            <span class="ssc-tag ssc-tag--1"><i class="bi bi-cursor"></i> {{ $card['tag1'] }}</span>
+                            <span class="ssc-tag ssc-tag--2"><i class="bi bi-cursor"></i> {{ $card['tag2'] }}</span>
+                        </div>
+
+                        <div class="ssc-right">
+                            <p class="ssc-body">{{ $card['body'] }}</p>
+                            <div class="ssc-rating">
+                                <span class="ssc-rating-score">{{ $card['rating'] }}</span>
+                                <span class="ssc-rating-sep">/</span>
+                                <span class="ssc-rating-count">{{ $card['reviews'] }} Reviews</span>
+                                <span class="ssc-stars" aria-hidden="true">
+                                    <i class="bi bi-star-fill"></i>
+                                    <i class="bi bi-star-fill"></i>
+                                    <i class="bi bi-star-fill"></i>
+                                    <i class="bi bi-star-fill"></i>
+                                    <i class="bi bi-star-fill"></i>
+                                </span>
+                            </div>
+                        </div>
+
+                        <div class="ssc-fav" aria-hidden="true">
+                            <i class="bi bi-heart"></i>
+                        </div>
+                    </div>
+                </article>
+            @endforeach
+
+        </div>
+    </section>
+
+    <!-- ============================================================
+     BEFORE / AFTER SECTION — drag-to-reveal comparison
+     ============================================================ -->
+    <section id="before-after" aria-labelledby="ba-heading">
+        <div class="ba-container">
+
+            <div class="ba-content" data-ba-reveal="left">
+                <div class="ba-eyebrow">
+                    <span class="ba-eyebrow-dot"></span>
+                    Before &amp; After
+                </div>
+
+                <h2 class="ba-heading" id="ba-heading">
+                    Plain Garment.<br>
+                    <span class="ba-accent">Professional Brand.</span>
+                </h2>
+
+                <p class="ba-lead">
+                    The difference between an unbranded garment and one finished by our team is immediate — sharper detail, richer colour, and a look that represents your business with pride.
+                </p>
+
+                <p class="ba-body">
+                    Drag the slider to compare a garment before and after our embroidery process. Every order is handled in-house by experienced operators who optimise stitch paths, density and placement for a clean, durable finish.
+                </p>
+
+                <p class="ba-body">
+                    Whether it is a single polo shirt or a full uniform run, we transform your artwork into production-ready branding that looks exceptional on every garment.
+                </p>
+            </div>
+
+            <div class="ba-visual" data-ba-reveal="right">
+                <div class="ba-comparison" id="baComparison" aria-label="Before and after embroidery comparison. Drag to reveal.">
+                    <img
+                        class="ba-img ba-img-after"
+                        src="{{ asset('assets/images/about1.jpg') }}"
+                        alt="Finished embroidered polo shirts"
+                        draggable="false"
+                    />
+
+                    <div class="ba-before-clip" id="baBeforeClip">
+                        <img
+                            class="ba-img ba-img-before"
+                            src="{{ asset('assets/images/about2.jpg') }}"
+                            alt="Embroidery machine working on garment before completion"
+                            draggable="false"
+                        />
+                    </div>
+
+                    <div class="ba-label ba-label-before">Before</div>
+                    <div class="ba-label ba-label-after">After</div>
+
+                    <div class="ba-handle" id="baHandle" role="slider" aria-label="Drag to compare before and after" aria-valuemin="0" aria-valuemax="100" aria-valuenow="50" tabindex="0">
+                        <span class="ba-handle-line" aria-hidden="true"></span>
+                        <span class="ba-handle-grip" aria-hidden="true">
+                            <i class="bi bi-arrows-expand-vertical"></i>
+                        </span>
+                    </div>
+                </div>
+
+                <p class="ba-drag-hint"><i class="bi bi-hand-index-thumb"></i> Drag the slider to reveal</p>
+            </div>
+
+        </div>
+    </section>
+
+    <!-- ============================================================
+     COMPARISON SECTION — why choose us vs alternatives
+     ============================================================ -->
+    <section id="compare" aria-labelledby="cmp-heading">
+        <div class="cmp-container">
+
+            <div class="cmp-header" data-cmp-reveal>
+                <div class="cmp-eyebrow">
+                    <span class="cmp-eyebrow-dot"></span>
+                    Why Choose Us
+                </div>
+                <h2 class="cmp-heading" id="cmp-heading">
+                    See How We <span class="cmp-accent">Stack Up</span>
+                </h2>
+                <p class="cmp-subhead">
+                    Not all branding providers are equal. Here is how Threads Embroidery &amp; Print compares to the alternatives.
+                </p>
+            </div>
+
+            @php
+                $cmpCriteria = [
+                    'In-House Production',
+                    'Live Customizer',
+                    'Free Artwork',
+                    'Quality Guarantee',
+                    'UK Delivery',
+                    'Bulk Orders',
+                ];
+
+                $cmpRows = [
+                    [
+                        'featured' => true,
+                        'name' => 'Threads Embroidery & Print',
+                        'desc' => 'Full-service custom embroidery and print with live preview, in-house production and dedicated UK support.',
+                        'logo' => asset('assets/images/logo.png'),
+                        'scores' => [true, true, true, true, true, true],
+                    ],
+                    [
+                        'name' => 'Generic Online Printers',
+                        'icon' => 'bi-globe2',
+                        'desc' => 'Offshore production with limited garment choice and no real-time customisation.',
+                        'scores' => [false, false, false, true, true, true],
+                    ],
+                    [
+                        'name' => 'Local Freelancers',
+                        'icon' => 'bi-person-workspace',
+                        'desc' => 'Individual operators with variable capacity, turnaround and quality consistency.',
+                        'scores' => [true, false, false, false, false, false],
+                    ],
+                    [
+                        'name' => 'DIY / Home Printing',
+                        'icon' => 'bi-house-gear',
+                        'desc' => 'Low-cost entry point but poor durability, limited fabrics and no professional finish.',
+                        'scores' => [false, false, false, false, false, false],
+                    ],
+                    [
+                        'name' => 'Blank Garments Only',
+                        'icon' => 'bi-bag',
+                        'desc' => 'Plain garments with no branding — you still need embroidery or print applied separately.',
+                        'scores' => [false, false, false, false, true, true],
+                    ],
+                ];
+            @endphp
+
+            <div class="cmp-table-wrap" data-cmp-reveal>
+                <div class="cmp-table" role="table" aria-label="Comparison of branding providers">
+
+                    <div class="cmp-row cmp-row--head" role="row">
+                        <div class="cmp-cell cmp-cell--brand" role="columnheader"></div>
+                        @foreach($cmpCriteria as $label)
+                            <div class="cmp-cell cmp-cell--criteria" role="columnheader">{{ $label }}</div>
+                        @endforeach
+                    </div>
+
+                    @foreach($cmpRows as $row)
+                        <div class="cmp-row {{ !empty($row['featured']) ? 'cmp-row--featured' : '' }}" role="row">
+                            <div class="cmp-cell cmp-cell--brand" role="rowheader">
+                                @if(!empty($row['featured']))
+                                    <div class="cmp-brand-logo">
+                                        <img src="{{ $row['logo'] }}" alt="Threads Embroidery &amp; Print logo" loading="lazy">
+                                    </div>
+                                @else
+                                    <div class="cmp-brand-icon">
+                                        <i class="bi {{ $row['icon'] }}"></i>
+                                    </div>
+                                @endif
+                                <div class="cmp-brand-text">
+                                    <strong>{{ $row['name'] }}</strong>
+                                    <span>{{ $row['desc'] }}</span>
+                                </div>
+                            </div>
+                            @foreach($row['scores'] as $score)
+                                <div class="cmp-cell cmp-cell--score {{ $score ? 'cmp-cell--yes' : 'cmp-cell--no' }}" role="cell">
+                                    @if($score)
+                                        <i class="bi bi-check-lg" aria-label="Yes"></i>
+                                    @else
+                                        <i class="bi bi-x-lg" aria-label="No"></i>
+                                    @endif
+                                </div>
+                            @endforeach
+                        </div>
+                    @endforeach
+
+                </div>
+            </div>
+
+        </div>
+    </section>
+
     @include('partials.branding-service')
 
 
@@ -559,7 +920,132 @@
 
     </section>
 
+    <!-- ========================================================
+       HERO SECTION (legacy — below catalogue)
+  ======================================================== -->
+    <section id="hero" class="legacy-hero">
 
+        <!-- Subtle bg gradient + grain texture -->
+        <div class="hero-bg-gradient"></div>
+        <div class="hero-grain" aria-hidden="true"></div>
+
+        <div class="hero-container">
+            <div class="row g-0 align-items-center hero-row">
+
+                <!-- LEFT: Text Content -->
+                <div class="col-lg-6 hero-left">
+
+                    <div class="hero-eyebrow">
+                        <span class="eyebrow-dot"></span>
+                        UK's Trusted Custom Apparel Partner
+                    </div>
+
+                    <h2 class="hero-headline">
+                        Your Brand, Stitched Into
+                        <span class="headline-accent"> Every Thread.</span>
+                    </h2>
+
+                    <p class="hero-body">
+                        From embroidered corporate uniforms to printed sportswear — precision, quality &amp; speed for
+                        businesses, schools &amp; sports teams across the UK.
+                    </p>
+
+                    <div class="hero-actions">
+                        <a href="{{ route('shop.category', $defaultCategorySlug ?? 'workwear') }}" class="btn hero-primary-btn">
+                            Browse Catalogue
+                            <i class="bi bi-arrow-right ms-2"></i>
+                        </a>
+                        <a href="{{ route('contact') }}" class="hero-ghost-btn">
+                            <span class="play-wrap"><i class="bi bi-play-fill"></i></span>
+                            Get a Free Quote
+                        </a>
+                    </div>
+
+                    <div class="hero-stats">
+                        <div class="stat-item">
+                            <span class="stat-num" data-target="15" data-suffix="+">15+</span>
+                            <span class="stat-label">Years Experience</span>
+                        </div>
+                        <div class="stat-divider"></div>
+                        <div class="stat-item">
+                            <span class="stat-num" data-target="5000" data-suffix="+">5,000+</span>
+                            <span class="stat-label">Happy Clients</span>
+                        </div>
+                        <div class="stat-divider"></div>
+                        <div class="stat-item">
+                            <span class="stat-num">10–14</span>
+                            <span class="stat-label">Day Turnaround</span>
+                        </div>
+                    </div>
+
+                </div>
+                <!-- END hero-left -->
+
+
+                <!-- RIGHT: Image Collage -->
+                <div class="col-lg-6 hero-right">
+                    <div class="hero-image-collage">
+
+                        <!-- Main large image -->
+                        <div class="hero-img-main">
+                            <img src="{{ asset('assets/images/about1.jpg') }}"
+                                alt="Custom embroidered polo shirts" loading="eager" />
+                            <!-- Overlay badge -->
+                            <div class="img-badge-uk">
+                                <i class="bi bi-geo-alt-fill"></i>
+                                <span>UK Based</span>
+                            </div>
+                        </div>
+
+                        <!-- Top-right stacked image -->
+                        <div class="hero-img-top-right">
+                            <img src="{{ asset('assets/images/about2.jpg') }}"
+                                alt="Branded corporate uniforms" loading="eager" />
+                        </div>
+
+                        <!-- Bottom-right stacked image -->
+                        <div class="hero-img-bottom-right">
+                            <video src="{{ asset('assets/images/herovideo.mp4') }}" autoplay muted loop playsinline style="width: 100%; height: 100%; object-fit: cover;"></video>
+                        </div>
+
+                        <!-- Floating info card -->
+                        <div class="hero-float-card">
+                            <div class="hfc-icon"><i class="bi bi-patch-check-fill"></i></div>
+                            <div class="hfc-text">
+                                <strong>Premium Quality</strong>
+                                <span>Embroidery &amp; Print</span>
+                            </div>
+                        </div>
+
+                        <!-- Floating delivery badge -->
+                        <div class="hero-delivery-badge">
+                            <i class="bi bi-calendar-check"></i>
+                            <div>
+                                <strong>10–14</strong>
+                                <span>Days</span>
+                            </div>
+                        </div>
+
+                        <!-- Decorative dot grid -->
+                        <div class="dot-grid"></div>
+
+                    </div>
+                </div>
+                <!-- END hero-right -->
+
+            </div>
+        </div>
+
+        <!-- Bottom stitch line -->
+        <div class="hero-stitch-bottom">
+            <span></span><span></span><span></span><span></span><span></span>
+            <span></span><span></span><span></span><span></span><span></span>
+            <span></span><span></span><span></span><span></span><span></span>
+            <span></span><span></span><span></span><span></span><span></span>
+        </div>
+
+    </section>
+    <!-- END HERO -->
 
 
 
@@ -718,7 +1204,7 @@
                     </li>
                     <li>
                         <span class="vs-point-icon"><i class="bi bi-check2"></i></span>
-                        7–10 working day turnaround with free UK delivery
+                        10–14 working day turnaround with free UK delivery
                     </li>
                     <li>
                         <span class="vs-point-icon"><i class="bi bi-check2"></i></span>

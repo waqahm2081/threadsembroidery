@@ -12,6 +12,7 @@ use App\Http\Controllers\UserDashboardController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', [PageController::class, 'home'])->name('home');
+Route::get('/homeold', [PageController::class, 'homeold'])->name('homeold');
 Route::get('/about', [PageController::class, 'about'])->name('about');
 Route::get('/branding-enquiry', [PageController::class, 'brandingEnquiry'])->name('branding-enquiry');
 Route::post('/branding-enquiry', [BrandingEnquiryController::class, 'store'])->name('branding-enquiry.store');

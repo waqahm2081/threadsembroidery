@@ -9,6 +9,11 @@ class PageController extends Controller
         return view('home');
     }
 
+    public function homeold()
+    {
+        return view('homeold');
+    }
+
     public function about()
     {
         return view('about');

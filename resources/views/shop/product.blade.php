@@ -191,7 +191,7 @@
             <div class="pd-trust-row">
                 <span class="pd-trust-item"><i class="bi bi-truck"></i> Free UK Delivery</span>
                 <span class="pd-trust-item"><i class="bi bi-pencil-square"></i> Free Artwork</span>
-                <span class="pd-trust-item"><i class="bi bi-calendar-check"></i> 7–10 Day Turnaround</span>
+                <span class="pd-trust-item"><i class="bi bi-calendar-check"></i> 10–14 Day Turnaround</span>
             </div>
         </div>
     </div>

@@ -184,7 +184,7 @@
                     <div class="ctb-express-icon"><i class="bi bi-calendar-check"></i></div>
                     <div>
                         <strong>Order Turnaround</strong>
-                        <span>Standard orders are completed within 7 to 10 working days from artwork approval.</span>
+                        <span>Standard orders are completed within 10 to 14 working days from artwork approval.</span>
                     </div>
                 </div>
 

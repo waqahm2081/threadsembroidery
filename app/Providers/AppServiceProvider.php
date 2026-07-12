@@ -16,7 +16,7 @@ class AppServiceProvider extends ServiceProvider
 
     public function boot(): void
     {
-        View::composer(['partials.header', 'partials.footer', 'home', 'cart', 'checkout'], function ($view) {
+        View::composer(['partials.header', 'partials.footer', 'home', 'homeold', 'cart', 'checkout'], function ($view) {
             $catalog = app(ProductCatalogService::class);
             $categories = $catalog->getCategories();
 
@@ -45,7 +45,7 @@ class AppServiceProvider extends ServiceProvider
                 'cartCount' => $cartCount,
             ]);
 
-            if ($view->getName() === 'home') {
+            if (in_array($view->getName(), ['home', 'homeold'], true)) {
                 $view->with([
                     'featuredProducts' => $catalog->productsForSearch()->take(3)->values()->all(),
                     'defaultCategorySlug' => $categories[0]['slug'] ?? 'workwear',

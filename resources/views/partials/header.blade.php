@@ -32,7 +32,7 @@
                     <span class="ticker-item"><i class="bi bi-envelope-fill"></i>
                         &nbsp;customerservice@threadsembroideryprint.co.uk</span>
                     <span class="ticker-sep">✦</span>
-                    <span class="ticker-item"><i class="bi bi-calendar-check"></i> &nbsp;7–10 Working Day
+                    <span class="ticker-item"><i class="bi bi-calendar-check"></i> &nbsp;10–14 Working Day
                         Turnaround on Orders</span>
                     <span class="ticker-sep">✦</span>
                     <span class="ticker-item"><i class="bi bi-brush-fill"></i> &nbsp;Free Logo Artwork Setup on Every
@@ -115,6 +115,7 @@
                                         <div class="mega-header-left">
                                             <span class="mega-eyebrow">Browse by Category</span>
                                             <h3 class="mega-title">Our Full Catalogue</h3>
+                                            <p class="mega-desc">Can't find what you're looking for? Please <a href="{{ route('contact') }}">contact us</a> and we'll look for you.</p>
                                         </div>
                                         <div class="mega-header-right">
                                             @if(!empty($catalogCategories))

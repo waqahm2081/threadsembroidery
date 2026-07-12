@@ -828,6 +828,256 @@ $(document).ready(function () {
 
 
 /* ============================================================
+   STACK SHOWCASE — smooth scroll blur + stacking
+   ============================================================ */
+
+(function () {
+  'use strict';
+
+  const section = document.getElementById('stack-showcase');
+  if (!section) return;
+
+  const cards = section.querySelectorAll('[data-ssc-card]');
+  if (!cards.length) return;
+
+  const stickyTops = [108, 128, 148];
+  let ticking = false;
+
+  function clamp(val, min, max) {
+    return Math.min(max, Math.max(min, val));
+  }
+
+  function easeOutCubic(t) {
+    return 1 - Math.pow(1 - t, 3);
+  }
+
+  function easeInOutCubic(t) {
+    return t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+  }
+
+  function getClarity(card, index, vh) {
+    const rect = card.getBoundingClientRect();
+    const stickyTop = stickyTops[index] || 108;
+
+    const entryStart = vh * 0.92;
+    const entryEnd = stickyTop + 40;
+    const entryProgress = clamp((entryStart - rect.top) / (entryStart - entryEnd), 0, 1);
+
+    const centerY = rect.top + rect.height * 0.42;
+    const focusZone = vh * 0.38;
+    const focusDist = Math.abs(centerY - (stickyTop + focusZone));
+    const focusProgress = clamp(1 - focusDist / (vh * 0.55), 0, 1);
+
+    return easeOutCubic(Math.max(entryProgress, focusProgress));
+  }
+
+  function updateCards() {
+    const vh = window.innerHeight;
+    const clarities = [];
+
+    cards.forEach((card, index) => {
+      clarities[index] = getClarity(card, index, vh);
+    });
+
+    cards.forEach((card, index) => {
+      let clarity = clarities[index];
+
+      // As the next card becomes clear, blur this one (going behind)
+      if (index < cards.length - 1) {
+        const behind = easeInOutCubic(clarities[index + 1]);
+        clarity = clarity * (1 - behind);
+      }
+
+      const blur = (1 - clarity) * 8;
+      const scale = 0.978 + clarity * 0.022;
+      const opacity = 0.72 + clarity * 0.28;
+
+      card.style.setProperty('--ssc-blur', blur.toFixed(2) + 'px');
+      card.style.setProperty('--ssc-scale', scale.toFixed(4));
+      card.style.setProperty('--ssc-opacity', opacity.toFixed(3));
+    });
+
+    ticking = false;
+  }
+
+  function onScroll() {
+    if (!ticking) {
+      ticking = true;
+      requestAnimationFrame(updateCards);
+    }
+  }
+
+  if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    window.addEventListener('scroll', onScroll, { passive: true });
+    window.addEventListener('resize', onScroll, { passive: true });
+    updateCards();
+  }
+})();
+
+
+/* ============================================================
+   COMPARISON SECTION — scroll reveal
+   ============================================================ */
+
+(function () {
+  'use strict';
+
+  const section = document.getElementById('compare');
+  if (!section) return;
+
+  const revealEls = section.querySelectorAll('[data-cmp-reveal]');
+
+  if ('IntersectionObserver' in window && revealEls.length) {
+    const io = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('cmp-in-view');
+          io.unobserve(entry.target);
+        }
+      });
+    }, { threshold: 0.12 });
+
+    revealEls.forEach(el => io.observe(el));
+  } else {
+    revealEls.forEach(el => el.classList.add('cmp-in-view'));
+  }
+})();
+
+
+/* ============================================================
+   BEFORE / AFTER SECTION — drag slider + scroll reveal
+   ============================================================ */
+
+(function () {
+  'use strict';
+
+  const section = document.getElementById('before-after');
+  if (!section) return;
+
+  const comparison = document.getElementById('baComparison');
+  const beforeClip = document.getElementById('baBeforeClip');
+  const handle = document.getElementById('baHandle');
+  const revealEls = section.querySelectorAll('[data-ba-reveal]');
+
+  if ('IntersectionObserver' in window && revealEls.length) {
+    const io = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('ba-in-view');
+          io.unobserve(entry.target);
+        }
+      });
+    }, { threshold: 0.15 });
+    revealEls.forEach(el => io.observe(el));
+  } else {
+    revealEls.forEach(el => el.classList.add('ba-in-view'));
+  }
+
+  if (!comparison || !beforeClip || !handle) return;
+
+  let isDragging = false;
+  let position = 50;
+
+  function setPosition(percent) {
+    position = Math.max(4, Math.min(96, percent));
+    const rightClip = 100 - position;
+    beforeClip.style.clipPath = 'inset(0 ' + rightClip + '% 0 0)';
+    handle.style.left = position + '%';
+    handle.setAttribute('aria-valuenow', Math.round(position));
+  }
+
+  function positionFromEvent(clientX) {
+    const rect = comparison.getBoundingClientRect();
+    const percent = ((clientX - rect.left) / rect.width) * 100;
+    setPosition(percent);
+  }
+
+  function startDrag() {
+    isDragging = true;
+    comparison.classList.add('is-dragging');
+  }
+
+  function endDrag() {
+    isDragging = false;
+    comparison.classList.remove('is-dragging');
+  }
+
+  comparison.addEventListener('mousedown', function (e) {
+    if (e.button !== 0) return;
+    startDrag();
+    positionFromEvent(e.clientX);
+  });
+
+  window.addEventListener('mousemove', function (e) {
+    if (!isDragging) return;
+    e.preventDefault();
+    positionFromEvent(e.clientX);
+  });
+
+  window.addEventListener('mouseup', endDrag);
+
+  comparison.addEventListener('touchstart', function (e) {
+    startDrag();
+    positionFromEvent(e.touches[0].clientX);
+  }, { passive: true });
+
+  comparison.addEventListener('touchmove', function (e) {
+    if (!isDragging) return;
+    positionFromEvent(e.touches[0].clientX);
+  }, { passive: true });
+
+  comparison.addEventListener('touchend', endDrag);
+
+  handle.addEventListener('keydown', function (e) {
+    if (e.key === 'ArrowLeft') {
+      e.preventDefault();
+      setPosition(position - 4);
+    } else if (e.key === 'ArrowRight') {
+      e.preventDefault();
+      setPosition(position + 4);
+    }
+  });
+
+  setPosition(50);
+})();
+
+
+/* ============================================================
+   ORDER PROCESS SECTION — scroll reveal + flow animation
+   ============================================================ */
+
+(function () {
+  'use strict';
+
+  const section = document.getElementById('order-process');
+  if (!section) return;
+
+  const revealEls = section.querySelectorAll('[data-op-reveal]');
+  const flowEl = section.querySelector('.op-flow');
+
+  function activate() {
+    revealEls.forEach(el => el.classList.add('op-in-view'));
+    if (flowEl) flowEl.classList.add('op-in-view');
+  }
+
+  if ('IntersectionObserver' in window) {
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          activate();
+          observer.disconnect();
+        }
+      });
+    }, { threshold: 0.2 });
+
+    observer.observe(section);
+  } else {
+    activate();
+  }
+})();
+
+
+/* ============================================================
    TESTIMONIALS SECTION  —  testimonials-section.js
    Vanilla JS · 3-visible slider · autoplay 4s · drag/swipe
    ============================================================ */

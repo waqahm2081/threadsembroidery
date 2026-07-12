@@ -7,4 +7,4 @@
     href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Inter:wght@300;400;500;600&display=swap"
     rel="stylesheet" />
 
-<link rel="stylesheet" href="{{ asset('assets/css/style.css') }}?v=1.1" />
+<link rel="stylesheet" href="{{ asset('assets/css/style.css') }}?v=2.3" />
