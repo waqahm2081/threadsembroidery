@@ -3131,6 +3131,7 @@ body {
 
 #order-process .op-connector-line {
   flex: 1;
+  display: block;
   height: 3px;
   background: repeating-linear-gradient(
     90deg,
@@ -3150,6 +3151,10 @@ body {
 }
 
 #order-process .op-connector-arrow {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  z-index: 2;
   width: 28px;
   height: 28px;
   border-radius: 50%;
@@ -3159,18 +3164,16 @@ body {
   align-items: center;
   justify-content: center;
   font-size: 12px;
-  flex-shrink: 0;
-  margin-left: -4px;
   box-shadow: 0 4px 14px rgba(238,96,35,0.35);
   opacity: 0;
-  transform: scale(0.5);
+  transform: translate(-50%, -50%) scale(0.5);
   transition: opacity 0.4s ease, transform 0.4s ease;
   transition-delay: calc(var(--op-delay, 0s) + 0.55s);
 }
 
 #order-process .op-flow.op-in-view .op-connector-arrow {
   opacity: 1;
-  transform: scale(1);
+  transform: translate(-50%, -50%) scale(1);
 }
 
 #order-process .op-card {
@@ -3461,23 +3464,29 @@ body {
   gap: 0 24px;
   padding: 48px 48px 40px;
   align-items: center;
+  container-type: inline-size;
 }
 
 #stack-showcase .ssc-watermark {
   position: absolute;
-  left: 50%;
+  left: 0;
+  right: 0;
+  width: 100%;
   top: 54%;
-  transform: translate(-50%, -50%);
+  transform: translateY(-50%);
+  text-align: center;
   font-family: var(--font-head);
-  font-size: clamp(7rem, 18vw, 14rem);
+  font-size: clamp(4.5rem, calc(100cqw / var(--ssc-chars, 6) * 1.58), 18rem);
   font-weight: 800;
-  letter-spacing: -0.04em;
+  letter-spacing: -0.03em;
   color: rgba(255,255,255,0.72);
   white-space: nowrap;
   pointer-events: none;
   z-index: 0;
   user-select: none;
-  line-height: 1;
+  line-height: 0.85;
+  padding: 0 12px;
+  box-sizing: border-box;
 }
 
 #stack-showcase .ssc-left {
@@ -3502,43 +3511,31 @@ body {
   color: #1a1a1a;
 }
 
-#stack-showcase .ssc-bracket-wrap {
-  position: relative;
-  max-width: 280px;
+#stack-showcase .ssc-quote-wrap {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  max-width: 320px;
   margin-bottom: 32px;
-  padding: 12px 18px;
-}
-
-#stack-showcase .ssc-bracket {
-  position: absolute;
-  width: 18px;
-  height: 18px;
-  border-color: rgba(0,0,0,0.25);
-  border-style: solid;
-  border-width: 0;
-}
-
-#stack-showcase .ssc-bracket--tl {
-  top: 0;
-  left: 0;
-  border-top-width: 1.5px;
-  border-left-width: 1.5px;
-}
-
-#stack-showcase .ssc-bracket--br {
-  bottom: 0;
-  right: 0;
-  border-bottom-width: 1.5px;
-  border-right-width: 1.5px;
 }
 
 #stack-showcase .ssc-quote {
   font-family: var(--font-body);
   font-size: 0.92rem;
   line-height: 1.55;
-  color: #555;
+  color: #444;
   margin: 0;
-  font-style: italic;
+  flex: 1 1 auto;
+}
+
+#stack-showcase .ssc-quote-arrow {
+  flex-shrink: 0;
+  width: auto;
+  height: 52px;
+  object-fit: contain;
+  margin-top: 2px;
+  /* filter: invert(1); */
+  /* mix-blend-mode: multiply; */
 }
 
 #stack-showcase .ssc-cta {
@@ -3584,12 +3581,13 @@ body {
 }
 
 #stack-showcase .ssc-visual img {
-  max-height: 92%;
+  max-height: 98%;
   width: auto;
   max-width: 100%;
   object-fit: contain;
+  object-position: bottom center;
   display: block;
-  filter: drop-shadow(0 20px 40px rgba(0,0,0,0.12));
+  filter: drop-shadow(0 16px 32px rgba(0,0,0,0.18));
   pointer-events: none;
 }
 
@@ -3723,9 +3721,10 @@ body {
   }
 
   #stack-showcase .ssc-watermark {
-    font-size: clamp(5rem, 14vw, 9rem);
     top: 50%;
-    left: 65%;
+    left: 0;
+    right: 0;
+    font-size: clamp(3.5rem, calc(100cqw / var(--ssc-chars, 6) * 1.5), 9rem);
   }
 
   #stack-showcase .ssc-fav {
@@ -3784,17 +3783,23 @@ body {
   }
 
   #stack-showcase .ssc-watermark {
-    left: 50%;
+    left: 0;
+    right: 0;
     top: 42%;
-    font-size: 4.5rem;
+    font-size: clamp(2.75rem, calc(100cqw / var(--ssc-chars, 6) * 1.42), 4.5rem);
   }
 
   #stack-showcase .ssc-title {
     margin-bottom: 20px;
   }
 
-  #stack-showcase .ssc-bracket-wrap {
+  #stack-showcase .ssc-quote-wrap {
     margin-bottom: 24px;
+    max-width: none;
+  }
+
+  #stack-showcase .ssc-quote-arrow {
+    height: 42px;
   }
 
   #stack-showcase .ssc-fav {
@@ -3850,9 +3855,9 @@ body {
   margin: 0 auto;
   padding: 0 40px;
   display: grid;
-  grid-template-columns: 1fr 1.05fr;
-  gap: 64px;
-  align-items: center;
+  grid-template-columns: 1fr 1fr;
+  gap: 48px;
+  align-items: stretch;
   position: relative;
   z-index: 1;
 }
@@ -3874,6 +3879,12 @@ body {
 #before-after [data-ba-reveal].ba-in-view {
   opacity: 1;
   transform: none;
+}
+
+#before-after .ba-content {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
 }
 
 #before-after .ba-eyebrow {
@@ -3904,11 +3915,97 @@ body {
   line-height: 1.1;
   letter-spacing: -0.03em;
   color: #0d0d0d;
-  margin-bottom: 24px;
+  margin-bottom: 28px;
 }
 
 #before-after .ba-accent {
   color: var(--c-primary);
+}
+
+#before-after .ba-points-card {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  background: linear-gradient(160deg, #fff 0%, rgba(238,96,35,0.07) 100%);
+  border: 1px solid rgba(238,96,35,0.14);
+  border-radius: 18px;
+  padding: 28px 26px 24px;
+  box-shadow: 0 4px 24px rgba(238,96,35,0.07);
+}
+
+#before-after .ba-points-title {
+  font-family: var(--font-head);
+  font-size: 1.15rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  color: #0d0d0d;
+  margin: 0 0 22px;
+}
+
+#before-after .ba-points {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  flex: 1;
+  justify-content: space-evenly;
+}
+
+#before-after .ba-point {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+}
+
+#before-after .ba-point-icon {
+  flex-shrink: 0;
+  width: 28px;
+  font-size: 1.35rem;
+  line-height: 1.2;
+  text-align: center;
+}
+
+#before-after .ba-point-text strong {
+  display: block;
+  font-family: var(--font-body);
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: #1a1a1a;
+  margin-bottom: 5px;
+}
+
+#before-after .ba-point-text p {
+  font-family: var(--font-body);
+  font-size: 0.86rem;
+  line-height: 1.65;
+  color: #666;
+  margin: 0;
+}
+
+#before-after .ba-points-footnote {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  margin: 22px 0 0;
+  padding-top: 18px;
+  border-top: 1px solid rgba(238,96,35,0.12);
+  font-family: var(--font-body);
+  font-size: 0.82rem;
+  line-height: 1.6;
+  color: #666;
+}
+
+#before-after .ba-points-footnote-icon {
+  flex-shrink: 0;
+  font-size: 1rem;
+  line-height: 1.4;
+}
+
+#before-after .ba-points-footnote strong {
+  color: #333;
+  font-weight: 700;
 }
 
 #before-after .ba-lead {
@@ -3948,28 +4045,37 @@ body {
 /* Comparison slider */
 #before-after .ba-visual {
   position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  min-height: 0;
 }
 
 #before-after .ba-comparison {
   position: relative;
   border-radius: 20px;
   overflow: hidden;
+  background: #fff;
   box-shadow:
     0 8px 32px rgba(0,0,0,0.1),
     0 24px 56px rgba(0,0,0,0.08),
-    0 0 0 1px rgba(0,0,0,0.06);
+    0 0 0 1px rgba(238,96,35,0.1);
   cursor: ew-resize;
   user-select: none;
   touch-action: none;
-  aspect-ratio: 4 / 3.2;
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  max-height: 100%;
 }
 
 #before-after .ba-img {
   display: block;
   width: 100%;
   height: 100%;
-  object-fit: cover;
+  object-fit: contain;
+  object-position: center;
   pointer-events: none;
+  background: #fff;
 }
 
 #before-after .ba-img-after {
@@ -4093,6 +4199,26 @@ body {
     padding: 0 24px;
   }
 
+  #before-after .ba-content {
+    flex: none;
+  }
+
+  #before-after .ba-points-card {
+    flex: none;
+  }
+
+  #before-after .ba-points {
+    flex: none;
+    justify-content: flex-start;
+    gap: 20px;
+  }
+
+  #before-after .ba-visual {
+    max-width: 520px;
+    margin: 0 auto;
+    width: 100%;
+  }
+
   #before-after [data-ba-reveal="left"],
   #before-after [data-ba-reveal="right"] {
     transform: translateY(24px);
@@ -4104,9 +4230,18 @@ body {
 }
 
 @media (max-width: 480px) {
+  #before-after .ba-points-card {
+    padding: 22px 18px 20px;
+  }
+
+  #before-after .ba-point-icon {
+    width: 24px;
+    font-size: 1.2rem;
+  }
+
   #before-after .ba-comparison {
     border-radius: 14px;
-    aspect-ratio: 4 / 3.4;
+    aspect-ratio: 1 / 1;
   }
 
   #before-after .ba-handle-grip {

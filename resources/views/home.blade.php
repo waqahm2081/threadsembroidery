@@ -557,9 +557,10 @@
         <div class="ssc-stack">
 
             @php
-                $sscImage = asset('assets/images/customizer/tshirtcustom.png');
                 $sscCards = [
                     [
+                        'image' => asset('assets/images/scrolling1.png'),
+                        'image_alt' => 'Motocross racer wearing custom branded racing jersey',
                         'watermark' => 'CUSTOM',
                         'title' => 'Design It.',
                         'accent' => 'See It Live.',
@@ -573,6 +574,8 @@
                         'reviews' => '500+',
                     ],
                     [
+                        'image' => asset('assets/images/scrolling2.png'),
+                        'image_alt' => 'Hospitality staff wearing embroidered denim aprons',
                         'watermark' => 'STITCH',
                         'title' => 'Precision Craft.',
                         'accent' => 'Built to Last.',
@@ -586,6 +589,8 @@
                         'reviews' => '5,000+',
                     ],
                     [
+                        'image' => asset('assets/images/scrolling3.png'),
+                        'image_alt' => 'Golfer wearing embroidered sports vest and cap',
                         'watermark' => 'BRAND',
                         'title' => 'Your Team.',
                         'accent' => 'Your Identity.',
@@ -604,7 +609,7 @@
             @foreach($sscCards as $index => $card)
                 <article class="ssc-card" data-ssc-card style="--ssc-i: {{ $index }}">
                     <div class="ssc-card-inner">
-                        <div class="ssc-watermark" aria-hidden="true">{{ $card['watermark'] }}</div>
+                        <div class="ssc-watermark" aria-hidden="true" style="--ssc-chars: {{ strlen($card['watermark']) }}">{{ $card['watermark'] }}</div>
 
                         <div class="ssc-left">
                             <h3 class="ssc-title">
@@ -612,10 +617,9 @@
                                 <span class="ssc-title-accent">{{ $card['accent'] }}</span>
                             </h3>
 
-                            <div class="ssc-bracket-wrap">
-                                <span class="ssc-bracket ssc-bracket--tl" aria-hidden="true"></span>
-                                <p class="ssc-quote">{{ $card['quote'] }}</p>
-                                <span class="ssc-bracket ssc-bracket--br" aria-hidden="true"></span>
+                            <div class="ssc-quote-wrap">
+                                <p class="ssc-quote">&ldquo;{{ $card['quote'] }}&rdquo;</p>
+                                <img src="{{ asset('assets/images/arrow-01.png') }}" alt="" class="ssc-quote-arrow" aria-hidden="true" draggable="false">
                             </div>
 
                             @if($card['cta_route'] === 'contact')
@@ -632,7 +636,7 @@
                         </div>
 
                         <div class="ssc-visual">
-                            <img src="{{ $sscImage }}" alt="{{ $card['title'] }} {{ $card['accent'] }}" loading="lazy" draggable="false">
+                            <img src="{{ $card['image'] }}" alt="{{ $card['image_alt'] }}" loading="lazy" draggable="false">
                             <span class="ssc-tag ssc-tag--1"><i class="bi bi-cursor"></i> {{ $card['tag1'] }}</span>
                             <span class="ssc-tag ssc-tag--2"><i class="bi bi-cursor"></i> {{ $card['tag2'] }}</span>
                         </div>
@@ -680,33 +684,57 @@
                     <span class="ba-accent">Professional Brand.</span>
                 </h2>
 
-                <p class="ba-lead">
-                    The difference between an unbranded garment and one finished by our team is immediate — sharper detail, richer colour, and a look that represents your business with pride.
-                </p>
+                <div class="ba-points-card">
+                    <h3 class="ba-points-title">Why Our Embroidery Wins</h3>
 
-                <p class="ba-body">
-                    Drag the slider to compare a garment before and after our embroidery process. Every order is handled in-house by experienced operators who optimise stitch paths, density and placement for a clean, durable finish.
-                </p>
+                    <ul class="ba-points">
+                        <li class="ba-point">
+                            <span class="ba-point-icon" aria-hidden="true">🧵</span>
+                            <div class="ba-point-text">
+                                <strong>Clean Stitch Paths</strong>
+                                <p>Every stitch optimised for your fabric and garment type — no uneven edges, puckering or gaps around your logo.</p>
+                            </div>
+                        </li>
+                        <li class="ba-point">
+                            <span class="ba-point-icon" aria-hidden="true">🔤</span>
+                            <div class="ba-point-text">
+                                <strong>Sharp Small Text</strong>
+                                <p>Legible lettering and fine detail on polos, caps and workwear — crisp results even on smaller branding areas.</p>
+                            </div>
+                        </li>
+                        <li class="ba-point">
+                            <span class="ba-point-icon" aria-hidden="true">⚡</span>
+                            <div class="ba-point-text">
+                                <strong>Production-Ready</strong>
+                                <p>Durable thread, efficient density and secure placement that holds up wash after wash, order after order.</p>
+                            </div>
+                        </li>
+                        <li class="ba-point">
+                            <span class="ba-point-icon" aria-hidden="true">🎯</span>
+                            <div class="ba-point-text">
+                                <strong>Perfect Registration</strong>
+                                <p>Precise logo placement and colour alignment on every garment in your run — consistent from the first piece to the last.</p>
+                            </div>
+                        </li>
+                    </ul>
 
-                <p class="ba-body">
-                    Whether it is a single polo shirt or a full uniform run, we transform your artwork into production-ready branding that looks exceptional on every garment.
-                </p>
+                </div>
             </div>
 
             <div class="ba-visual" data-ba-reveal="right">
                 <div class="ba-comparison" id="baComparison" aria-label="Before and after embroidery comparison. Drag to reveal.">
                     <img
                         class="ba-img ba-img-after"
-                        src="{{ asset('assets/images/about1.jpg') }}"
-                        alt="Finished embroidered polo shirts"
+                        src="{{ asset('assets/images/ba-after.png') }}"
+                        alt="Finished embroidered tiger logo with stitch texture"
                         draggable="false"
                     />
 
                     <div class="ba-before-clip" id="baBeforeClip">
                         <img
                             class="ba-img ba-img-before"
-                            src="{{ asset('assets/images/about2.jpg') }}"
-                            alt="Embroidery machine working on garment before completion"
+                            src="{{ asset('assets/images/ba-before.png') }}"
+                            alt="Original flat tiger artwork before embroidery"
                             draggable="false"
                         />
                     </div>
@@ -722,7 +750,6 @@
                     </div>
                 </div>
 
-                <p class="ba-drag-hint"><i class="bi bi-hand-index-thumb"></i> Drag the slider to reveal</p>
             </div>
 
         </div>
