@@ -13,14 +13,14 @@ class BrandingEnquiry extends Model
         'reference',
         'user_id',
         'full_name',
-        'business_name',
+        'company_name',
         'email',
-        'whatsapp',
-        'garments',
-        'colours',
-        'placements',
+        'phone',
+        'enquiry_type',
+        'quantity',
         'branding_method',
-        'min_order_confirmed',
+        'placements',
+        'message',
         'status',
         'admin_notes',
         'quoted_amount',
@@ -28,7 +28,6 @@ class BrandingEnquiry extends Model
 
     protected $casts = [
         'placements' => 'array',
-        'min_order_confirmed' => 'boolean',
         'quoted_amount' => 'float',
     ];
 
@@ -44,21 +43,11 @@ class BrandingEnquiry extends Model
 
     public static function generateReference(): string
     {
-        $year = now()->format('Y');
-        $prefix = "BE-{$year}-";
+        do {
+            $reference = 'BE-'.now()->format('ymd').'-'.Str::upper(Str::random(5));
+        } while (static::where('reference', $reference)->exists());
 
-        $latest = static::query()
-            ->where('reference', 'like', $prefix.'%')
-            ->orderByDesc('reference')
-            ->value('reference');
-
-        $sequence = 1;
-
-        if ($latest && preg_match('/BE-\d{4}-(\d+)$/', $latest, $matches)) {
-            $sequence = (int) $matches[1] + 1;
-        }
-
-        return $prefix.str_pad((string) $sequence, 5, '0', STR_PAD_LEFT);
+        return $reference;
     }
 
     public function displayStatus(): string
@@ -70,45 +59,42 @@ class BrandingEnquiry extends Model
             'in_progress' => 'In Progress',
             'completed' => 'Completed',
             'cancelled' => 'Cancelled',
-            default => ucfirst(str_replace('_', ' ', $this->status)),
+            default => ucfirst(str_replace('_', ' ', (string) $this->status)),
         };
     }
 
-    public function filterStatus(): string
+    public function statusKey(): string
     {
         return match ($this->status) {
-            'submitted' => 'submitted',
-            'review' => 'review',
+            'submitted', 'review' => 'review',
             'quoted' => 'quoted',
-            'in_progress' => 'in_progress',
-            'completed' => 'completed',
+            'in_progress' => 'production',
+            'completed' => 'delivered',
             'cancelled' => 'cancelled',
-            default => $this->status,
+            default => 'review',
         };
     }
 
-    public function serviceSummary(): string
+    public function toFrontend(): array
     {
-        $placements = collect($this->placements ?? [])->take(2)->implode(', ');
-        $method = match ($this->branding_method) {
-            'embroidery' => 'Embroidery',
-            'dtf' => 'DTF Print',
-            'both' => 'Embroidery & DTF',
-            'not_sure' => 'Method TBC',
-            default => ucfirst(str_replace('_', ' ', $this->branding_method)),
-        };
-
-        if ($placements === '') {
-            return $method;
-        }
-
-        return $placements.' — '.$method;
-    }
-
-    public function garmentsSummary(): string
-    {
-        $text = trim($this->garments);
-
-        return Str::limit($text, 60);
+        return [
+            'id' => $this->id,
+            'ref' => $this->reference,
+            'status' => $this->displayStatus(),
+            'status_key' => $this->statusKey(),
+            'date' => optional($this->created_at)->format('d M Y'),
+            'enquiry_type' => $this->enquiry_type,
+            'quantity' => $this->quantity,
+            'method' => $this->branding_method,
+            'placements' => $this->placements ?? [],
+            'message' => $this->message,
+            'company_name' => $this->company_name,
+            'quoted_amount' => $this->quoted_amount,
+            'files' => $this->files->map(fn (BrandingEnquiryFile $f) => [
+                'name' => $f->original_name,
+                'url' => $f->url,
+                'type' => strtoupper(pathinfo($f->original_name ?: $f->file_path, PATHINFO_EXTENSION) ?: 'FILE'),
+            ])->values()->all(),
+        ];
     }
 }

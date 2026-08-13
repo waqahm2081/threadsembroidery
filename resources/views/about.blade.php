@@ -1,207 +1,49 @@
 @extends('layouts.app')
 
-@section('title', 'About Us — Threads Embroidery &amp; Print Ltd')
-
-@push('styles')
-<link rel="stylesheet" href="{{ asset('assets/css/about.css') }}">
-@endpush
-
 @section('content')
+<main>
+  <section class="page-hero"><div class="container">
+    <div class="breadcrumb"><a href="{{ route('home') }}">Home</a><i class="bi bi-chevron-right"></i><span>About Us</span></div>
+    <span class="h-eyebrow">Who We Are</span>
+    <h1 class="mt-2">Built on Trust.<br>Defined by Quality.</h1>
+    <p class="lead">Reliable, high-quality custom embroidery and printing for businesses, schools and sports teams — with fast turnaround and outstanding service.</p>
+  </div></section>
 
-<!-- ============================================================
-         PAGE HERO / BREADCRUMB BANNER
-    ============================================================ -->
-    <section id="about-hero">
-        <div class="abh-container">
-            <div class="abh-eyebrow">
-                <span class="abh-eyebrow-dot"></span>
-                Who We Are
-            </div>
-            <h1 class="abh-title">About <span class="abh-accent">Threads</span></h1>
-            <p class="abh-sub">UK's trusted custom embroidery &amp; print specialists — built on quality, driven by passion.</p>
-            <nav class="abh-breadcrumb" aria-label="Breadcrumb">
-                <a href="{{ route('home') }}">Home</a>
-                <span class="abh-sep"><i class="bi bi-chevron-right"></i></span>
-                <span>About Us</span>
-            </nav>
-        </div>
-    </section>
+  <section class="section"><div class="container"><div class="split-grid split-grid--equal">
+    <div class="split-media" data-reveal>
+      <img src="{{ asset('assets/img/aboutmain.jpg') }}" alt="Threads embroidery workshop">
+    </div>
+    <div class="split-copy prose" data-reveal data-delay="1">
+      <p>At Threads Embroidery &amp; Print, we specialise in delivering reliable, high-quality custom embroidery and printing services for businesses, schools and sports teams. Our goal is simple: provide exceptional branded apparel with fast turnaround times and outstanding customer service.</p>
+      <p>We are built on a foundation of <b style="color:var(--text)">trust, precision and professionalism</b>. Founded on a passion for craftsmanship, everything we do is centred around your needs — whether you require a single embroidered polo or a full-scale uniform programme for hundreds of staff. We approach every project, large or small, with the same meticulous attention to detail. No shortcuts. No compromises.</p>
+      <p class="muted">Proudly UK based and family run, from Cullompton — trusted by over 1000  clients nationwide.</p>
+    </div>
+  </div></div></section>
 
+  <section class="section section--light"><div class="container">
+    <div class="section-head center" data-reveal><span class="h-eyebrow">Our Values</span><h2 class="display-2 mt-2">What We Stand For</h2></div>
+    <div class="icon-grid">
+      <div class="icon-card" data-reveal><div class="ic"><i class="bi bi-shield-check"></i></div><h3>Trust &amp; Reliability</h3><p>Consistent quality you can count on, order after order. When we say 10–14 days, we mean it.</p></div>
+      <div class="icon-card" data-reveal data-delay="1"><div class="ic"><i class="bi bi-award"></i></div><h3>Precision Craftsmanship</h3><p>Every stitch and print executed with exacting care on professional in-house machinery.</p></div>
+      <div class="icon-card" data-reveal data-delay="2"><div class="ic"><i class="bi bi-people"></i></div><h3>Professionalism</h3><p>Responsive, helpful and straightforward to work with — from first enquiry to final delivery.</p></div>
+    </div>
+  </div></section>
 
-    <!-- ============================================================
-         STORY SECTION — two-column with images
-    ============================================================ -->
-    <section id="about-story">
-        <div class="abs-container">
+  <section class="section"><div class="container">
+    <div class="section-head center" data-reveal><span class="h-eyebrow">Our Work</span><h2 class="display-2 mt-2">A Look Inside</h2></div>
+    <div class="about-gallery" data-reveal>
+      <img src="{{ asset('assets/img/gallery/1.jpg') }}" alt="Branded garment">
+      <img src="{{ asset('assets/img/gallery/4.jpg') }}" alt="Branded garment">
+      <img src="{{ asset('assets/img/gallery/6.jpg') }}" alt="Branded garment">
+    </div>
+  </div></section>
 
-            <!-- LEFT: Images -->
-            <div class="abs-images">
-                <div class="abs-img-main">
-                    <img src="{{ asset('assets/images/aboutmain.jpg') }}" alt="Threads Embroidery team at work" loading="lazy" />
-                    <div class="abs-years-badge">
-                        <span class="abs-yb-num">15+</span>
-                        <span class="abs-yb-label">Years of<br>Excellence</span>
-                    </div>
-                </div>
-                <div class="abs-img-secondary">
-                    <img src="{{ asset('assets/images/about-2.jpeg') }}" alt="Custom embroidery close-up" loading="lazy" />
-                </div>
-                <div class="abs-dot-grid"></div>
-                <div class="abs-ring"></div>
-            </div>
-
-            <!-- RIGHT: Content -->
-            <div class="abs-content">
-                <div class="abs-eyebrow">
-                    <span class="abs-eyebrow-dot"></span>
-                    Our Story
-                </div>
-                <h2 class="abs-headline">
-                    Built on Trust.<br>
-                    <span class="abs-accent">Defined by Quality.</span>
-                </h2>
-                <p class="abs-lead">
-                    At Threads Embroidery &amp; Print, we are more than just a uniform supplier — we are a dedicated branding partner for businesses, schools, and sports teams right across the United Kingdom. Our mission is straightforward: deliver exceptional custom embroidery and printing services that represent your brand with pride, every single time.
-                </p>
-                <p class="abs-lead">
-                    Based in Cullompton, Devon, our team combines decades of hands-on experience with the very latest embroidery and printing technology. From initial artwork consultation right through to final delivery, we manage every step in-house — giving you faster turnarounds, better quality control, and a seamless experience from enquiry to completion.
-                </p>
-
-                <div class="abs-pillars">
-                    
-                    <div class="abs-pillar">
-                        <div class="abs-pillar-icon"><i class="bi bi-people-fill"></i></div>
-                        <div class="abs-pillar-text">
-                            <strong>Client-First Approach</strong>
-                            <span>Dedicated support and a tailored service every time.</span>
-                        </div>
-                    </div>
-                    <div class="abs-pillar">
-                        <div class="abs-pillar-icon"><i class="bi bi-calendar-check"></i></div>
-                        <div class="abs-pillar-text">
-                            <strong>Reliable Turnaround</strong>
-                            <span>10–14 working days on orders with free UK delivery over £150.</span>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-        </div>
-    </section>
-
-
-    @include('partials.branding-service')
-
-
-    <!-- ============================================================
-         STATS STRIP
-    ============================================================ -->
-    <section id="about-stats">
-        <div class="abst-container">
-            <div class="abst-item">
-                <span class="abst-num">5,000+</span>
-                <span class="abst-label">Happy Clients</span>
-            </div>
-            <div class="abst-divider"></div>
-            <div class="abst-item">
-                <span class="abst-num">15+</span>
-                <span class="abst-label">Years Experience</span>
-            </div>
-            <div class="abst-divider"></div>
-            <div class="abst-item">
-                <span class="abst-num">10–14</span>
-                <span class="abst-label">Working Day Turnaround</span>
-            </div>
-            <div class="abst-divider"></div>
-            <div class="abst-item">
-                <span class="abst-num">100%</span>
-                <span class="abst-label">Quality Guaranteed</span>
-            </div>
-        </div>
-    </section>
-
-
-    <!-- ============================================================
-         WHY CHOOSE US SECTION
-    ============================================================ -->
-    <section id="about-why">
-        <div class="abw-container">
-
-            <div class="abw-header">
-                <div class="abw-eyebrow">
-                    <span class="abw-eyebrow-dot"></span>
-                    Why Choose Us
-                </div>
-                <h2 class="abw-heading">
-                    The Threads <span class="abw-accent">Difference</span>
-                </h2>
-                <p class="abw-subhead">
-                    We don't just print garments — we build lasting partnerships. Here's what sets us apart.
-                </p>
-            </div>
-
-            <div class="abw-grid">
-
-                <div class="abw-card">
-                    <div class="abw-card-icon"><i class="bi bi-palette2"></i></div>
-                    <h3 class="abw-card-title">Free Artwork Setup</h3>
-                    <p class="abw-card-text">Our in-house design team handles all logo digitisation and artwork at no extra cost. You simply send your design — we do the rest.</p>
-                </div>
-
-                <div class="abw-card abw-card--featured">
-                    <div class="abw-card-icon"><i class="bi bi-calendar-check"></i></div>
-                    <h3 class="abw-card-title">10–14 Working Days</h3>
-                    <p class="abw-card-text">Every order is completed within 10 to 14 working days from artwork approval — professional embroidery and print, delivered on time.</p>
-                    <span class="abw-card-badge">Standard Turnaround</span>
-                </div>
-
-                <div class="abw-card">
-                    <div class="abw-card-icon"><i class="bi bi-truck"></i></div>
-                    <h3 class="abw-card-title">Free UK Delivery</h3>
-                    <p class="abw-card-text">All orders over £150 qualify for free tracked delivery to anywhere in the United Kingdom. No hidden fees, ever.</p>
-                </div>
-
-                <div class="abw-card">
-                    <div class="abw-card-icon"><i class="bi bi-patch-check-fill"></i></div>
-                    <h3 class="abw-card-title">Quality Guarantee</h3>
-                    <p class="abw-card-text">Every order is backed by our 100% quality guarantee. If anything isn't right, we'll fix it or replace it — no questions asked.</p>
-                </div>
-
-                <div class="abw-card">
-                    <div class="abw-card-icon"><i class="bi bi-grid-3x3-gap-fill"></i></div>
-                    <h3 class="abw-card-title">Huge Product Range</h3>
-                    <p class="abw-card-text">From polo shirts and hoodies to hi-vis vests and chef wear — over 15 product categories, all fully customisable with your branding.</p>
-                </div>
-
-                <div class="abw-card">
-                    <div class="abw-card-icon"><i class="bi bi-headset"></i></div>
-                    <h3 class="abw-card-title">Dedicated Support</h3>
-                    <p class="abw-card-text">A real person is always on hand to help — from choosing the right garment to managing bulk orders and ongoing accounts.</p>
-                </div>
-
-            </div>
-
-            <div class="abw-cta">
-                <a href="{{ route('contact') }}" class="btn abw-cta-btn">
-                    Start Your Order Today
-                    <i class="bi bi-arrow-right ms-2"></i>
-                </a>
-            </div>
-
-        </div>
-    </section>
-
-
-    <!-- ============================================================
-         TESTIMONIALS — shared include
-    ============================================================ -->
-
+@php
+  $ctaTitle = "Let's Brand Your Team";
+  $ctaText = "Design online, choose a bundle, or send us an enquiry — we'd love to help.";
+  $ctaPrimary = ['label' => 'Shop Bundles', 'href' => route('bundles'), 'icon' => 'bi-collection'];
+  $ctaSecondary = ['label' => 'Contact Us', 'href' => route('contact')];
+@endphp
+@include('partials.cta-band')
+</main>
 @endsection
-
-@section('after_content')
-@include('partials.testimonials')
-@endsection
-
-@push('scripts')
-<script src="{{ asset('assets/js/about.js') }}"></script>
-@endpush

@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Order;
 use App\Models\User;
 use App\Services\CartService;
 use Illuminate\Http\JsonResponse;
@@ -10,7 +11,6 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rules\Password;
-use Illuminate\View\View;
 
 class AuthController extends Controller
 {
@@ -25,69 +25,44 @@ class AuthController extends Controller
             'password' => ['required'],
         ]);
 
-        $remember = $request->boolean('remember');
         $guestSessionId = $request->session()->getId();
 
-        if (! Auth::attempt($credentials, $remember)) {
-            if ($request->expectsJson()) {
-                return response()->json(['message' => 'Invalid email or password.'], 422);
-            }
-
-            return back()->withErrors(['email' => 'Invalid email or password.'])->onlyInput('email');
+        if (! Auth::attempt($credentials, $request->boolean('remember'))) {
+            return $this->failure($request, 'Invalid email or password.');
         }
 
-        $userId = Auth::id();
+        $user = Auth::user();
         $request->session()->regenerate();
-        $this->cartService->mergeGuestCartForUser($userId, $guestSessionId);
+        $this->cartService->mergeGuestCartForUser($user->id, $guestSessionId);
+        $this->claimGuestOrders($user);
 
-        $redirect = $request->input('redirect', route('user-dashboard'));
-
-        if ($request->expectsJson()) {
-            return response()->json([
-                'message' => 'Signed in successfully.',
-                'redirect' => $redirect,
-                'user' => Auth::user()->only(['id', 'name', 'email', 'role']),
-            ]);
-        }
-
-        return redirect()->intended($redirect);
+        return $this->success($request, 'Welcome back!', route('portal'));
     }
 
     public function register(Request $request): RedirectResponse|JsonResponse
     {
         $validated = $request->validate([
-            'first_name' => ['required', 'string', 'max:100'],
-            'last_name' => ['required', 'string', 'max:100'],
+            'name' => ['required', 'string', 'max:120'],
+            'org' => ['nullable', 'string', 'max:190'],
             'email' => ['required', 'email', 'max:255', 'unique:users,email'],
-            'password' => ['required', 'confirmed', Password::min(8)],
-            'company_name' => ['nullable', 'string', 'max:255'],
+            'password' => ['required', 'string', Password::min(6)],
         ]);
 
         $guestSessionId = $request->session()->getId();
 
         $user = User::create([
-            'name' => trim($validated['first_name'].' '.$validated['last_name']),
+            'name' => $validated['name'],
             'email' => $validated['email'],
             'password' => Hash::make($validated['password']),
-            'company_name' => $validated['company_name'] ?? null,
-            'role' => 'customer',
+            'company_name' => $validated['org'] ?? null,
         ]);
 
         Auth::login($user);
         $request->session()->regenerate();
         $this->cartService->mergeGuestCartForUser($user->id, $guestSessionId);
+        $this->claimGuestOrders($user);
 
-        $redirect = $request->input('redirect', route('user-dashboard'));
-
-        if ($request->expectsJson()) {
-            return response()->json([
-                'message' => 'Account created successfully.',
-                'redirect' => $redirect,
-                'user' => $user->only(['id', 'name', 'email', 'role']),
-            ]);
-        }
-
-        return redirect($redirect);
+        return $this->success($request, 'Account created successfully.', route('portal'));
     }
 
     public function logout(Request $request): RedirectResponse|JsonResponse
@@ -96,10 +71,43 @@ class AuthController extends Controller
         $request->session()->invalidate();
         $request->session()->regenerateToken();
 
-        if ($request->expectsJson()) {
-            return response()->json(['message' => 'Signed out successfully.']);
+        if ($request->expectsJson() || $request->ajax()) {
+            return response()->json([
+                'message' => 'Signed out successfully.',
+                'redirect' => route('home'),
+            ]);
         }
 
         return redirect()->route('home');
+    }
+
+    private function claimGuestOrders(User $user): void
+    {
+        Order::query()
+            ->whereNull('user_id')
+            ->where('email', $user->email)
+            ->update(['user_id' => $user->id]);
+    }
+
+    private function success(Request $request, string $message, string $redirect): RedirectResponse|JsonResponse
+    {
+        if ($request->expectsJson() || $request->ajax()) {
+            return response()->json([
+                'message' => $message,
+                'redirect' => $redirect,
+                'user' => Auth::user()->only(['id', 'name', 'email', 'company_name']),
+            ]);
+        }
+
+        return redirect()->intended($redirect);
+    }
+
+    private function failure(Request $request, string $message): RedirectResponse|JsonResponse
+    {
+        if ($request->expectsJson() || $request->ajax()) {
+            return response()->json(['message' => $message], 422);
+        }
+
+        return back()->withErrors(['email' => $message])->onlyInput('email');
     }
 }

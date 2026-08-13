@@ -1,206 +1,86 @@
 @php
-    $categoryIcons = [
-        'chefswear-and-catering' => 'bi-cup-hot-fill',
-        'cleaning' => 'bi-stars',
-        'college-and-uni' => 'bi-mortarboard-fill',
-        'corporatewear' => 'bi-briefcase-fill',
-        'health-salon-and-beauty' => 'bi-heart-pulse-fill',
-        'hospitality' => 'bi-building-fill',
-        'lounge-and-sleepwear' => 'bi-moon-stars-fill',
-        'outdoor-leisure' => 'bi-tree-fill',
-        'performance-and-activewear' => 'bi-lightning-fill',
-        'promotional-accessories' => 'bi-gift-fill',
-        'safetywear-and-ppe' => 'bi-shield-fill-check',
-        'schoolwear' => 'bi-pencil-fill',
-        'security' => 'bi-eye-fill',
-        'sports' => 'bi-trophy-fill',
-        'workwear' => 'bi-hammer',
-    ];
+  $site = config('site');
+  $categories = $site['categories'] ?? [];
+  $nav = $site['nav'] ?? [];
+  $topbar = $site['topbar'] ?? [];
+  $pageActive = $pageActive ?? '';
 @endphp
-<!-- ========================================================
-       HEADER
-  ======================================================== -->
-    <header id="site-header">
+<div class="topbar"><div class="marquee">@php
+  $topRow = '';
+  foreach ($topbar as [$icon, $text]) {
+      $topRow .= '<span class="m-item"><i class="bi ' . e($icon) . '"></i>' . e($text) . '</span><span class="m-sep">✦</span>';
+  }
+  echo $topRow . $topRow;
+@endphp</div></div>
 
-        <!-- TOP BAR — Auto-scrolling ticker -->
-        <div class="header-top-bar">
-            <div class="ticker-wrap">
-                <div class="ticker-track" id="tickerTrack">
-                    <!-- Items duplicated in JS for seamless loop -->
-                    <span class="ticker-item"><i class="bi bi-telephone-fill"></i> &nbsp;+44 (0) 1234 567890</span>
-                    <span class="ticker-sep">✦</span>
-                    <span class="ticker-item"><i class="bi bi-envelope-fill"></i>
-                        &nbsp;customerservice@threadsembroideryprint.co.uk</span>
-                    <span class="ticker-sep">✦</span>
-                    <span class="ticker-item"><i class="bi bi-calendar-check"></i> &nbsp;10–14 Working Day
-                        Turnaround on Orders</span>
-                    <span class="ticker-sep">✦</span>
-                    <span class="ticker-item"><i class="bi bi-brush-fill"></i> &nbsp;Free Logo Artwork Setup on Every
-                        Order</span>
-                    <span class="ticker-sep">✦</span>
-                    <span class="ticker-item"><i class="bi bi-truck"></i> &nbsp;Free UK Delivery on Orders Over
-                        £150</span>
-                    <span class="ticker-sep">✦</span>
-                    <span class="ticker-item"><i class="bi bi-patch-check-fill"></i> &nbsp;100% Quality Guarantee — No
-                        Compromises</span>
-                    <span class="ticker-sep">✦</span>
-                    <span class="ticker-item"><i class="bi bi-geo-alt-fill"></i> &nbsp;Proudly UK Based &amp; Family
-                        Run</span>
-                    <span class="ticker-sep">✦</span>
-                    <span class="ticker-item"><i class="bi bi-people-fill"></i> &nbsp;Trusted by 5,000+ Businesses
-                        Across the UK</span>
-                    <span class="ticker-sep">✦</span>
-                </div>
-            </div>
+<header class="site-header" id="siteHeader"><div class="container"><nav class="nav">
+  <a class="nav-logo" href="{{ route('home') }}"><img src="{{ asset('assets/img/logo.png') }}" width="391" height="96" alt="{{ $site['name'] }}"></a>
+  <ul class="nav-links">
+@foreach ($nav as $n)
+  @php $act = ($pageActive === ($n['key'] ?? '')) ? ' active' : ''; @endphp
+  @if (!empty($n['mega']))
+    <li class="has-mega"><a class="{{ trim($act) }}" href="{{ route($n['route']) }}">{{ $n['label'] }} <i class="bi bi-chevron-down" style="font-size:.7em"></i></a>
+      <div class="mega">
+        <div class="mega-head"><div><span class="h-eyebrow">Browse by Category</span><h3 class="h-3" style="margin-top:.4rem">Our Full Catalogue</h3></div>
+        <a class="btn btn--ghost" href="{{ route('catalogue') }}">View Full Catalogue <i class="bi bi-arrow-right"></i></a></div>
+        <div class="mega-grid">
+@foreach ($categories as $c)
+          <a href="{{ url('/category.php?cat=' . rawurlencode($c['slug'])) }}"><span class="n">{{ $c['name'] }}</span><span class="c">{{ (int) $c['total'] }}</span></a>
+@endforeach
         </div>
+        <p class="muted" style="margin-top:16px;font-size:.86rem">Can't find what you're looking for? <a class="link-arrow" href="{{ route('contact') }}" style="display:inline">Contact us</a> and we'll source it for you.</p>
+      </div></li>
+  @else
+    <li><a class="{{ trim($act) }}" href="{{ route($n['route']) }}">{{ $n['label'] }}</a></li>
+  @endif
+@endforeach
+  </ul>
+  <div class="nav-actions">
+    {{-- Search temporarily hidden
+    <button class="icon-btn search-btn" aria-label="Search products" data-search-open><i class="bi bi-search"></i></button>
+    --}}
+    <a class="icon-btn" href="{{ route('cart') }}" aria-label="View cart"><i class="bi bi-bag"></i><span class="badge" data-cart-badge style="display:none">0</span></a>
+    <span id="navAuthSlot" data-server-auth="1">
+      @auth
+        <span class="nav-auth">
+          <form method="POST" action="{{ route('logout') }}" class="nav-logout-form">
+            @csrf
+            <button type="submit" class="icon-btn nav-logout" aria-label="Log out" title="Log out"><i class="bi bi-box-arrow-right"></i></button>
+          </form>
+          <a class="btn nav-cta" href="{{ route('portal') }}"><i class="bi bi-person-circle"></i> User Portal</a>
+        </span>
+      @else
+        <a class="btn nav-cta" href="{{ route('login') }}"><i class="bi bi-person"></i> Login / Signup</a>
+      @endauth
+    </span>
+    <button class="icon-btn hamburger" aria-label="Open menu" data-drawer-open><i class="bi bi-list" style="font-size:1.5rem"></i></button>
+  </div>
+</nav></div></header>
 
-        <!-- MAIN NAV -->
-        <nav id="main-nav" class="navbar navbar-expand-lg">
-            <div class="nav-inner">
+<div class="drawer" data-drawer>
+  <div class="scrim" data-drawer-close></div>
+  <div class="panel">
+    <div class="d-top"><img src="{{ asset('assets/img/logo.png') }}" style="height:36px;width:auto;max-width:none;object-fit:contain" alt="Threads"><button class="icon-btn" data-drawer-close aria-label="Close menu"><i class="bi bi-x-lg"></i></button></div>
+    <nav>
+@foreach ($nav as $n)
+      <a href="{{ route($n['route']) }}">{{ $n['label'] }}</a>
+@endforeach
+    </nav>
+    @auth
+      <a class="btn btn--block mt-3" id="drawerAuthBtn" href="{{ route('portal') }}"><i class="bi bi-person-circle"></i> User Portal</a>
+      <form method="POST" action="{{ route('logout') }}" class="mt-2">
+        @csrf
+        <button type="submit" class="btn btn--ghost btn--block"><i class="bi bi-box-arrow-right"></i> Log out</button>
+      </form>
+    @else
+      <a class="btn btn--block mt-3" id="drawerAuthBtn" href="{{ route('login') }}"><i class="bi bi-person"></i> Login / Signup</a>
+    @endauth
+  </div>
+</div>
 
-                <!-- LEFT: Logo -->
-                <a class="navbar-brand" href="{{ route('home') }}">
-                    <img src="{{ asset('assets/images/logo.png') }}" alt="Threads Embroidery &amp; Print" class="nav-logo-img"
-                        onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';" />
-                    <!-- Fallback text logo shown if image missing -->
-                    <div class="logo-fallback" style="display:none;">
-                        <div class="logo-fallback-icon">
-                            <svg width="32" height="32" viewBox="0 0 32 32" fill="none"
-                                xmlns="http://www.w3.org/2000/svg">
-                                <circle cx="16" cy="16" r="15" stroke="#ee6023" stroke-width="2" />
-                                <path d="M9 16 Q16 7 23 16 Q16 25 9 16Z" fill="#ee6023" />
-                                <circle cx="16" cy="16" r="3" fill="#fff" />
-                            </svg>
-                        </div>
-                        <div class="logo-fallback-text">
-                            <span class="lf-main">THREADS</span>
-                            <span class="lf-sub">Embroidery &amp; Print</span>
-                        </div>
-                    </div>
-                </a>
-
-                <!-- Hamburger (mobile) -->
-                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarContent"
-                    aria-label="Toggle navigation">
-                    <i class="bi bi-list"></i>
-                </button>
-
-                <!-- CENTER: Nav Links -->
-                <div class="collapse navbar-collapse" id="navbarContent">
-                    <ul class="navbar-nav nav-center-list align-items-lg-center">
-
-                        <li class="nav-item">
-                            <a class="nav-link {{ request()->routeIs('home') ? 'active' : '' }}" href="{{ route('home') }}">Home</a>
-                        </li>
-
-                        <li class="nav-item">
-                            <a class="nav-link {{ request()->routeIs('about') ? 'active' : '' }}" href="{{ route('about') }}">About Us</a>
-                        </li>
-
-                        <li class="nav-item">
-                            <a class="nav-link {{ request()->routeIs('branding-enquiry') ? 'active' : '' }}" href="{{ route('branding-enquiry') }}">Branding Enquiry</a>
-                        </li>
-
-                        <!-- Catalogue with Mega Menu -->
-                        <li class="nav-item mega-parent {{ request()->routeIs('shop.*') ? 'active' : '' }}" id="catalogueItem">
-                            <a class="nav-link mega-trigger {{ request()->routeIs('shop.*') ? 'active' : '' }}" href="#" id="catalogueTrigger">
-                                Catalogue <i class="bi bi-chevron-down chevron-icon ms-1"></i>
-                            </a>
-
-                            <!-- ===== MEGA MENU ===== -->
-                            <div class="mega-menu" id="megaMenu">
-                                <div class="mega-menu-inner">
-
-                                    <div class="mega-header">
-                                        <div class="mega-header-left">
-                                            <span class="mega-eyebrow">Browse by Category</span>
-                                            <h3 class="mega-title">Our Full Catalogue</h3>
-                                            <p class="mega-desc">Can't find what you're looking for? Please <a href="{{ route('contact') }}">contact us</a> and we'll look for you.</p>
-                                        </div>
-                                        <div class="mega-header-right">
-                                            @if(!empty($catalogCategories))
-                                                <a href="{{ route('shop.category', $catalogCategories[0]['slug']) }}" class="mega-cta-btn">View Full Catalogue &nbsp;<i
-                                                        class="bi bi-arrow-right"></i></a>
-                                            @endif
-                                        </div>
-                                    </div>
-
-                                    <div class="mega-divider"></div>
-
-                                    <div class="mega-categories">
-                                        @foreach(($catalogCategories ?? []) as $cat)
-                                            <a href="{{ route('shop.category', $cat['slug']) }}" class="mega-cat-item">
-                                                <div class="cat-icon-wrap"><i class="bi {{ $categoryIcons[$cat['slug']] ?? 'bi-tag-fill' }}"></i></div>
-                                                <div class="cat-info">
-                                                    <span class="cat-name">{{ $cat['name'] }}</span>
-                                                    <span class="cat-sub">{{ $cat['count'] }} products</span>
-                                                </div>
-                                                <i class="bi bi-chevron-right cat-arrow"></i>
-                                            </a>
-                                        @endforeach
-                                    </div><!-- end .mega-categories -->
-
-                                </div><!-- end .mega-menu-inner -->
-                            </div>
-                            <!-- ===== END MEGA MENU ===== -->
-                        </li>
-
-                        <li class="nav-item">
-                            <a class="nav-link {{ request()->routeIs('contact') ? 'active' : '' }}" href="{{ route('contact') }}">Contact Us</a>
-                        </li>
-
-                    </ul>
-
-                    <!-- RIGHT: Search + Cart + Auth -->
-                    <div class="nav-right-slot">
-                        <button class="nav-search-btn" id="navSearchToggle" aria-label="Search">
-                            <i class="bi bi-search"></i>
-                        </button>
-                        <a href="{{ route('cart') }}" class="nav-cart-btn" aria-label="View cart">
-                            <i class="bi bi-cart3"></i>
-                            @if(($cartCount ?? 0) > 0)
-                                <span class="nav-cart-badge" id="navCartBadge">{{ $cartCount }}</span>
-                            @else
-                                <span class="nav-cart-badge" id="navCartBadge" style="display:none">0</span>
-                            @endif
-                        </a>
-                        @auth
-                            <div class="nav-user-menu">
-                                <a href="{{ route('user-dashboard') }}" class="nav-user-link">
-                                    <i class="bi bi-person-circle"></i>
-                                    <span>{{ Auth::user()->name }}</span>
-                                </a>
-                                <form action="{{ route('logout') }}" method="POST" class="nav-logout-form">
-                                    @csrf
-                                    <button type="submit" class="nav-logout-btn" title="Sign out"><i class="bi bi-box-arrow-right"></i></button>
-                                </form>
-                            </div>
-                        @else
-                            <a href="{{ route('login') }}" class="btn nav-quote-btn">Login / Signup <i class="bi bi-arrow-right ms-1"></i></a>
-                        @endauth
-                    </div>
-                </div>
-
-            </div>
-        </nav>
-
-        <!-- SEARCH OVERLAY -->
-        <div class="nav-search-overlay" id="navSearchOverlay">
-            <div class="nav-search-inner">
-                <div class="nav-search-box">
-                    <i class="bi bi-search nav-search-icon"></i>
-                    <input type="text" id="navSearchInput" class="nav-search-input" placeholder="Search products, categories…" autocomplete="off" />
-                    <button class="nav-search-close" id="navSearchClose" aria-label="Close search">
-                        <i class="bi bi-x-lg"></i>
-                    </button>
-                </div>
-                <!-- Suggestions dropdown -->
-                <div class="nav-search-suggestions" id="navSearchSuggestions"></div>
-            </div>
-        </div>
-    </header>
-
-    @if(!empty($searchSuggestions))
-        <script>window.__SEARCH_DATA__ = @json($searchSuggestions);</script>
-    @endif
-    <!-- END HEADER -->
+<div class="search-overlay" data-search><div class="search-box">
+  <div class="field"><i class="bi bi-search" style="color:var(--brand);font-size:1.3rem"></i>
+    <input type="text" placeholder="Search products, categories…" data-search-input aria-label="Search">
+    <button class="icon-btn" data-search-close aria-label="Close search"><i class="bi bi-x-lg"></i></button></div>
+  <div class="search-results" data-search-results hidden></div>
+</div></div>

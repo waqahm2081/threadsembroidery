@@ -1,0 +1,34 @@
+<?php
+$page_title = 'Client Portal | Threads Embroidery & Print';
+$page_description = 'Your Threads client portal — orders, artwork and reorders.';
+$page_active = '';
+$page_styles = ['pages.css', 'portal.css'];
+$page_scripts = ['portal.js'];
+$mount = ['active' => '', 'onReady' => 'THREADS.initPortal'];
+require __DIR__ . '/includes/head.php';
+require __DIR__ . '/includes/header.php';
+?>
+<main>
+  <div class="portal-mobtop">
+    <button class="btn btn--ghost" id="portalMenuBtn"><i class="bi bi-list"></i> Menu</button>
+    <span class="muted" style="font-size:.85rem">Client Portal</span>
+  </div>
+  <div class="portal">
+    <aside class="portal-side">
+      <div class="portal-user"><span class="av" id="pUserAv">U</span><div><b id="pUserName">User</b><span id="pUserOrg"></span></div></div>
+      <nav class="portal-nav">
+        <button class="active" data-view="overview"><i class="bi bi-grid-1x2"></i> Overview</button>
+        <button data-view="orders"><i class="bi bi-box-seam"></i> Order History</button>
+        <button data-view="artwork"><i class="bi bi-images"></i> Artwork Library</button>
+        <button data-view="account"><i class="bi bi-person-gear"></i> Account</button>
+      </nav>
+      <hr class="divider" style="margin:1.2rem 0">
+      <a class="btn btn--block" href="configurator.php"><i class="bi bi-magic"></i> New Order</a>
+      <button id="navLogout" style="width:100%;display:flex;align-items:center;gap:.8rem;padding:.75rem .9rem;color:var(--muted);margin-top:.6rem;border-radius:10px;font-weight:600"><i class="bi bi-box-arrow-right"></i> Log Out</button>
+    </aside>
+    <section class="portal-main" id="portalContent"></section>
+  </div>
+</main>
+<?php
+require __DIR__ . '/includes/footer.php';
+require __DIR__ . '/includes/scripts.php';

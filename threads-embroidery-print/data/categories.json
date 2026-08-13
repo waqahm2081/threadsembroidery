@@ -1,0 +1,102 @@
+{
+ "categories": [
+  {
+   "slug": "t-shirts",
+   "name": "T-Shirts",
+   "total": 213,
+   "image": "https://www.fullcollection.com/storage/phoenix/2026/Phoenix%20All%20Images/Anthem/Product%20Images/AM18/ProductCarouselMain/AM18%20BLK%20FRONT.jpg",
+   "blurb": "Browse our t-shirts range — every garment customisable with your brand."
+  },
+  {
+   "slug": "polos",
+   "name": "Polos",
+   "total": 133,
+   "image": "https://www.fullcollection.com/storage/phoenix/2026/Phoenix%20All%20Images/Just%20Cool/Product%20Images/JC043/ProductCarouselMain/JC043%20AW%252fFR%20FRONT.jpg",
+   "blurb": "Browse our polos range — every garment customisable with your brand."
+  },
+  {
+   "slug": "hoods",
+   "name": "Hoodies",
+   "total": 119,
+   "image": "https://www.fullcollection.com/storage/phoenix/2026/Phoenix%20All%20Images/Anthem/Product%20Images/AM04/ProductCarouselMain/AM04%20BLK%20FRONT.jpg",
+   "blurb": "Browse our hoodies range — every garment customisable with your brand."
+  },
+  {
+   "slug": "sweatshirts",
+   "name": "Sweatshirts",
+   "total": 92,
+   "image": "https://www.fullcollection.com/storage/phoenix/2026/Phoenix%20All%20Images/Anthem/Product%20Images/AM20/ProductCarouselMain/AM20%20BLK%20FRONT.jpg",
+   "blurb": "Browse our sweatshirts range — every garment customisable with your brand."
+  },
+  {
+   "slug": "workwear",
+   "name": "Workwear",
+   "total": 174,
+   "image": "https://www.fullcollection.com/storage/phoenix/2026/Phoenix%20All%20Images/Just%20Hoods/Product%20Images/JH001/ProductCarouselMain/JH001%20ACW%20FRONT.jpg",
+   "blurb": "Browse our workwear range — every garment customisable with your brand."
+  },
+  {
+   "slug": "schoolwear",
+   "name": "Schoolwear",
+   "total": 129,
+   "image": "https://www.fullcollection.com/storage/phoenix/2026/Phoenix%20All%20Images/Just%20Hoods/Product%20Images/JH001/ProductCarouselMain/JH001%20ACW%20FRONT.jpg",
+   "blurb": "Browse our schoolwear range — every garment customisable with your brand."
+  },
+  {
+   "slug": "sports",
+   "name": "Sportswear",
+   "total": 403,
+   "image": "https://www.fullcollection.com/storage/phoenix/2026/Phoenix%20All%20Images/Anthem/Product%20Images/AM30/ProductCarouselMain/AM30%20BLK%20FRONT.jpg",
+   "blurb": "Browse our sportswear range — every garment customisable with your brand."
+  },
+  {
+   "slug": "corporatewear",
+   "name": "Corporatewear",
+   "total": 90,
+   "image": "https://www.fullcollection.com/storage/phoenix/2026/Phoenix%20All%20Images/Henbury/Product%20Images/H726/ProductCarouselMain/H726%20BLK%20FRONT.jpg",
+   "blurb": "Browse our corporatewear range — every garment customisable with your brand."
+  },
+  {
+   "slug": "hi-vis",
+   "name": "Hi-Vis",
+   "total": 66,
+   "image": "https://www.fullcollection.com/storage/phoenix/2026/Phoenix%20All%20Images/Beechfield/Product%20Images/BB42/ProductCarouselMain/BB42%20BLK%20FRONT.jpg",
+   "blurb": "Browse our hi-vis range — every garment customisable with your brand."
+  },
+  {
+   "slug": "jackets",
+   "name": "Jackets",
+   "total": 222,
+   "image": "https://www.fullcollection.com/storage/phoenix/2026/Phoenix%20All%20Images/Just%20Hoods/Product%20Images/JH147/ProductCarouselMain/JH147%20CHA%20FRONT.jpg",
+   "blurb": "Browse our jackets range — every garment customisable with your brand."
+  },
+  {
+   "slug": "fleece",
+   "name": "Fleece",
+   "total": 97,
+   "image": "https://www.fullcollection.com/storage/phoenix/2026/Phoenix%20All%20Images/Henbury/Product%20Images/H851/ProductCarouselMain/H851%20BLK%20FRONT.jpg",
+   "blurb": "Browse our fleece range — every garment customisable with your brand."
+  },
+  {
+   "slug": "headwear",
+   "name": "Headwear",
+   "total": 419,
+   "image": "https://www.fullcollection.com/storage/phoenix/2026/Phoenix%20All%20Images/ADC/Product%20Images/AF030/ProductCarouselMain/AF030%20BLK%20FRONT%20HERO.jpg",
+   "blurb": "Browse our headwear range — every garment customisable with your brand."
+  },
+  {
+   "slug": "hospitality",
+   "name": "Hospitality",
+   "total": 217,
+   "image": "https://www.fullcollection.com/storage/phoenix/2026/Phoenix%20All%20Images/Dennys/Product%20Images/DE123/ProductCarouselMain/DE123%20BLK%20FRONT.jpg",
+   "blurb": "Browse our hospitality range — every garment customisable with your brand."
+  },
+  {
+   "slug": "bags",
+   "name": "Bags",
+   "total": 46,
+   "image": "https://www.fullcollection.com/storage/phoenix/2026/Phoenix%20All%20Images/BagBase/Product%20Images/BG564/ProductCarouselMain/BG564%20BLK%20FRONT.jpg",
+   "blurb": "Browse our bags range — every garment customisable with your brand."
+  }
+ ]
+}
