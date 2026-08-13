@@ -78,14 +78,42 @@
     const mock=document.getElementById('custMockImg');
     if(mock){
       const tee=THREADS.PRODUCTS.find(p=>p.category_slug==='t-shirts')||THREADS.PRODUCTS[0];
-      mock.src=tee.image;
+      const frontSrc=tee.image;
+      const backSrc=/FRONT/i.test(frontSrc)
+        ? frontSrc.replace(/FRONT/g,'BACK').replace(/Front/g,'Back')
+        : null;
+      mock.src=frontSrc;
       const title=document.getElementById('custMockTitle');
       if(title) title.textContent=tee.title||'Softstyle Tee';
-      const views=document.querySelectorAll('.cust-mock .pv-views button');
-      views.forEach(btn=>btn.addEventListener('click',()=>{
-        views.forEach(b=>b.classList.remove('active'));
-        btn.classList.add('active');
-      }));
+      const logoChip=document.querySelector('.cust-mock .logo-chip');
+      const posSel=[...document.querySelectorAll('.cust-mock .panel .row')].find(r=>{
+        const label=r.querySelector('.muted');
+        return label&&label.textContent.trim()==='Position';
+      })?.querySelector('.sel');
+      const viewsWrap=document.querySelector('.cust-mock .pv-views');
+      const views=viewsWrap?viewsWrap.querySelectorAll('button'):[];
+      const setView=(view)=>{
+        const isBack=view==='back';
+        mock.src=isBack&&backSrc?backSrc:frontSrc;
+        if(logoChip) logoChip.classList.toggle('is-back',isBack);
+        if(posSel) posSel.textContent=isBack?'Centre Back':'Left Chest';
+        views.forEach(b=>{
+          const label=(b.textContent||'').trim().toLowerCase();
+          b.classList.toggle('active',isBack?label==='back':label==='front');
+        });
+      };
+      if(viewsWrap&&backSrc){
+        const probe=new Image();
+        probe.onload=()=>{
+          views.forEach(btn=>btn.addEventListener('click',()=>{
+            setView((btn.textContent||'').trim().toLowerCase()==='back'?'back':'front');
+          }));
+        };
+        probe.onerror=()=>{ viewsWrap.remove(); };
+        probe.src=backSrc;
+      }else if(viewsWrap){
+        viewsWrap.remove();
+      }
       const sw=document.querySelectorAll('.cust-mock .pv-swatches i');
       sw.forEach(dot=>dot.addEventListener('click',()=>{
         sw.forEach(d=>d.classList.remove('on'));
