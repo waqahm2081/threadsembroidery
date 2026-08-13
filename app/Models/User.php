@@ -12,10 +12,15 @@ class User extends Authenticatable
 {
     use HasApiTokens, HasFactory, Notifiable;
 
+    public const ROLE_CUSTOMER = 'customer';
+
+    public const ROLE_ADMIN = 'admin';
+
     protected $fillable = [
         'name',
         'email',
         'password',
+        'role',
         'company_name',
         'phone',
         'avatar_path',
@@ -61,6 +66,16 @@ class User extends Authenticatable
         }
 
         return asset('storage/'.$this->avatar_path);
+    }
+
+    public function isAdmin(): bool
+    {
+        return $this->role === self::ROLE_ADMIN;
+    }
+
+    public function isCustomer(): bool
+    {
+        return $this->role === self::ROLE_CUSTOMER || ! $this->role;
     }
 
     public function initials(): string

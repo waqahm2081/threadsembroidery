@@ -1,5 +1,16 @@
 <?php
 
+use App\Http\Controllers\Admin\AuthController as AdminAuthController;
+use App\Http\Controllers\Admin\BrandingEnquiryController as AdminBrandingEnquiryController;
+use App\Http\Controllers\Admin\BundleController as AdminBundleController;
+use App\Http\Controllers\Admin\DashboardController as AdminDashboardController;
+use App\Http\Controllers\Admin\OrderController as AdminOrderController;
+use App\Http\Controllers\Admin\PlacementOptionController as AdminPlacementOptionController;
+use App\Http\Controllers\Admin\ProductCustomizerController as AdminProductCustomizerController;
+use App\Http\Controllers\Admin\ProductQuoteController as AdminProductQuoteController;
+use App\Http\Controllers\Admin\ProfileController as AdminProfileController;
+use App\Http\Controllers\Admin\SizeGuideController as AdminSizeGuideController;
+use App\Http\Controllers\Admin\UserController as AdminUserController;
 use App\Http\Controllers\Api\BundleDataController;
 use App\Http\Controllers\Api\CartController as ApiCartController;
 use App\Http\Controllers\Api\CheckoutController as ApiCheckoutController;
@@ -41,6 +52,40 @@ Route::middleware('auth')->group(function () {
     Route::delete('/api/portal/artwork/{artworkId}', [PortalController::class, 'destroyArtwork'])->name('api.portal.artwork.destroy');
     Route::get('/api/portal/orders/{orderId}', [PortalController::class, 'order'])->name('api.portal.orders.show');
     Route::post('/api/portal/orders/{orderId}/reorder', [PortalController::class, 'reorder'])->name('api.portal.orders.reorder');
+});
+
+Route::prefix('admin')->name('admin.')->group(function () {
+    Route::middleware('guest')->group(function () {
+        Route::get('/login', [AdminAuthController::class, 'showLogin'])->name('login');
+        Route::post('/login', [AdminAuthController::class, 'login'])->name('login.submit');
+    });
+
+    Route::middleware(['auth', 'admin'])->group(function () {
+        Route::post('/logout', [AdminAuthController::class, 'logout'])->name('logout');
+        Route::get('/', AdminDashboardController::class)->name('dashboard');
+
+        Route::resource('users', AdminUserController::class)->except(['show']);
+        Route::resource('bundles', AdminBundleController::class)->except(['show']);
+        Route::resource('size-guides', AdminSizeGuideController::class)->except(['show']);
+        Route::resource('placements', AdminPlacementOptionController::class)->except(['show']);
+        Route::get('/orders', [AdminOrderController::class, 'index'])->name('orders.index');
+        Route::get('/orders/{order}', [AdminOrderController::class, 'show'])->name('orders.show');
+        Route::patch('/orders/{order}/status', [AdminOrderController::class, 'updateStatus'])->name('orders.status');
+
+        Route::get('/enquiries', [AdminBrandingEnquiryController::class, 'index'])->name('enquiries.index');
+        Route::get('/enquiries/{enquiry}', [AdminBrandingEnquiryController::class, 'show'])->name('enquiries.show');
+        Route::put('/enquiries/{enquiry}', [AdminBrandingEnquiryController::class, 'update'])->name('enquiries.update');
+
+        Route::get('/product-customizer', AdminProductCustomizerController::class)->name('customizer');
+        Route::get('/product-quotes', [AdminProductQuoteController::class, 'index'])->name('product-quotes.index');
+        Route::post('/product-quotes', [AdminProductQuoteController::class, 'store'])->name('product-quotes.store');
+        Route::get('/product-quotes/{productQuote}', [AdminProductQuoteController::class, 'show'])->name('product-quotes.show');
+        Route::delete('/product-quotes/{productQuote}', [AdminProductQuoteController::class, 'destroy'])->name('product-quotes.destroy');
+
+        Route::get('/profile', [AdminProfileController::class, 'edit'])->name('profile.edit');
+        Route::put('/profile', [AdminProfileController::class, 'update'])->name('profile.update');
+        Route::put('/profile/password', [AdminProfileController::class, 'updatePassword'])->name('profile.password');
+    });
 });
 
 Route::prefix('api')->group(function () {

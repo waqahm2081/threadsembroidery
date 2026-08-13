@@ -1,0 +1,46 @@
+/* Admin Product Customizer — nest storefront configurator in admin shell */
+body[data-cfg-admin="1"]{
+  background:var(--ad-bg)!important;
+  color:var(--ad-text);
+  font-family:var(--ad-font);
+}
+body[data-cfg-admin="1"] .ad-side,
+body[data-cfg-admin="1"] .ad-top,
+body[data-cfg-admin="1"] .ad-mobtop{color:var(--ad-text)}
+.ad-cfg{
+  --header-h: 0px;
+  color: var(--text);
+  font-family:var(--font-display),var(--ad-font);
+}
+.ad-cfg .cfg-panel,
+.ad-cfg .cfg-step,
+.ad-cfg .help,
+.ad-cfg .btn{font-family:var(--ad-font)}
+.ad-cfg .cfg-stage-wrap{top:12px}
+.ad-cfg .cfg-panel{
+  background: var(--ad-surface);
+  border: 1px solid var(--ad-line);
+  border-radius: var(--ad-radius);
+  padding: 0;
+  overflow: hidden;
+}
+.ad-cfg .cfg-prod-head{
+  padding: 1rem 1.1rem;
+  border-bottom: 1px solid var(--ad-line);
+  align-items: flex-start;
+}
+.ad-cfg .cfg-prod-head h2{font-size:1.05rem;margin:.15rem 0 0}
+.ad-cfg .cfg-prod-head .brand{color:var(--ad-brand-hi);font-size:.78rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase}
+.ad-cfg #cfgProductSelect{
+  margin-top:.25rem;
+  background:var(--ad-bg-2);
+  border:1px solid var(--ad-line-2);
+  color:var(--ad-text);
+}
+.ad-cfg .help{color:var(--muted)}
+.ad-content:has(.ad-cfg){padding-bottom:1.2rem}
+
+@media(max-width:1100px){
+  .ad-cfg .cfg{grid-template-columns:1fr}
+  .ad-cfg .cfg-stage-wrap{position:relative;top:auto}
+}

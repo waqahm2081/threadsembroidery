@@ -155,7 +155,26 @@
   }
   function updateQtyBar(){ const q=Object.values(state.sizes).reduce((a,b)=>a+(+b||0),0); const el=$('cfgQtyTotal'); if(el)el.textContent=q; }
 
-  function buildProductPicker(){ /* product is locked on this page — picker removed */ }
+  function buildProductPicker(){
+    const sel=$('cfgProductSelect');
+    if(!sel||!T.PRODUCTS) return;
+    const groups={};
+    T.PRODUCTS.forEach(p=>{
+      const key=p.category_name||'Other';
+      (groups[key]||(groups[key]=[])).push(p);
+    });
+    sel.innerHTML=Object.keys(groups).sort().map(cat=>{
+      const opts=groups[cat].map(p=>{
+        const selected=state.product&&state.product.slug===p.slug?' selected':'';
+        return `<option value="${p.slug}"${selected}>${p.brand} — ${p.title}</option>`;
+      }).join('');
+      return `<optgroup label="${cat}">${opts}</optgroup>`;
+    }).join('');
+    sel.onchange=()=>{
+      const p=T.PRODUCTS.find(x=>x.slug===sel.value);
+      if(p) selectProduct(p);
+    };
+  }
 
   function selectProduct(p){
     const changingType=!state.template || state.template!==T.templateFor(p);
@@ -164,6 +183,7 @@
     state.view='front'; state.hasBack=false; state.backSrc=null;
     $('cfgHeadImg').src=p.image; $('cfgHeadBrand').textContent=p.brand; $('cfgHeadTitle').textContent=p.title;
     $('cfgColourName').textContent=state.colour?state.colour.name:'';
+    const prodSel=$('cfgProductSelect'); if(prodSel) prodSel.value=p.slug;
     // preload the real back photo; only show Back when it actually exists
     if(state.template.zones.back){
       const backUrl=T.backPhoto(p.image);
@@ -235,8 +255,19 @@
   /* ---------------- ORDER SPEC / ADD ---------------- */
   function specData(){
     const c=calc();
+    const zones=(state.template&&state.template.zones&&state.template.zones[state.view])||{};
     const onP=methodPlacements().filter(p=>state.placements[p.id]&&state.placements[p.id].on)
-      .map(p=>({label:p.label,size:state.placements[p.id].size,price:p.price}));
+      .map(p=>{
+        const z=zones[p.id]||{};
+        return {
+          id:p.id,
+          label:p.label,
+          size:state.placements[p.id].size,
+          price:p.price,
+          x:z.x, y:z.y, w:z.w,
+          view:state.view
+        };
+      });
     const sizeBreak=C.sizeScale.filter(s=>state.sizes[s]>0).map(s=>`${s}×${state.sizes[s]}`);
     return {c,onP,sizeBreak};
   }
@@ -273,6 +304,10 @@
   }
   function addToOrder(){
     if(!validate())return;
+    if(document.body.dataset.cfgAdmin==='1'){
+      saveAdminQuote();
+      return;
+    }
     const {c,onP,sizeBreak}=specData();
     T.cart.add({
       title:state.product.title, image:state.product.image, method:state.method==='embroidery'?'Embroidery':'DTF Print',
@@ -280,6 +315,83 @@
       totalQty:c.qty, total:c.sub
     });
     T.toast('Added to your order.',true);
+  }
+
+  async function saveAdminQuote(){
+    const {c,onP}=specData();
+    const btn=$('cfgAddBtn');
+    const prevHtml=btn?btn.innerHTML:'';
+    if(btn){ btn.disabled=true; btn.innerHTML='<i class="bi bi-hourglass-split"></i> Saving…'; }
+
+    const sizeBreakdown={};
+    C.sizeScale.forEach(s=>{ if((+state.sizes[s]||0)>0) sizeBreakdown[s]=+state.sizes[s]; });
+
+    const payload={
+      product_slug:state.product.slug,
+      product_title:state.product.title,
+      product_brand:state.product.brand,
+      product_style_code:state.product.style_code,
+      product_image:state.product.image,
+      colour_name:state.colour?state.colour.name:null,
+      colour_hex:state.colour?state.colour.hex:null,
+      method:state.method,
+      view:state.view,
+      preview_image:(state.view==='back'&&state.backSrc)?state.backSrc:state.product.image,
+      placements:onP,
+      texts:state.texts.filter(t=>t.text),
+      size_breakdown:sizeBreakdown,
+      quantity:c.qty,
+      garment_unit:c.garment,
+      branding_unit:c.branding,
+      text_unit:c.textUnit,
+      setup_fee:c.setup,
+      unit_price:c.unit,
+      subtotal:c.sub,
+      logo_name:state.logo?state.logo.name:null
+    };
+
+    try{
+      const fd=new FormData();
+      fd.append('payload', JSON.stringify(payload));
+
+      // Capture live stage preview (fallback to product image URL on server if this fails)
+      const stage=$('cfgStage');
+      if(stage && window.html2canvas){
+        try{
+          const canvas=await html2canvas(stage,{
+            backgroundColor:'#ffffff',
+            scale:2,
+            useCORS:true,
+            allowTaint:true,
+            logging:false
+          });
+          const blob=await new Promise(resolve=>canvas.toBlob(resolve,'image/png'));
+          if(blob) fd.append('preview', blob, 'preview.png');
+        }catch(err){ /* keep product_image as preview */ }
+      }
+
+      if(state.logo && state.logo.dataUrl){
+        const logoBlob=await (await fetch(state.logo.dataUrl)).blob();
+        fd.append('logo', logoBlob, state.logo.name||'logo.png');
+      }
+
+      const csrf=document.querySelector('meta[name="csrf-token"]')?.content||'';
+      const res=await fetch(T.ADMIN_QUOTE_STORE||'/admin/product-quotes',{
+        method:'POST',
+        headers:{'X-CSRF-TOKEN':csrf,'Accept':'application/json'},
+        body:fd,
+        credentials:'same-origin'
+      });
+      const data=await res.json().catch(()=>({}));
+      if(!res.ok) throw new Error(data.message||'Could not save quote.');
+
+      T.toast('Quote '+ (data.reference||'') +' saved.',true);
+      if(data.redirect){ location.href=data.redirect; return; }
+    }catch(e){
+      T.toast(e.message||'Could not save quote.');
+    }finally{
+      if(btn){ btn.disabled=false; btn.innerHTML=prevHtml||'<i class="bi bi-clipboard-check"></i> Save Quote'; }
+    }
   }
 
   /* ---------------- ACCORDION ---------------- */
@@ -296,13 +408,29 @@
     // preselect product from ?id or default
     const initP=T.PRODUCTS.find(p=>p.slug===qs.get('id'))||T.PRODUCTS.find(p=>p.category_slug==='polos')||T.PRODUCTS[0];
     selectProduct(initP);
+    buildProductPicker();
     buildPlacements(); buildSizes(); buildTexts(); wireUpload(); wireSteps();
     renderSummary(); stepSummaries();
     // start on colour — garment is already selected
     openStep('stepColour');
-    $('specClose').onclick=()=>$('specModal').classList.remove('open');
-    $('specModal').addEventListener('click',e=>{if(e.target===$('specModal'))$('specModal').classList.remove('open');});
+    if($('specClose')) $('specClose').onclick=()=>$('specModal').classList.remove('open');
+    if($('specModal')) $('specModal').addEventListener('click',e=>{if(e.target===$('specModal'))$('specModal').classList.remove('open');});
+
+    // Admin CTA labels
+    if(document.body.dataset.cfgAdmin==='1'){
+      const restyle=()=>{
+        const add=$('cfgAddBtn'); if(add) add.innerHTML='<i class="bi bi-clipboard-check"></i> Save Quote';
+      };
+      restyle();
+      const _rs=renderSummary;
+      renderSummary=function(){ _rs(); restyle(); };
+    }
   };
 
-  T.mount({active:'catalogue', base:'', onReady:T.initConfigurator});
+  if(document.body.dataset.cfgAdmin==='1'){
+    if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',T.initConfigurator);
+    else T.initConfigurator();
+  } else {
+    T.mount({active:'catalogue', base:'', onReady:T.initConfigurator});
+  }
 })();
