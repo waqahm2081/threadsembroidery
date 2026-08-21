@@ -18,22 +18,9 @@ class NotificationMailService
      */
     public function adminEmails(): array
     {
-        $emails = User::query()
-            ->where('role', User::ROLE_ADMIN)
-            ->whereNotNull('email')
-            ->pluck('email')
-            ->filter()
-            ->map(fn ($e) => strtolower(trim($e)))
-            ->unique()
-            ->values()
-            ->all();
+        $email = strtolower(trim((string) config('mail.admin_email')));
 
-        $siteEmail = strtolower(trim((string) config('site.email')));
-        if ($siteEmail !== '' && ! in_array($siteEmail, $emails, true)) {
-            $emails[] = $siteEmail;
-        }
-
-        return $emails;
+        return $email !== '' ? [$email] : [];
     }
 
     public function sendUserRegistered(User $user): void
