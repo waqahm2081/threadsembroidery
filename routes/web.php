@@ -1,6 +1,11 @@
 <?php
 
 use App\Http\Controllers\Admin\AuthController as AdminAuthController;
+use App\Http\Controllers\Admin\SchoolController as AdminSchoolController;
+use App\Http\Controllers\Admin\SchoolProductCategoryController as AdminSchoolCategoryController;
+use App\Http\Controllers\Admin\SchoolProductController as AdminSchoolProductController;
+use App\Http\Controllers\Admin\SchoolUniformOrderController as AdminSchoolUniformOrderController;
+use App\Http\Controllers\Api\UniformShopController;
 use App\Http\Controllers\Admin\BrandingEnquiryController as AdminBrandingEnquiryController;
 use App\Http\Controllers\Admin\BundleController as AdminBundleController;
 use App\Http\Controllers\Admin\DashboardController as AdminDashboardController;
@@ -52,6 +57,13 @@ Route::middleware('auth')->group(function () {
     Route::delete('/api/portal/artwork/{artworkId}', [PortalController::class, 'destroyArtwork'])->name('api.portal.artwork.destroy');
     Route::get('/api/portal/orders/{orderId}', [PortalController::class, 'order'])->name('api.portal.orders.show');
     Route::post('/api/portal/orders/{orderId}/reorder', [PortalController::class, 'reorder'])->name('api.portal.orders.reorder');
+
+    // Uniform shop API
+    Route::get('/api/portal/uniform/schools', [UniformShopController::class, 'schools'])->name('api.uniform.schools');
+    Route::get('/api/portal/uniform/schools/{school}', [UniformShopController::class, 'school'])->name('api.uniform.school');
+    Route::get('/api/portal/uniform/products/{product}', [UniformShopController::class, 'product'])->name('api.uniform.product');
+    Route::post('/api/portal/uniform/checkout', [UniformShopController::class, 'checkout'])->name('api.uniform.checkout');
+    Route::get('/api/portal/uniform/orders', [UniformShopController::class, 'orders'])->name('api.uniform.orders');
 });
 
 Route::prefix('admin')->name('admin.')->group(function () {
@@ -81,6 +93,15 @@ Route::prefix('admin')->name('admin.')->group(function () {
         Route::post('/product-quotes', [AdminProductQuoteController::class, 'store'])->name('product-quotes.store');
         Route::get('/product-quotes/{productQuote}', [AdminProductQuoteController::class, 'show'])->name('product-quotes.show');
         Route::delete('/product-quotes/{productQuote}', [AdminProductQuoteController::class, 'destroy'])->name('product-quotes.destroy');
+
+        // Uniform Shop admin
+        Route::resource('schools', AdminSchoolController::class)->except(['show']);
+        Route::resource('school-categories', AdminSchoolCategoryController::class)->except(['show'])->parameters(['school-categories' => 'schoolCategory']);
+        Route::resource('school-products', AdminSchoolProductController::class)->except(['show'])->parameters(['school-products' => 'schoolProduct']);
+        Route::delete('/school-products/images/{image}', [AdminSchoolProductController::class, 'destroyImage'])->name('school-products.images.destroy');
+        Route::get('/school-uniform-orders', [AdminSchoolUniformOrderController::class, 'index'])->name('school-uniform-orders.index');
+        Route::get('/school-uniform-orders/{schoolUniformOrder}', [AdminSchoolUniformOrderController::class, 'show'])->name('school-uniform-orders.show');
+        Route::patch('/school-uniform-orders/{schoolUniformOrder}/status', [AdminSchoolUniformOrderController::class, 'updateStatus'])->name('school-uniform-orders.status');
 
         Route::get('/profile', [AdminProfileController::class, 'edit'])->name('profile.edit');
         Route::put('/profile', [AdminProfileController::class, 'update'])->name('profile.update');

@@ -13,8 +13,10 @@ use Illuminate\Validation\ValidationException;
 
 class OrderService
 {
-    public function __construct(private CartService $cartService)
-    {
+    public function __construct(
+        private CartService $cartService,
+        private NotificationMailService $mailNotifications,
+    ) {
     }
 
     public function place(array $data): Order
@@ -27,7 +29,7 @@ class OrderService
         $totals = $this->cartService->totals($cart);
         $sameAsShipping = filter_var($data['billing_same_as_shipping'] ?? true, FILTER_VALIDATE_BOOLEAN);
 
-        return DB::transaction(function () use ($data, $cart, $totals, $sameAsShipping) {
+        $order = DB::transaction(function () use ($data, $cart, $totals, $sameAsShipping) {
             $order = Order::create([
                 'order_number' => $this->uniqueOrderNumber(),
                 'user_id' => Auth::id(),
@@ -96,6 +98,10 @@ class OrderService
 
             return $order->load('items.files');
         });
+
+        $this->mailNotifications->sendBundleOrder($order);
+
+        return $order;
     }
 
     private function persistArtworkForOrder(int $orderId, int $orderItemId, string $sourcePath): string

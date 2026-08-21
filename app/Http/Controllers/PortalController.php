@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\BrandingEnquiry;
 use App\Models\Order;
+use App\Models\SchoolUniformOrder;
 use App\Models\User;
 use App\Models\UserArtwork;
 use App\Services\CartService;
@@ -28,7 +29,7 @@ class PortalController extends Controller
             'pageDescription' => 'Your Threads client portal — orders, artwork and account.',
             'pageActive' => '',
             'pageStyles' => ['pages.css', 'portal.css', 'cart.css'],
-            'pageScripts' => ['artwork-modal.js', 'portal.js'],
+            'pageScripts' => ['artwork-modal.js', 'portal.js', 'portal-shop.js'],
             'mount' => ['active' => '', 'onReady' => 'THREADS.initPortal'],
             'portalBootstrap' => $this->payload($user),
         ]);
@@ -237,6 +238,23 @@ class PortalController extends Controller
         $transformed = $orders->map(fn (Order $o) => $this->transformOrder($o))->values()->all();
         $inProduction = collect($transformed)->whereIn('status_key', ['pending', 'processing', 'production'])->count();
 
+        SchoolUniformOrder::query()
+            ->whereNull('user_id')
+            ->where('customer_email', $user->email)
+            ->update(['user_id' => $user->id]);
+
+        $uniformOrders = SchoolUniformOrder::query()
+            ->with(['school', 'items'])
+            ->where(function ($q) use ($user) {
+                $q->where('user_id', $user->id)
+                    ->orWhere('customer_email', $user->email);
+            })
+            ->latest()
+            ->get()
+            ->map(fn (SchoolUniformOrder $o) => $this->transformUniformOrder($o))
+            ->values()
+            ->all();
+
         return [
             'user' => [
                 'id' => $user->id,
@@ -248,14 +266,16 @@ class PortalController extends Controller
                 'avatar_url' => $user->avatar_url,
             ],
             'orders' => $transformed,
+            'uniform_orders' => $uniformOrders,
             'enquiries' => $enquiries,
             'artwork' => $artwork,
             'stats' => [
                 'orders' => count($transformed),
+                'uniform_orders' => count($uniformOrders),
                 'in_production' => $inProduction,
                 'artwork' => count($artwork),
                 'enquiries' => count($enquiries),
-                'lifetime_spend' => round((float) $orders->sum('total'), 2),
+                'lifetime_spend' => round((float) $orders->sum('total') + collect($uniformOrders)->sum('total'), 2),
             ],
             'routes' => [
                 'bundles' => route('bundles'),
@@ -371,6 +391,71 @@ class PortalController extends Controller
                     'name' => $f->original_name,
                     'url' => asset('storage/'.$f->path),
                 ])->values()->all(),
+            ])->values()->all(),
+        ];
+    }
+
+    private function transformUniformOrder(SchoolUniformOrder $order): array
+    {
+        $statusKey = match ($order->status) {
+            'pending', 'processing' => 'production',
+            'shipped' => 'dispatched',
+            'delivered' => 'delivered',
+            'cancelled' => 'cancelled',
+            default => $order->status,
+        };
+
+        $statusLabel = match ($statusKey) {
+            'production' => 'In Production',
+            'dispatched' => 'Shipped',
+            'delivered' => 'Delivered',
+            'cancelled' => 'Cancelled',
+            default => $order->statusLabel(),
+        };
+
+        $qty = (int) $order->items->sum('quantity');
+
+        return [
+            'id' => $order->id,
+            'ref' => $order->order_number,
+            'status' => $statusLabel,
+            'status_key' => $statusKey,
+            'date' => optional($order->created_at)->format('d M Y'),
+            'total' => (float) $order->total,
+            'subtotal' => (float) $order->subtotal,
+            'vat' => (float) $order->vat_amount,
+            'delivery' => (float) $order->delivery_fee,
+            'school_name' => $order->school?->name,
+            'item_count' => $order->items->count(),
+            'garment_qty' => $qty,
+            'notes' => $order->notes,
+            'customer_name' => $order->customer_name,
+            'customer_email' => $order->customer_email,
+            'customer_phone' => $order->customer_phone,
+            'company_name' => $order->company_name,
+            'shipping' => [
+                'line1' => $order->shipping_address_line1,
+                'line2' => $order->shipping_address_line2,
+                'city' => $order->shipping_city,
+                'postcode' => $order->shipping_postcode,
+                'country' => $order->shipping_country,
+            ],
+            'billing_same_as_shipping' => (bool) $order->billing_same_as_shipping,
+            'billing' => $order->billing_same_as_shipping ? null : [
+                'name' => $order->billing_name,
+                'company' => $order->billing_company_name,
+                'line1' => $order->billing_address_line1,
+                'line2' => $order->billing_address_line2,
+                'city' => $order->billing_city,
+                'postcode' => $order->billing_postcode,
+                'country' => $order->billing_country,
+            ],
+            'items' => $order->items->map(fn ($item) => [
+                'product_name' => $item->product_name,
+                'size' => $item->size,
+                'quantity' => $item->quantity,
+                'unit_price' => (float) $item->unit_price,
+                'total' => (float) $item->line_total,
             ])->values()->all(),
         ];
     }

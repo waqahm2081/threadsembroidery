@@ -34,6 +34,11 @@
       <a href="{{ route('admin.enquiries.index') }}" class="{{ $nav === 'enquiries' ? 'active' : '' }}"><i class="bi bi-chat-left-text"></i> Branding Enquiries</a>
       <a href="{{ route('admin.customizer') }}" class="{{ $nav === 'customizer' ? 'active' : '' }}"><i class="bi bi-sliders"></i> Product Customizer</a>
       <a href="{{ route('admin.product-quotes.index') }}" class="{{ $nav === 'product-quotes' ? 'active' : '' }}"><i class="bi bi-file-earmark-text"></i> Product Quotes</a>
+      <div class="ad-nav-divider">Uniform Shop</div>
+      <a href="{{ route('admin.schools.index') }}" class="{{ $nav === 'schools' ? 'active' : '' }}"><i class="bi bi-building"></i> Schools</a>
+      <a href="{{ route('admin.school-categories.index') }}" class="{{ $nav === 'school-categories' ? 'active' : '' }}"><i class="bi bi-tags"></i> Categories</a>
+      <a href="{{ route('admin.school-products.index') }}" class="{{ $nav === 'school-products' ? 'active' : '' }}"><i class="bi bi-bag"></i> Products</a>
+      <a href="{{ route('admin.school-uniform-orders.index') }}" class="{{ $nav === 'school-uniform-orders' ? 'active' : '' }}"><i class="bi bi-cart-check"></i> Uniform Orders</a>
     </nav>
     <div class="ad-side-foot">
       <div class="ad-side-user">
@@ -49,11 +54,6 @@
           <span>{{ $admin?->email }}</span>
         </div>
       </div>
-      <a href="{{ route('admin.profile.edit') }}" class="ad-btn block {{ $nav === 'profile' ? 'active' : '' }}"><i class="bi bi-person-gear"></i> My Profile</a>
-      <form method="POST" action="{{ route('admin.logout') }}">
-        @csrf
-        <button class="ad-btn ghost block" type="submit"><i class="bi bi-box-arrow-right"></i> Log out</button>
-      </form>
     </div>
   </aside>
 
@@ -68,7 +68,12 @@
         @if($subtitle)<p>{{ $subtitle }}</p>@endif
       </div>
       <div class="ad-top-actions">
+        <a href="{{ route('admin.profile.edit') }}" class="ad-btn sm {{ $nav === 'profile' ? 'active' : '' }}"><i class="bi bi-person-gear"></i> My Profile</a>
         <a class="ad-btn ghost sm" href="{{ route('home') }}" target="_blank"><i class="bi bi-box-arrow-up-right"></i> View site</a>
+        <form method="POST" action="{{ route('admin.logout') }}" style="margin:0">
+          @csrf
+          <button class="ad-btn ghost sm" type="submit"><i class="bi bi-box-arrow-right"></i> Log out</button>
+        </form>
       </div>
     </header>
     <div class="ad-content">

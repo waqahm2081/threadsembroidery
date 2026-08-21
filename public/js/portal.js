@@ -116,6 +116,7 @@
     let pendingAvatar = null;
     const user = () => state.user;
     const orders = () => state.orders || [];
+    const uniformOrders = () => state.uniform_orders || [];
     const enquiries = () => state.enquiries || [];
     const artwork = () => state.artwork || [];
     const stats = () => state.stats || {};
@@ -264,6 +265,89 @@
     views.orders = () => `
       <div class="portal-head"><h1>Order History</h1><p class="muted">Track your bundle orders and reorder in one click.</p></div>
       <div class="panel-card">${orders().length ? orders().map(o => orderRow(o)).join('') : '<p class="muted" style="margin:0">No orders yet. <a class="link-arrow" href="' + esc(r().bundles || '/bundles') + '">Browse bundles</a></p>'}</div>`;
+
+    function uniformOrderRow(o, compact){
+      const itemsLabel = o.item_count === 1
+        ? (o.items?.[0]?.product_name || 'Uniform item')
+        : `${o.item_count} items`;
+      const sub = [
+        o.ref,
+        o.school_name,
+        `${o.garment_qty || 0} garments`,
+        o.date
+      ].filter(Boolean).join(' · ');
+
+      return `<div class="order-row" data-uniform-order-id="${o.id}">
+        <div class="order-thumb"><i class="bi bi-mortarboard"></i></div>
+        <div class="meta">
+          <b>${esc(itemsLabel)}</b>
+          <div class="sub">${esc(sub)}</div>
+          <div class="order-action-btns">
+            <button type="button" class="btn btn--ghost btn--sm order-action-btn" data-view-uniform-order="${o.id}"><i class="bi bi-eye"></i> Details</button>
+            ${compact ? '' : `<button type="button" class="btn btn--sm order-action-btn" data-go="shop"><i class="bi bi-bag-heart"></i> Shop again</button>`}
+          </div>
+        </div>
+        <span class="status ${statusClass(o.status_key)}">${esc(o.status)}</span>
+        <div class="order-total">${money(o.total)}</div>
+      </div>`;
+    }
+
+    function uniformOrderDetail(o){
+      const ship = o.shipping || {};
+      const shipLine = [ship.line1, ship.line2, ship.city, ship.postcode, ship.country].filter(Boolean).join(', ');
+      const billing = o.billing || {};
+      const billingLine = o.billing_same_as_shipping
+        ? null
+        : [billing.name, billing.company, billing.line1, billing.line2, billing.city, billing.postcode, billing.country].filter(Boolean).join(', ');
+
+      const itemsHtml = (o.items || []).map(item => `
+        <div class="order-item">
+          <div class="flex justify-between gap-2">
+            <div>
+              <b>${esc(item.product_name)}</b>
+              <div class="sub muted">Size: ${esc(item.size)} · ${money(item.unit_price)} each</div>
+            </div>
+            <div style="text-align:right;flex:none">
+              <div class="order-total">${money(item.total)}</div>
+              <div class="muted" style="font-size:.78rem">Qty ${item.quantity}</div>
+            </div>
+          </div>
+        </div>`).join('');
+
+      return `<div class="panel-card order-detail">
+        <div class="flex justify-between items-center" style="margin-bottom:1rem;gap:1rem;flex-wrap:wrap">
+          <button type="button" class="btn btn--ghost" data-go="uniformOrders"><i class="bi bi-arrow-left"></i> Back</button>
+          <button type="button" class="btn" data-go="shop"><i class="bi bi-bag-heart"></i> Uniform Shop</button>
+        </div>
+        <div class="portal-head" style="margin-bottom:1.2rem">
+          <h1 style="font-size:1.6rem;margin:0">${esc(o.ref)}</h1>
+          <p class="muted" style="margin-top:.35rem">${esc(o.date)}${o.school_name ? ' · ' + esc(o.school_name) : ''} · <span class="status ${statusClass(o.status_key)}">${esc(o.status)}</span></p>
+        </div>
+        <div class="order-items">${itemsHtml || '<p class="muted">No items on this order.</p>'}</div>
+        <hr class="divider" style="margin:1.2rem 0">
+        <div class="order-totals">
+          <div><span>Subtotal</span><b>${money(o.subtotal)}</b></div>
+          <div><span>Delivery</span><b>${money(o.delivery)}</b></div>
+          <div><span>VAT</span><b>${money(o.vat)}</b></div>
+          <div class="grand"><span>Total</span><b>${money(o.total)}</b></div>
+        </div>
+        ${shipLine ? `<div style="margin-top:1.2rem"><h3 style="font-size:1rem;margin-bottom:.4rem">Delivery</h3><p class="muted" style="margin:0">${esc(shipLine)}</p>${o.billing_same_as_shipping ? '<p class="muted" style="font-size:.8rem;margin-top:.3rem">Billing same as shipping</p>' : ''}</div>` : ''}
+        ${billingLine ? `<div style="margin-top:1rem"><h3 style="font-size:1rem;margin-bottom:.4rem">Billing</h3><p class="muted" style="margin:0">${esc(billingLine)}</p></div>` : ''}
+        ${o.notes ? `<div style="margin-top:1rem"><h3 style="font-size:1rem;margin-bottom:.4rem">Notes</h3><p class="muted" style="margin:0">${esc(o.notes)}</p></div>` : ''}
+      </div>`;
+    }
+
+    views.uniformOrders = () => `
+      <div class="portal-head"><h1>Uniform Orders</h1><p class="muted">Track your school uniform orders.</p></div>
+      <div class="panel-card">${uniformOrders().length
+        ? uniformOrders().map(o => uniformOrderRow(o)).join('')
+        : '<p class="muted" style="margin:0">No uniform orders yet. <button type="button" class="link-arrow" data-go="shop" style="background:none;border:0;padding:0;cursor:pointer;font:inherit">Browse the Uniform Shop</button></p>'}</div>`;
+
+    views.uniformDetail = (orderId) => {
+      const o = uniformOrders().find(x => String(x.id) === String(orderId));
+      if (!o) return views.uniformOrders();
+      return `<div class="portal-head"><h1>Uniform Order Details</h1><p class="muted">Items, sizes and delivery for this order.</p></div>${uniformOrderDetail(o)}`;
+    };
 
     function enquiryRow(e){
       const places = (e.placements || []).join(', ');
@@ -620,12 +704,22 @@
       document.querySelectorAll('.portal-nav button').forEach(b => b.classList.toggle('active',
         b.dataset.view === view
         || (view === 'detail' && b.dataset.view === 'orders')
+        || (view === 'uniformDetail' && b.dataset.view === 'uniformOrders')
         || (view === 'enquiryDetail' && b.dataset.view === 'enquiries')
       ));
+
+      if (view === 'shop') {
+        if (typeof THREADS !== 'undefined' && THREADS.initUniformShop) {
+          THREADS.initUniformShop();
+        }
+        return;
+      }
+
       const main = document.getElementById('portalContent');
       main.innerHTML = typeof views[view] === 'function' ? views[view](arg) : '';
       main.querySelectorAll('[data-go]').forEach(b => b.onclick = () => render(b.dataset.go));
       main.querySelectorAll('[data-view-order]').forEach(b => b.onclick = () => render('detail', b.dataset.viewOrder));
+      main.querySelectorAll('[data-view-uniform-order]').forEach(b => b.onclick = () => render('uniformDetail', b.dataset.viewUniformOrder));
       main.querySelectorAll('[data-view-enquiry]').forEach(b => b.onclick = () => render('enquiryDetail', b.dataset.viewEnquiry));
       main.querySelectorAll('[data-reorder]').forEach(b => b.onclick = () => reorder(b.dataset.reorder));
       if (view !== 'artwork') bindArtButtons(main);
@@ -736,8 +830,27 @@
       document.querySelector('.portal-side')?.classList.remove('open');
     }
 
+    async function refreshPortalData(){
+      try {
+        const url = r().data || '/api/portal';
+        const res = await T.api.get(url);
+        if (res && res.user) state = res;
+      } catch (e) { /* keep existing state */ }
+    }
+
     document.querySelectorAll('.portal-nav button[data-view]').forEach(b => b.onclick = () => {
       if (b.dataset.view === 'account') accountTab = 'profile';
+      if (b.dataset.view === 'shop') {
+        document.querySelectorAll('.portal-nav button').forEach(x => x.classList.toggle('active', x.dataset.view === 'shop'));
+        if (typeof THREADS !== 'undefined' && THREADS.initUniformShop) {
+          THREADS.initUniformShop();
+        }
+        return;
+      }
+      if (b.dataset.view === 'uniformOrders') {
+        refreshPortalData().then(() => render('uniformOrders'));
+        return;
+      }
       render(b.dataset.view);
     });
     const mt = document.getElementById('portalMenuBtn');

@@ -12,9 +12,11 @@
       <nav class="portal-nav">
         <button class="active" data-view="overview"><i class="bi bi-grid-1x2"></i> Overview</button>
         <button data-view="orders"><i class="bi bi-box-seam"></i> Order History</button>
+        <button data-view="uniformOrders"><i class="bi bi-mortarboard"></i> Uniform Orders</button>
         <button data-view="enquiries"><i class="bi bi-chat-left-text"></i> Branding Enquiries</button>
         <button data-view="artwork"><i class="bi bi-images"></i> Artwork Library</button>
         <button data-view="account"><i class="bi bi-person-gear"></i> Account</button>
+        <button data-view="shop"><i class="bi bi-bag-heart"></i> Uniform Shop</button>
       </nav>
       <hr class="divider" style="margin:1.2rem 0">
       <a class="btn btn--block" href="{{ route('bundles') }}"><i class="bi bi-collection"></i> New Order</a>

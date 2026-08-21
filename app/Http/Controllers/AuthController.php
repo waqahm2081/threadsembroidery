@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Order;
 use App\Models\User;
 use App\Services\CartService;
+use App\Services\NotificationMailService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -14,8 +15,10 @@ use Illuminate\Validation\Rules\Password;
 
 class AuthController extends Controller
 {
-    public function __construct(private CartService $cartService)
-    {
+    public function __construct(
+        private CartService $cartService,
+        private NotificationMailService $mailNotifications,
+    ) {
     }
 
     public function login(Request $request): RedirectResponse|JsonResponse
@@ -62,6 +65,8 @@ class AuthController extends Controller
         $request->session()->regenerate();
         $this->cartService->mergeGuestCartForUser($user->id, $guestSessionId);
         $this->claimGuestOrders($user);
+
+        $this->mailNotifications->sendUserRegistered($user);
 
         return $this->success($request, 'Account created successfully.', route('portal'));
     }
