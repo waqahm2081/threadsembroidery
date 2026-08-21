@@ -71,6 +71,7 @@ class NotificationMailService
     {
         try {
             $callback();
+            Log::info('Email notification sent successfully.');
         } catch (\Throwable $e) {
             Log::error('Email notification failed: '.$e->getMessage(), [
                 'exception' => $e::class,

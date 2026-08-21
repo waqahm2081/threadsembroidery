@@ -2,7 +2,11 @@
 
 namespace App\Providers;
 
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\ServiceProvider;
+use Symfony\Component\Mailer\Transport\Dsn;
+use Symfony\Component\Mailer\Transport\Smtp\EsmtpTransportFactory;
+use Symfony\Component\Mailer\Transport\Smtp\Stream\SocketStream;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -13,6 +17,43 @@ class AppServiceProvider extends ServiceProvider
 
     public function boot(): void
     {
-        //
+        Mail::extend('smtp_relaxed', function (array $config) {
+            $factory = new EsmtpTransportFactory;
+
+            $scheme = $config['scheme'] ?? null;
+            if (! $scheme) {
+                $scheme = ($config['encryption'] ?? null) === 'ssl' ? 'smtps' : 'smtp';
+            }
+
+            $transport = $factory->create(new Dsn(
+                $scheme,
+                $config['host'],
+                $config['username'] ?? null,
+                $config['password'] ?? null,
+                isset($config['port']) ? (int) $config['port'] : null,
+                $config
+            ));
+
+            $stream = $transport->getStream();
+            if ($stream instanceof SocketStream) {
+                $stream->setStreamOptions([
+                    'ssl' => [
+                        'allow_self_signed' => true,
+                        'verify_peer' => false,
+                        'verify_peer_name' => false,
+                    ],
+                ]);
+
+                if (! empty($config['timeout'])) {
+                    $stream->setTimeout((float) $config['timeout']);
+                }
+            }
+
+            if (array_key_exists('auto_tls', $config) && method_exists($transport, 'setAutoTls')) {
+                $transport->setAutoTls((bool) $config['auto_tls']);
+            }
+
+            return $transport;
+        });
     }
 }

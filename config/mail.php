@@ -36,6 +36,8 @@ return [
     'mailers' => [
         'smtp' => [
             'transport' => 'smtp',
+            'scheme' => env('MAIL_SCHEME'),
+            'url' => env('MAIL_URL'),
             'host' => env('MAIL_HOST', 'smtp.mailgun.org'),
             'port' => env('MAIL_PORT', 587),
             'encryption' => env('MAIL_ENCRYPTION', 'tls'),
@@ -43,14 +45,25 @@ return [
             'password' => env('MAIL_PASSWORD'),
             'timeout' => env('MAIL_TIMEOUT', 30),
             'local_domain' => env('MAIL_EHLO_DOMAIN'),
-            // Helps with some shared hosts (e.g. GoDaddy) that use atypical SSL certs
-            'stream' => [
-                'ssl' => [
-                    'allow_self_signed' => true,
-                    'verify_peer' => false,
-                    'verify_peer_name' => false,
-                ],
-            ],
+            // Disable opportunistic STARTTLS when using plaintext localhost:25
+            'auto_tls' => filter_var(env('MAIL_AUTO_TLS', true), FILTER_VALIDATE_BOOLEAN),
+        ],
+
+        /*
+         * Same as smtp, but forces SSL stream options for shared hosts
+         * where the cert CN does not match (e.g. localhost → *.secureserver.net).
+         */
+        'smtp_relaxed' => [
+            'transport' => 'smtp_relaxed',
+            'scheme' => env('MAIL_SCHEME', 'smtps'),
+            'host' => env('MAIL_HOST', 'localhost'),
+            'port' => env('MAIL_PORT', 465),
+            'encryption' => env('MAIL_ENCRYPTION', 'ssl'),
+            'username' => env('MAIL_USERNAME'),
+            'password' => env('MAIL_PASSWORD'),
+            'timeout' => env('MAIL_TIMEOUT', 30),
+            'local_domain' => env('MAIL_EHLO_DOMAIN'),
+            'auto_tls' => filter_var(env('MAIL_AUTO_TLS', true), FILTER_VALIDATE_BOOLEAN),
         ],
 
         'ses' => [
