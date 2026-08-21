@@ -72,8 +72,10 @@ class NotificationMailService
         try {
             $callback();
         } catch (\Throwable $e) {
-            Log::warning('Email notification failed: '.$e->getMessage(), [
+            Log::error('Email notification failed: '.$e->getMessage(), [
                 'exception' => $e::class,
+                'file' => $e->getFile().':'.$e->getLine(),
+                'trace' => $e->getTraceAsString(),
             ]);
         }
     }
