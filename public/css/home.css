@@ -85,18 +85,21 @@
 .cust-mock .pv-stage{position:relative;flex:1;display:grid;place-items:center;min-height:0}
 .cust-mock .pv-stage img{width:min(72%,260px);filter:drop-shadow(0 22px 34px rgba(0,0,0,.55));position:relative;z-index:1}
 .cust-mock .logo-chip{
-  position:absolute;top:28%;left:42%;width:64px;height:38px;border:1.5px dashed var(--brand);border-radius:7px;
+  position:absolute;top:44%;left:36%;width:64px;height:38px;border:1.5px dashed var(--brand);border-radius:7px;
   display:flex;flex-direction:column;align-items:center;justify-content:center;gap:.1rem;
   font-size:.55rem;font-weight:700;letter-spacing:.04em;color:var(--brand-hi);background:rgba(232,88,32,.14);
-  animation:float 3s ease-in-out infinite;z-index:2;pointer-events:none
+  animation:float 3s ease-in-out infinite;z-index:2;pointer-events:none;transition:top .25s ease,left .25s ease,width .25s ease,height .25s ease
+}
+.cust-mock .logo-chip.is-back{
+  top:40%;left:50%;width:88px;height:46px;margin-left:-44px
 }
 .cust-mock .logo-chip i{font-size:.7rem}
 .cust-mock .pv-guides{position:absolute;inset:12% 18%;pointer-events:none;z-index:0;opacity:.35}
 .cust-mock .pv-guides .g-chest{
-  position:absolute;top:18%;left:18%;width:22%;height:14%;border:1px dashed rgba(255,255,255,.35);border-radius:6px
+  position:absolute;top:34%;left:22%;width:22%;height:14%;border:1px dashed rgba(255,255,255,.35);border-radius:6px
 }
 .cust-mock .pv-guides .g-center{
-  position:absolute;top:22%;left:50%;transform:translateX(-50%);width:42%;height:38%;
+  position:absolute;top:30%;left:50%;transform:translateX(-50%);width:42%;height:38%;
   border:1px dashed rgba(255,255,255,.2);border-radius:8px
 }
 .cust-mock .pv-tools{
