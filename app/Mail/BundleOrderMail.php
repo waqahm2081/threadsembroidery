@@ -4,12 +4,11 @@ namespace App\Mail;
 
 use App\Models\Order;
 use Illuminate\Bus\Queueable;
-use Illuminate\Mail\Mailable;
 use Illuminate\Mail\Mailables\Content;
 use Illuminate\Mail\Mailables\Envelope;
 use Illuminate\Queue\SerializesModels;
 
-class BundleOrderMail extends Mailable
+class BundleOrderMail extends SiteMailable
 {
     use Queueable, SerializesModels;
 
@@ -32,14 +31,13 @@ class BundleOrderMail extends Mailable
     {
         return new Content(
             view: 'emails.bundle-order',
-            with: [
-                'logoUrl' => asset('assets/img/logo.png'),
+            with: $this->sharedViewData([
                 'isAdmin' => $this->isAdmin,
                 'actionUrl' => $this->isAdmin
                     ? route('admin.orders.show', $this->order)
                     : route('portal'),
                 'subject' => $this->envelope()->subject,
-            ],
+            ]),
         );
     }
 }

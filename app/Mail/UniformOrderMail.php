@@ -4,12 +4,11 @@ namespace App\Mail;
 
 use App\Models\SchoolUniformOrder;
 use Illuminate\Bus\Queueable;
-use Illuminate\Mail\Mailable;
 use Illuminate\Mail\Mailables\Content;
 use Illuminate\Mail\Mailables\Envelope;
 use Illuminate\Queue\SerializesModels;
 
-class UniformOrderMail extends Mailable
+class UniformOrderMail extends SiteMailable
 {
     use Queueable, SerializesModels;
 
@@ -32,14 +31,13 @@ class UniformOrderMail extends Mailable
     {
         return new Content(
             view: 'emails.uniform-order',
-            with: [
-                'logoUrl' => asset('assets/img/logo.png'),
+            with: $this->sharedViewData([
                 'isAdmin' => $this->isAdmin,
                 'actionUrl' => $this->isAdmin
                     ? route('admin.school-uniform-orders.show', $this->order)
                     : route('portal'),
                 'subject' => $this->envelope()->subject,
-            ],
+            ]),
         );
     }
 }

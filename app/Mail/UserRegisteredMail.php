@@ -4,12 +4,11 @@ namespace App\Mail;
 
 use App\Models\User;
 use Illuminate\Bus\Queueable;
-use Illuminate\Mail\Mailable;
 use Illuminate\Mail\Mailables\Content;
 use Illuminate\Mail\Mailables\Envelope;
 use Illuminate\Queue\SerializesModels;
 
-class UserRegisteredMail extends Mailable
+class UserRegisteredMail extends SiteMailable
 {
     use Queueable, SerializesModels;
 
@@ -32,12 +31,11 @@ class UserRegisteredMail extends Mailable
     {
         return new Content(
             view: $this->isAdmin ? 'emails.user-registered-admin' : 'emails.user-registered',
-            with: [
-                'logoUrl' => asset('assets/img/logo.png'),
+            with: $this->sharedViewData([
                 'portalUrl' => route('portal'),
                 'adminUsersUrl' => route('admin.users.index'),
                 'subject' => $this->envelope()->subject,
-            ],
+            ]),
         );
     }
 }

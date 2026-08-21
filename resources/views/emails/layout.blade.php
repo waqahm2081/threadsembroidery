@@ -12,13 +12,21 @@
         <table role="presentation" width="600" cellpadding="0" cellspacing="0" border="0" style="width:600px;max-width:600px;background-color:#ffffff;border-radius:12px;overflow:hidden;border:1px solid #e6e2dc;">
           {{-- Header --}}
           <tr>
-            <td align="center" style="background-color:#e85820;padding:22px 24px;">
-              <img src="{{ $logoUrl }}" alt="{{ config('site.name') }}" width="180" style="display:block;max-width:180px;height:auto;border:0;" />
+            <td align="center" style="background-color:#ffffff;padding:28px 24px 20px 24px;border-bottom:3px solid #e85820;">
+              <a href="{{ config('app.url') }}" style="text-decoration:none;">
+                @php
+                  $logoPath = public_path('assets/img/logo.png');
+                  $logoSrc = (isset($message) && is_file($logoPath))
+                    ? $message->embed($logoPath)
+                    : ($logoUrl ?? url('assets/img/logo.png'));
+                @endphp
+                <img src="{{ $logoSrc }}" alt="{{ config('site.name') }}" width="200" style="display:block;margin:0 auto;max-width:200px;width:200px;height:auto;border:0;outline:none;text-decoration:none;-ms-interpolation-mode:bicubic;" />
+              </a>
             </td>
           </tr>
           {{-- Accent bar --}}
           <tr>
-            <td style="background-color:#c4471a;height:4px;font-size:0;line-height:0;">&nbsp;</td>
+            <td style="background-color:#e85820;height:6px;font-size:0;line-height:0;">&nbsp;</td>
           </tr>
           {{-- Body --}}
           <tr>
