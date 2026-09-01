@@ -9,7 +9,6 @@ cart-page
 @push('styles')
 <link rel="stylesheet" href="{{ asset('assets/css/shop-theme.css') }}">
 <link rel="stylesheet" href="{{ asset('assets/css/cart-checkout.css') }}?v=1.6">
-<link rel="stylesheet" href="{{ asset('assets/css/product-upload-wizard.css') }}?v=1.2">
 @endpush
 
 @section('content')
@@ -94,27 +93,6 @@ cart-page
                                         @endforeach
                                     </div>
                                 @endif
-                                <div class="cc-item-actions-row">
-                                    @if(!$item->is_customized)
-                                        <button type="button"
-                                                class="cc-customize-link cc-complete-design-btn"
-                                                data-cart-item-id="{{ $item->id }}"
-                                                data-customize-url="{{ route('shop.cart.customize', $item->id) }}"
-                                                data-product-title="{{ $item->product_title }}"
-                                                data-unit-price="{{ $item->unit_price }}"
-                                                data-quantity="{{ $item->quantity }}"
-                                                data-size="{{ $item->size }}"
-                                                data-colour-name="{{ $item->colour_name }}"
-                                                data-colour-hex="{{ $item->colour_hex }}"
-                                                data-colour-code="{{ $item->colour_code }}">
-                                            <i class="bi bi-magic"></i> Complete your design
-                                        </button>
-                                    @else
-                                        <button type="button" class="cc-view-design-btn" data-design-id="{{ $item->id }}">
-                                            <i class="bi bi-eye"></i> View Design
-                                        </button>
-                                    @endif
-                                </div>
                             </div>
                             <div class="cc-item-actions">
                                 <div class="cc-item-price">┬ú{{ number_format($item->lineTotal(), 2) }}</div>
@@ -154,7 +132,7 @@ cart-page
     </div>
 </main>
 
-{{-- Design preview modal --}}
+{{-- Design preview modal (legacy customised items only) --}}
 <div class="modal fade" id="cartDesignModal" tabindex="-1" aria-labelledby="cartDesignModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered cdm-dialog">
         <div class="modal-content cdm-content">
@@ -180,8 +158,6 @@ cart-page
     </div>
 </div>
 
-@include('shop.partials.upload-wizard')
-
 @endsection
 
 @push('scripts')
@@ -194,6 +170,5 @@ window.SHOP_ROUTES = {
 };
 </script>
 <script src="{{ asset('assets/js/design-print-area.js') }}"></script>
-<script src="{{ asset('assets/js/product-upload-wizard.js') }}?v=1.2"></script>
-<script src="{{ asset('assets/js/cart-checkout.js') }}?v=1.4"></script>
+<script src="{{ asset('assets/js/cart-checkout.js') }}?v=1.5"></script>
 @endpush

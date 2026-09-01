@@ -153,7 +153,7 @@
           <img src="${p.image}" alt="${p.title}" loading="lazy">
           <div class="shop-card-actions">
             <a href="${url}" class="shop-card-action-btn">
-              <i class="bi bi-magic"></i> Customise
+              <i class="bi bi-eye"></i> View
             </a>
           </div>
           ${badgeHtml}
@@ -171,7 +171,7 @@
               <span class="shop-card-unit">/ unit</span>
             </div>
             <a href="${url}" class="shop-card-btn">
-              <i class="bi bi-magic"></i> Customise
+              <i class="bi bi-bag-plus"></i> View Product
             </a>
           </div>
         </div>

@@ -17,7 +17,6 @@ product-page
 @push('styles')
 <link rel="stylesheet" href="{{ asset('assets/css/shop-theme.css') }}">
 <link rel="stylesheet" href="{{ asset('assets/css/product-detail.css') }}">
-<link rel="stylesheet" href="{{ asset('assets/css/product-upload-wizard.css') }}?v=1.2">
 @endpush
 
 @section('content')
@@ -116,27 +115,6 @@ product-page
 
             <div class="pd-option-group">
                 <div class="pd-option-label-row">
-                    <span class="pd-option-label">Decoration Technology</span>
-                    <span class="pd-selected-option-name" id="pdTechName">Direct to Garment</span>
-                </div>
-                <div class="pd-option-tiles" id="pdTechTiles">
-                    <button class="pd-option-tile active" data-option-group="tech" data-value="Direct to Garment">
-                        <i class="bi bi-printer"></i>
-                        <span class="pd-tile-label">Direct to Garment</span>
-                        <span class="pd-tile-sub">Photorealistic detail</span>
-                    </button>
-                    <button class="pd-option-tile" data-option-group="tech" data-value="Screen Printing">
-                        <i class="bi bi-layers"></i>
-                        <span class="pd-tile-label">Screen Printing</span>
-                        <span class="pd-tile-sub">Bold, vibrant colour</span>
-                    </button>
-                </div>
-            </div>
-
-            <div class="pd-divider"></div>
-
-            <div class="pd-option-group">
-                <div class="pd-option-label-row">
                     <span class="pd-option-label">Sizes &amp; Quantities</span>
                     <a href="#" class="pd-size-guide-link"><i class="bi bi-rulers"></i> Size Guide</a>
                 </div>
@@ -186,13 +164,13 @@ product-page
 
             <div class="pd-divider"></div>
 
-            <a href="#" class="pd-customize-btn" id="pdCustomizeBtn" role="button">
+            <button type="button" class="pd-customize-btn" id="pdAddToCartBtn">
                 <span class="pd-customize-btn-inner">
-                    <i class="bi bi-magic"></i>
-                    Upload Your Design / Customize
+                    <i class="bi bi-bag-plus"></i>
+                    Add to Cart
                 </span>
                 <span class="pd-customize-btn-glow"></span>
-            </a>
+            </button>
 
             <div class="pd-trust-row">
                 <span class="pd-trust-item"><i class="bi bi-truck"></i> Free UK Delivery</span>
@@ -215,7 +193,7 @@ product-page
                 @if($product['body'])
                     {!! $product['body'] !!}
                 @else
-                    <p>{{ $product['title'] }} from {{ $product['brand'] ?? 'our catalogue' }}. Customise with your logo using embroidery or print.</p>
+                    <p>{{ $product['title'] }} from {{ $product['brand'] ?? 'our shop' }}.</p>
                 @endif
             </div>
         </div>
@@ -278,7 +256,7 @@ product-page
                     <div class="pd-related-img-wrap">
                         <img src="{{ $item['image'] }}" alt="{{ $item['title'] }}" loading="lazy">
                         <div class="pd-related-actions">
-                            <a href="{{ $item['url'] }}" class="pd-related-quick-btn"><i class="bi bi-magic"></i> Customise</a>
+                            <a href="{{ $item['url'] }}" class="pd-related-quick-btn"><i class="bi bi-eye"></i> View</a>
                         </div>
                         @if($item['is_new'])<span class="pd-related-badge pd-related-badge--new">New In</span>@endif
                     </div>
@@ -299,7 +277,18 @@ product-page
 
 @include('shop.partials.reviews', ['productTitle' => $product['title']])
 
-@include('shop.partials.upload-wizard')
+<div class="pd-cart-modal" id="pdCartModal" hidden aria-hidden="true">
+    <div class="pd-cart-modal-backdrop" id="pdCartModalBackdrop"></div>
+    <div class="pd-cart-modal-dialog" role="dialog" aria-labelledby="pdCartModalTitle" aria-modal="true">
+        <div class="pd-cart-modal-icon"><i class="bi bi-bag-check-fill"></i></div>
+        <h3 class="pd-cart-modal-title" id="pdCartModalTitle">Added to cart</h3>
+        <p class="pd-cart-modal-text">Your items have been added to your shop cart.</p>
+        <div class="pd-cart-modal-actions">
+            <a href="{{ route('shop.cart') }}" class="pd-cart-modal-btn pd-cart-modal-btn--primary" id="pdCartModalGo">Go to Cart</a>
+            <button type="button" class="pd-cart-modal-btn pd-cart-modal-btn--ghost" id="pdCartModalContinue">Keep Shopping</button>
+        </div>
+    </div>
+</div>
 
 @endsection
 
@@ -324,6 +313,6 @@ window.SHOP_ROUTES = {
   checkout_url: @json(route('shop.checkout')),
 };
 </script>
-<script src="{{ asset('assets/js/product-upload-wizard.js') }}?v=1.2"></script>
-<script src="{{ asset('assets/js/product-detail.js') }}?v=1.3"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="{{ asset('assets/js/product-detail.js') }}?v=1.4"></script>
 @endpush

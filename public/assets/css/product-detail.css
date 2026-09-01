@@ -383,12 +383,92 @@
 #pd-detail .pd-est-total { color: var(--c-primary) !important; font-size: 1rem !important; }
 #pd-detail .pd-qty-summary-divider { width: 1px; height: 24px; background: rgba(0,0,0,0.1); margin: 0 18px; }
 
-#pd-detail .pd-customize-btn { display: block; position: relative; text-decoration: none; border-radius: var(--r-pill); overflow: hidden; margin-bottom: 18px; }
+#pd-detail .pd-customize-btn { display: block; position: relative; width: 100%; border: none; cursor: pointer; text-decoration: none; border-radius: var(--r-pill); overflow: hidden; margin-bottom: 18px; padding: 0; background: transparent; }
 #pd-detail .pd-customize-btn-inner { display: flex; align-items: center; justify-content: center; gap: 12px; width: 100%; padding: 18px 24px; background: var(--c-primary); border-radius: var(--r-pill); font-family: var(--font-body); font-weight: 700; font-size: 1.05rem; color: #fff; letter-spacing: 0.01em; position: relative; z-index: 1; transition: background 0.28s ease, transform 0.28s ease; }
 #pd-detail .pd-customize-btn-inner i { font-size: 1.1rem; }
 #pd-detail .pd-customize-btn-glow { position: absolute; inset: -3px; background: var(--c-primary); filter: blur(16px); opacity: 0; border-radius: var(--r-pill); transition: opacity 0.3s ease; }
 #pd-detail .pd-customize-btn:hover .pd-customize-btn-inner { background: var(--c-primary-dark); transform: translateY(-2px); }
 #pd-detail .pd-customize-btn:hover .pd-customize-btn-glow { opacity: 0.35; }
+#pd-detail .pd-customize-btn:disabled { opacity: 0.7; cursor: not-allowed; }
+
+.pd-cart-modal[hidden] { display: none !important; }
+.pd-cart-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 10050;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+.pd-cart-modal-backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.55);
+}
+.pd-cart-modal-dialog {
+  position: relative;
+  z-index: 1;
+  width: min(420px, 100%);
+  background: #fff;
+  border-radius: 18px;
+  padding: 28px 24px 24px;
+  text-align: center;
+  box-shadow: 0 24px 64px rgba(0, 0, 0, 0.22);
+}
+.pd-cart-modal-icon {
+  width: 56px;
+  height: 56px;
+  margin: 0 auto 14px;
+  border-radius: 50%;
+  background: rgba(238, 96, 35, 0.12);
+  color: var(--c-primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.6rem;
+}
+.pd-cart-modal-title {
+  font-family: var(--font-head);
+  font-size: 1.35rem;
+  font-weight: 800;
+  color: #0d0d0d;
+  margin: 0 0 8px;
+}
+.pd-cart-modal-text {
+  font-family: var(--font-body);
+  font-size: 0.92rem;
+  color: #666;
+  margin: 0 0 22px;
+}
+.pd-cart-modal-actions {
+  display: grid;
+  gap: 10px;
+}
+.pd-cart-modal-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  padding: 14px 18px;
+  border-radius: 999px;
+  font-family: var(--font-body);
+  font-size: 0.95rem;
+  font-weight: 700;
+  text-decoration: none;
+  border: none;
+  cursor: pointer;
+}
+.pd-cart-modal-btn--primary {
+  background: var(--c-primary);
+  color: #fff;
+}
+.pd-cart-modal-btn--primary:hover { background: var(--c-primary-dark); color: #fff; }
+.pd-cart-modal-btn--ghost {
+  background: #f4f4f4;
+  color: #333;
+}
+.pd-cart-modal-btn--ghost:hover { background: #ececec; }
 
 #pd-detail .pd-trust-row { display: flex; align-items: center; justify-content: center; flex-wrap: wrap; gap: 20px; }
 #pd-detail .pd-trust-item { display: flex; align-items: center; gap: 6px; font-family: var(--font-body); font-size: 0.75rem; font-weight: 600; color: #777; }
