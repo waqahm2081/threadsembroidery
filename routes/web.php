@@ -55,6 +55,7 @@ Route::prefix('shop')->name('shop.')->group(function () {
     Route::post('/checkout', [ShopCheckoutController::class, 'store'])->name('checkout.store');
     Route::get('/checkout/confirmation/{orderNumber}', [ShopCheckoutController::class, 'confirmation'])->name('checkout.confirmation');
 
+    Route::get('/{categorySlug}/products', [ShopController::class, 'categoryProducts'])->name('category.products');
     Route::get('/{categorySlug}/{productSlug}/customizer', [ProductController::class, 'customizer'])->name('product.customizer');
     Route::get('/{categorySlug}/{productSlug}', [ProductController::class, 'show'])->name('product');
     Route::get('/{categorySlug}', [ShopController::class, 'category'])->name('category');

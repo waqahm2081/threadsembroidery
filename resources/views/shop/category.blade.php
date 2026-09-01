@@ -161,5 +161,5 @@ shop-page
 @endphp
 window.__SHOP_DATA__ = @json($shopData, JSON_INVALID_UTF8_SUBSTITUTE | JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_AMP);
 </script>
-<script src="{{ asset('assets/js/shop.js') }}"></script>
+<script src="{{ asset('assets/js/shop.js') }}?v=1.1"></script>
 @endpush
