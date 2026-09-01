@@ -10,7 +10,12 @@
 
 @section('title', $product['title'] . ' — Threads Embroidery & Print Ltd')
 
+@section('body_class')
+product-page
+@endsection
+
 @push('styles')
+<link rel="stylesheet" href="{{ asset('assets/css/shop-theme.css') }}">
 <link rel="stylesheet" href="{{ asset('assets/css/product-detail.css') }}">
 <link rel="stylesheet" href="{{ asset('assets/css/product-upload-wizard.css') }}?v=1.2">
 @endpush

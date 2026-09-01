@@ -2,7 +2,12 @@
 
 @section('title', $category['name'] . ' — Shop — Threads Embroidery & Print Ltd')
 
+@section('body_class')
+shop-page
+@endsection
+
 @push('styles')
+<link rel="stylesheet" href="{{ asset('assets/css/shop-theme.css') }}">
 <link rel="stylesheet" href="{{ asset('assets/css/shop.css') }}">
 @endpush
 

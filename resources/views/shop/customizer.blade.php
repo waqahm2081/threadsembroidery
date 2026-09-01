@@ -21,6 +21,7 @@ pc-body
 @endsection
 
 @push('styles')
+<link rel="stylesheet" href="{{ asset('assets/css/shop-theme.css') }}">
 <link rel="stylesheet" href="{{ asset('assets/css/product-customizer.css') }}?v=1.5">
 @endpush
 

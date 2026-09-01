@@ -1,0 +1,54 @@
+/* Shared design tokens for restored shop / product pages.
+   Required because the main site styles.css uses a dark theme (--text is light),
+   while shop CSS expects these legacy catalogue variables. */
+
+:root {
+  --c-primary: #ee6023;
+  --c-primary-dark: #c94e18;
+  --c-primary-light: #f57a45;
+  --c-black: #0d0d0d;
+  --c-dark: #0d0d0d;
+  --c-dark-2: #141414;
+  --c-dark-3: #1c1c1c;
+  --c-white: #ffffff;
+  --c-grey: #6b656c;
+  --c-border: rgba(0, 0, 0, 0.08);
+
+  --font-head: 'Archivo', 'Inter', sans-serif;
+  --font-body: 'Inter', sans-serif;
+
+  --r-sm: 8px;
+  --r-md: 12px;
+  --r-lg: 16px;
+  --r-pill: 999px;
+
+  --ease: cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  --trans: all 0.28s var(--ease);
+}
+
+/* Light catalogue sections sit on white/grey backgrounds — override dark-site body text. */
+body.shop-page,
+body.product-page,
+body.cart-page,
+body.checkout-page {
+  color: #14110d;
+}
+
+#shop-body,
+#pd-breadcrumb,
+#pd-detail,
+#pd-desc,
+#pd-related,
+#pd-reviews,
+#checkout-main,
+.cc-container {
+  color: #14110d;
+}
+
+#shop-body button,
+#pd-detail button,
+#pd-desc button,
+#pd-related button,
+#pd-reviews button {
+  color: inherit;
+}

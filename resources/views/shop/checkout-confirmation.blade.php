@@ -7,6 +7,7 @@ checkout-page
 @endsection
 
 @push('styles')
+<link rel="stylesheet" href="{{ asset('assets/css/shop-theme.css') }}">
 <link rel="stylesheet" href="{{ asset('assets/css/cart-checkout.css') }}?v=1.3">
 @endpush
 
