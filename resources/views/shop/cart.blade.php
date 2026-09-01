@@ -1,6 +1,6 @@
 ﻿@extends('layouts.app')
 
-@section('title', 'Shopping Cart ΓÇö Threads Embroidery & Print Ltd')
+@section('title', 'Shopping Cart &mdash; Threads Embroidery & Print Ltd')
 
 @section('body_class')
 cart-page
@@ -65,7 +65,7 @@ cart-page
                                     @if($item->size_breakdown)
                                         <span><i class="bi bi-rulers"></i>
                                             @foreach($item->size_breakdown as $row)
-                                                {{ $row['size'] }} ├ù {{ $row['qty'] }}{{ !$loop->last ? ', ' : '' }}
+                                                {{ $row['size'] }} &times; {{ $row['qty'] }}{{ !$loop->last ? ', ' : '' }}
                                             @endforeach
                                         </span>
                                     @elseif($item->size)
@@ -75,27 +75,27 @@ cart-page
                                 </div>
                                 @if($item->hasLogoSetup())
                                     <div class="cc-item-addon">
-                                        <i class="bi bi-plus-circle"></i> Embroidery Logo Set Up (+┬ú{{ number_format($item->logo_setup_fee, 2) }})
+                                        <i class="bi bi-plus-circle"></i> Embroidery Logo Set Up (+&pound;{{ number_format($item->logo_setup_fee, 2) }})
                                     </div>
                                 @endif
                                 @if($item->placementLabel())
                                     <div class="cc-item-addon">
                                         <i class="bi bi-bounding-box"></i> {{ $item->placementLabel() }}
                                         @if($item->decoration_fee > 0)
-                                            (+┬ú{{ number_format($item->decoration_fee, 2) }}/unit)
+                                            (+&pound;{{ number_format($item->decoration_fee, 2) }}/unit)
                                         @endif
                                     </div>
                                 @endif
                                 @if($item->size_breakdown && count($item->size_breakdown) > 1)
                                     <div class="cc-size-breakdown">
                                         @foreach($item->size_breakdown as $row)
-                                            <span>{{ $row['size'] }} ├ù {{ $row['qty'] }}</span>
+                                            <span>{{ $row['size'] }} &times; {{ $row['qty'] }}</span>
                                         @endforeach
                                     </div>
                                 @endif
                             </div>
                             <div class="cc-item-actions">
-                                <div class="cc-item-price">┬ú{{ number_format($item->lineTotal(), 2) }}</div>
+                                <div class="cc-item-price">&pound;{{ number_format($item->lineTotal(), 2) }}</div>
                                 <button type="button" class="cc-remove-btn" data-remove-item="{{ $item->id }}" aria-label="Remove item">
                                     <i class="bi bi-trash3"></i>
                                 </button>
@@ -109,11 +109,11 @@ cart-page
                         <h2 class="cc-summary-title">Order Summary</h2>
                         <div class="cc-summary-row">
                             <span>Subtotal (ex. VAT)</span>
-                            <strong id="cartSummarySubtotal">┬ú{{ number_format($subtotal, 2) }}</strong>
+                            <strong id="cartSummarySubtotal">&pound;{{ number_format($subtotal, 2) }}</strong>
                         </div>
                         <div class="cc-summary-row">
                             <span>VAT ({{ \App\Services\ShopPricingService::vatPercent() }}%)</span>
-                            <strong id="cartSummaryVat">┬ú{{ number_format($vat, 2) }}</strong>
+                            <strong id="cartSummaryVat">&pound;{{ number_format($vat, 2) }}</strong>
                         </div>
                         <div class="cc-summary-row cc-summary-note">
                             <span><i class="bi bi-truck"></i> Delivery calculated at checkout</span>
@@ -121,7 +121,7 @@ cart-page
                         <div class="cc-summary-divider"></div>
                         <div class="cc-summary-row cc-summary-total">
                             <span>Estimated Total (inc. VAT)</span>
-                            <strong id="cartSummaryTotal">┬ú{{ number_format($total, 2) }}</strong>
+                            <strong id="cartSummaryTotal">&pound;{{ number_format($total, 2) }}</strong>
                         </div>
                         <a href="{{ route('shop.checkout') }}" class="cc-btn-primary cc-btn-full">Proceed to Checkout <i class="bi bi-arrow-right"></i></a>
                         <a href="{{ route('shop') }}" class="cc-btn-secondary cc-btn-full">Continue Shopping</a>

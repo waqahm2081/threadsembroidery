@@ -1,6 +1,6 @@
 ﻿@extends('layouts.app')
 
-@section('title', 'Checkout ΓÇö Threads Embroidery & Print Ltd')
+@section('title', 'Checkout &mdash; Threads Embroidery & Print Ltd')
 
 @section('body_class')
 checkout-page
@@ -141,7 +141,7 @@ checkout-page
                         <h2 class="cc-form-section-title"><i class="bi bi-chat-left-text"></i> Additional Instructions</h2>
                         <div class="cc-form-row">
                             <div class="cc-field">
-                                <textarea id="additional_instructions" name="additional_instructions" class="cc-textarea" rows="4" placeholder="Any special instructions for your orderΓÇª">{{ old('additional_instructions') }}</textarea>
+                                <textarea id="additional_instructions" name="additional_instructions" class="cc-textarea" rows="4" placeholder="Any special instructions for your order&hellip;">{{ old('additional_instructions') }}</textarea>
                             </div>
                         </div>
                     </div>
@@ -158,35 +158,35 @@ checkout-page
                                         <span>
                                             {{ $item->colour_name ?? '' }}
                                             @if($item->size_breakdown)
-                                                ┬╖ @foreach($item->size_breakdown as $row){{ $row['size'] }} ├ù {{ $row['qty'] }}{{ !$loop->last ? ', ' : '' }}@endforeach
+                                                &middot; @foreach($item->size_breakdown as $row){{ $row['size'] }} &times; {{ $row['qty'] }}{{ !$loop->last ? ', ' : '' }}@endforeach
                                             @elseif($item->size)
-                                                ┬╖ {{ $item->size }}
+                                                &middot; {{ $item->size }}
                                             @endif
-                                            ┬╖ Qty {{ $item->quantity }}
+                                            &middot; Qty {{ $item->quantity }}
                                         </span>
                                         @if($item->hasLogoSetup())
-                                            <span class="cc-checkout-addon"><i class="bi bi-plus-circle"></i> Embroidery Logo Set Up (+┬ú{{ number_format($item->logo_setup_fee, 2) }})</span>
+                                            <span class="cc-checkout-addon"><i class="bi bi-plus-circle"></i> Embroidery Logo Set Up (+&pound;{{ number_format($item->logo_setup_fee, 2) }})</span>
                                         @endif
                                         @if($item->placementLabel())
-                                            <span class="cc-checkout-addon"><i class="bi bi-bounding-box"></i> {{ $item->placementLabel() }}@if($item->decoration_fee > 0) (+┬ú{{ number_format($item->decoration_fee, 2) }}/unit)@endif</span>
+                                            <span class="cc-checkout-addon"><i class="bi bi-bounding-box"></i> {{ $item->placementLabel() }}@if($item->decoration_fee > 0) (+&pound;{{ number_format($item->decoration_fee, 2) }}/unit)@endif</span>
                                         @endif
                                     </div>
-                                    <span class="cc-checkout-item-price">┬ú{{ number_format($item->lineTotal(), 2) }}</span>
+                                    <span class="cc-checkout-item-price">&pound;{{ number_format($item->lineTotal(), 2) }}</span>
                                 </div>
                             @endforeach
                         </div>
                         <div class="cc-summary-divider"></div>
                         <div class="cc-summary-row">
                             <span>Subtotal (ex. VAT)</span>
-                            <strong>┬ú{{ number_format($subtotal, 2) }}</strong>
+                            <strong>&pound;{{ number_format($subtotal, 2) }}</strong>
                         </div>
                         <div class="cc-summary-row">
                             <span>VAT ({{ \App\Services\ShopPricingService::vatPercent() }}%)</span>
-                            <strong>┬ú{{ number_format($vat, 2) }}</strong>
+                            <strong>&pound;{{ number_format($vat, 2) }}</strong>
                         </div>
                         <div class="cc-summary-row cc-summary-total">
                             <span>Total (inc. VAT)</span>
-                            <strong>┬ú{{ number_format($total, 2) }}</strong>
+                            <strong>&pound;{{ number_format($total, 2) }}</strong>
                         </div>
                         <button type="submit" class="cc-btn-primary cc-btn-full" id="placeOrderBtn">
                             Place Order <i class="bi bi-check-circle"></i>

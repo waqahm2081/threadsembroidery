@@ -1,6 +1,6 @@
 ﻿@extends('layouts.app')
 
-@section('title', 'Order Confirmed ΓÇö Threads Embroidery & Print Ltd')
+@section('title', 'Order Confirmed &mdash; Threads Embroidery & Print Ltd')
 
 @section('body_class')
 checkout-page
@@ -39,23 +39,23 @@ checkout-page
                     <div class="cc-checkout-item">
                         <div class="cc-checkout-item-info">
                             <strong>{{ $item->product_title }}</strong>
-                            <span>{{ $item->colour_name ?? '' }} ┬╖ {{ $item->size ?? 'ΓÇö' }} ┬╖ Qty {{ $item->quantity }}</span>
+                            <span>{{ $item->colour_name ?? '' }} &middot; {{ $item->size ?? '&mdash;' }} &middot; Qty {{ $item->quantity }}</span>
                         </div>
-                        <span class="cc-checkout-item-price">┬ú{{ number_format($item->line_total, 2) }}</span>
+                        <span class="cc-checkout-item-price">&pound;{{ number_format($item->line_total, 2) }}</span>
                     </div>
                 @endforeach
                 <div class="cc-summary-divider"></div>
                 <div class="cc-summary-row">
                     <span>Subtotal (ex. VAT)</span>
-                    <strong>┬ú{{ number_format($order->subtotal, 2) }}</strong>
+                    <strong>&pound;{{ number_format($order->subtotal, 2) }}</strong>
                 </div>
                 <div class="cc-summary-row">
                     <span>VAT ({{ \App\Services\ShopPricingService::vatPercent() }}%)</span>
-                    <strong>┬ú{{ number_format($order->vat_amount, 2) }}</strong>
+                    <strong>&pound;{{ number_format($order->vat_amount, 2) }}</strong>
                 </div>
                 <div class="cc-summary-row cc-summary-total">
                     <span>Total (inc. VAT)</span>
-                    <strong>┬ú{{ number_format($order->total, 2) }}</strong>
+                    <strong>&pound;{{ number_format($order->total, 2) }}</strong>
                 </div>
             </div>
 
