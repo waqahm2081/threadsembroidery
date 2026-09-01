@@ -50,6 +50,16 @@ class ShopCartItem extends Model
         return (($this->unit_price + $this->decoration_fee) * $this->quantity) + $this->logo_setup_fee;
     }
 
+    public function hasLogoSetup(): bool
+    {
+        return $this->logo_setup_fee > 0;
+    }
+
+    public function placementLabel(): ?string
+    {
+        return $this->design_data['decoration_placement_label'] ?? null;
+    }
+
     public function customizerUrl(): string
     {
         return route('shop.product', [
