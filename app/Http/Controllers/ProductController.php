@@ -26,6 +26,7 @@ class ProductController extends Controller
         $related = $this->catalog->getRelatedProducts($category['name'], $product['style_code']);
 
         return view('shop.product', [
+            'pageActive' => 'shop',
             'category' => $category,
             'product' => $product,
             'related' => $related,

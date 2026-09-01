@@ -21,11 +21,12 @@
   @if (!empty($n['mega']))
     <li class="has-mega"><a class="{{ trim($act) }}" href="{{ route($n['route']) }}">{{ $n['label'] }} <i class="bi bi-chevron-down" style="font-size:.7em"></i></a>
       <div class="mega">
-        <div class="mega-head"><div><span class="h-eyebrow">Browse by Category</span><h3 class="h-3" style="margin-top:.4rem">Our Full Catalogue</h3></div>
-        <a class="btn btn--ghost" href="{{ route('catalogue') }}">View Full Catalogue <i class="bi bi-arrow-right"></i></a></div>
+        <div class="mega-head"><div><span class="h-eyebrow">Browse by Category</span><h3 class="h-3" style="margin-top:.4rem">Product Shop</h3></div>
+        <a class="btn btn--ghost" href="{{ route('shop.cart') }}"><i class="bi bi-bag"></i> Shop Cart{{ (!empty($shopCartCount) && $shopCartCount > 0) ? ' ('.$shopCartCount.')' : '' }}</a></div>
         <div class="mega-grid">
-@foreach ($categories as $c)
-          <a href="{{ url('/category.php?cat=' . rawurlencode($c['slug'])) }}"><span class="n">{{ $c['name'] }}</span><span class="c">{{ (int) $c['total'] }}</span></a>
+@php $shopCats = ($n['key'] ?? '') === 'shop' ? ($shopCategories ?? []) : ($categories ?? []); @endphp
+@foreach ($shopCats as $c)
+          <a href="{{ route('shop.category', $c['slug']) }}"><span class="n">{{ $c['name'] }}</span><span class="c">{{ (int) ($c['count'] ?? 0) }}</span></a>
 @endforeach
         </div>
         <p class="muted" style="margin-top:16px;font-size:.86rem">Can't find what you're looking for? <a class="link-arrow" href="{{ route('contact') }}" style="display:inline">Contact us</a> and we'll source it for you.</p>

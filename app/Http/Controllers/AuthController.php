@@ -6,6 +6,7 @@ use App\Models\Order;
 use App\Models\User;
 use App\Services\CartService;
 use App\Services\NotificationMailService;
+use App\Services\ShopCartService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -17,6 +18,7 @@ class AuthController extends Controller
 {
     public function __construct(
         private CartService $cartService,
+        private ShopCartService $shopCartService,
         private NotificationMailService $mailNotifications,
     ) {
     }
@@ -37,6 +39,7 @@ class AuthController extends Controller
         $user = Auth::user();
         $request->session()->regenerate();
         $this->cartService->mergeGuestCartForUser($user->id, $guestSessionId);
+        $this->shopCartService->mergeGuestCartForUser($user->id, $guestSessionId);
         $this->claimGuestOrders($user);
 
         return $this->success($request, 'Welcome back!', route('portal'));
@@ -64,6 +67,7 @@ class AuthController extends Controller
         Auth::login($user);
         $request->session()->regenerate();
         $this->cartService->mergeGuestCartForUser($user->id, $guestSessionId);
+        $this->shopCartService->mergeGuestCartForUser($user->id, $guestSessionId);
         $this->claimGuestOrders($user);
 
         $this->mailNotifications->sendUserRegistered($user);

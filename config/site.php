@@ -22,6 +22,7 @@ return [
         ['label' => 'About Us', 'route' => 'about', 'key' => 'about'],
         ['label' => 'Services', 'route' => 'services', 'key' => 'services'],
         ['label' => 'Bundles', 'route' => 'bundles', 'key' => 'bundles'],
+        ['label' => 'Shop', 'route' => 'shop', 'key' => 'shop', 'mega' => true],
         ['label' => 'Branding Enquiry', 'route' => 'branding-enquiry', 'key' => 'enquiry'],
         ['label' => 'Contact', 'route' => 'contact', 'key' => 'contact'],
     ],

@@ -24,6 +24,10 @@ use App\Http\Controllers\BrandingEnquiryController;
 use App\Http\Controllers\CheckoutPageController;
 use App\Http\Controllers\PageController;
 use App\Http\Controllers\PortalController;
+use App\Http\Controllers\ProductController;
+use App\Http\Controllers\ShopCartController;
+use App\Http\Controllers\ShopCheckoutController;
+use App\Http\Controllers\ShopController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', [PageController::class, 'home'])->name('home');
@@ -37,6 +41,25 @@ Route::get('/catalogue', [PageController::class, 'catalogue'])->name('catalogue'
 Route::get('/category', [PageController::class, 'category'])->name('category');
 Route::get('/product', [PageController::class, 'product'])->name('product');
 Route::get('/configurator', fn () => redirect()->route('bundles'))->name('configurator');
+
+Route::get('/shop', [ShopController::class, 'index'])->name('shop');
+
+// Product catalogue shop (pc_products) — separate cart/orders from bundles & uniforms
+Route::prefix('shop')->name('shop.')->group(function () {
+    Route::get('/cart', [ShopCartController::class, 'index'])->name('cart');
+    Route::post('/cart', [ShopCartController::class, 'store'])->name('cart.store');
+    Route::post('/cart/items/{itemId}/customize', [ShopCartController::class, 'customize'])->name('cart.customize');
+    Route::delete('/cart/items/{itemId}', [ShopCartController::class, 'destroy'])->name('cart.destroy');
+
+    Route::get('/checkout', [ShopCheckoutController::class, 'show'])->name('checkout');
+    Route::post('/checkout', [ShopCheckoutController::class, 'store'])->name('checkout.store');
+    Route::get('/checkout/confirmation/{orderNumber}', [ShopCheckoutController::class, 'confirmation'])->name('checkout.confirmation');
+
+    Route::get('/{categorySlug}/{productSlug}/customizer', [ProductController::class, 'customizer'])->name('product.customizer');
+    Route::get('/{categorySlug}/{productSlug}', [ProductController::class, 'show'])->name('product');
+    Route::get('/{categorySlug}', [ShopController::class, 'category'])->name('category');
+});
+
 Route::get('/checkout', [CheckoutPageController::class, 'show'])->name('checkout');
 Route::get('/checkout/confirmation/{orderNumber}', [CheckoutPageController::class, 'confirmation'])->name('checkout.confirmation');
 

@@ -15,7 +15,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>{{ $pageTitle }}</title>
+<title>@hasSection('title')@yield('title')@else{{ $pageTitle }}@endif</title>
 <meta name="csrf-token" content="{{ csrf_token() }}">
 @if ($pageDescription)
 <meta name="description" content="{{ $pageDescription }}">
@@ -29,9 +29,10 @@
 @foreach ((array) $pageStyles as $css)
 <link rel="stylesheet" href="{{ asset('css/' . ltrim($css, '/')) }}">
 @endforeach
+@stack('styles')
 {!! $pageExtraHead !!}
 </head>
-<body class="{{ $pageBodyClass }}">
+<body class="@hasSection('body_class')@yield('body_class')@else{{ $pageBodyClass }}@endif">
 @include('partials.header')
 
 @yield('content')
@@ -98,5 +99,6 @@ window.THREADS_USER_ARTWORK = @json($threadsUserArtwork);
 @if ($pageInlineJs !== '')
 <script>{!! $pageInlineJs !!}</script>
 @endif
+@stack('scripts')
 </body>
 </html>

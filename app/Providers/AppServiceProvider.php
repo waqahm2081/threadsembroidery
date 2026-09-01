@@ -2,7 +2,10 @@
 
 namespace App\Providers;
 
+use App\Services\ProductCatalogService;
+use App\Services\ShopCartService;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\View;
 use Illuminate\Support\ServiceProvider;
 use Symfony\Component\Mailer\Transport\Dsn;
 use Symfony\Component\Mailer\Transport\Smtp\EsmtpTransportFactory;
@@ -54,6 +57,23 @@ class AppServiceProvider extends ServiceProvider
             }
 
             return $transport;
+        });
+
+        View::composer('partials.header', function ($view) {
+            $shopCategories = [];
+            $shopCartCount = 0;
+
+            try {
+                $shopCategories = app(ProductCatalogService::class)->getCategories();
+                $shopCartCount = app(ShopCartService::class)->itemCount();
+            } catch (\Throwable) {
+                // pc_products may be unavailable in some environments
+            }
+
+            $view->with([
+                'shopCategories' => $shopCategories,
+                'shopCartCount' => $shopCartCount,
+            ]);
         });
     }
 }
