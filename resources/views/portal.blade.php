@@ -13,6 +13,7 @@
         <button class="active" data-view="overview"><i class="bi bi-grid-1x2"></i> Overview</button>
         <button data-view="orders"><i class="bi bi-box-seam"></i> Order History</button>
         <button data-view="uniformOrders"><i class="bi bi-mortarboard"></i> Uniform Orders</button>
+        <button data-view="shopOrders"><i class="bi bi-bag"></i> Shop Orders</button>
         <button data-view="enquiries"><i class="bi bi-chat-left-text"></i> Branding Enquiries</button>
         <button data-view="artwork"><i class="bi bi-images"></i> Artwork Library</button>
         <button data-view="account"><i class="bi bi-person-gear"></i> Account</button>

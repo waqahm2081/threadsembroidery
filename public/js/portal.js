@@ -117,6 +117,7 @@
     const user = () => state.user;
     const orders = () => state.orders || [];
     const uniformOrders = () => state.uniform_orders || [];
+    const shopOrders = () => state.shop_orders || [];
     const enquiries = () => state.enquiries || [];
     const artwork = () => state.artwork || [];
     const stats = () => state.stats || {};
@@ -347,6 +348,101 @@
       const o = uniformOrders().find(x => String(x.id) === String(orderId));
       if (!o) return views.uniformOrders();
       return `<div class="portal-head"><h1>Uniform Order Details</h1><p class="muted">Items, sizes and delivery for this order.</p></div>${uniformOrderDetail(o)}`;
+    };
+
+    function shopSizeLabel(item){
+      if (item.size_breakdown?.length) {
+        return item.size_breakdown.map(row => `${row.size} × ${row.qty}`).join(', ');
+      }
+      return item.size ? `Size: ${item.size}` : '';
+    }
+
+    function shopOrderRow(o, compact){
+      const itemsLabel = o.item_count === 1
+        ? (o.items?.[0]?.product_title || 'Shop item')
+        : `${o.item_count} items`;
+      const sub = [
+        o.ref,
+        `${o.garment_qty || 0} garments`,
+        o.date
+      ].filter(Boolean).join(' · ');
+
+      return `<div class="order-row" data-shop-order-id="${o.id}">
+        <div class="order-thumb"><i class="bi bi-bag"></i></div>
+        <div class="meta">
+          <b>${esc(itemsLabel)}</b>
+          <div class="sub">${esc(sub)}</div>
+          <div class="order-action-btns">
+            <button type="button" class="btn btn--ghost btn--sm order-action-btn" data-view-shop-order="${o.id}"><i class="bi bi-eye"></i> Details</button>
+            ${compact ? '' : `<a class="btn btn--sm order-action-btn" href="${esc(r().shop || '/shop')}"><i class="bi bi-bag"></i> Shop again</a>`}
+          </div>
+        </div>
+        <span class="status ${statusClass(o.status_key)}">${esc(o.status)}</span>
+        <div class="order-total">${money(o.total)}</div>
+      </div>`;
+    }
+
+    function shopOrderDetail(o){
+      const ship = o.shipping || {};
+      const shipLine = [ship.line1, ship.city, ship.state, ship.postcode].filter(Boolean).join(', ');
+      const billing = o.billing || {};
+      const billingLine = o.billing_same_as_shipping
+        ? null
+        : [billing.company, billing.line1, billing.city, billing.state, billing.postcode].filter(Boolean).join(', ');
+
+      const itemsHtml = (o.items || []).map(item => {
+        const extras = [];
+        if (item.logo_setup_fee > 0) extras.push('Logo setup');
+        if (item.decoration_fee > 0) extras.push('Decoration');
+        const sizeText = shopSizeLabel(item);
+        return `
+        <div class="order-item">
+          <div class="flex justify-between gap-2">
+            <div>
+              <b>${esc(item.product_title)}</b>
+              <div class="sub muted">${[item.colour_name, sizeText].filter(Boolean).map(x => esc(x)).join(' · ')}</div>
+              ${extras.length ? `<div class="muted" style="font-size:.8rem;margin-top:.2rem">${esc(extras.join(' · '))}</div>` : ''}
+            </div>
+            <div style="text-align:right;flex:none">
+              <div class="order-total">${money(item.total)}</div>
+              <div class="muted" style="font-size:.78rem">Qty ${item.quantity}</div>
+            </div>
+          </div>
+        </div>`;
+      }).join('');
+
+      return `<div class="panel-card order-detail">
+        <div class="flex justify-between items-center" style="margin-bottom:1rem;gap:1rem;flex-wrap:wrap">
+          <button type="button" class="btn btn--ghost" data-go="shopOrders"><i class="bi bi-arrow-left"></i> Back</button>
+          <a class="btn" href="${esc(r().shop || '/shop')}"><i class="bi bi-bag"></i> Browse Shop</a>
+        </div>
+        <div class="portal-head" style="margin-bottom:1.2rem">
+          <h1 style="font-size:1.6rem;margin:0">${esc(o.ref)}</h1>
+          <p class="muted" style="margin-top:.35rem">${esc(o.date)} · <span class="status ${statusClass(o.status_key)}">${esc(o.status)}</span></p>
+        </div>
+        <div class="order-items">${itemsHtml || '<p class="muted">No items on this order.</p>'}</div>
+        <hr class="divider" style="margin:1.2rem 0">
+        <div class="order-totals">
+          <div><span>Subtotal</span><b>${money(o.subtotal)}</b></div>
+          <div><span>VAT</span><b>${money(o.vat)}</b></div>
+          <div class="grand"><span>Total</span><b>${money(o.total)}</b></div>
+        </div>
+        ${shipLine ? `<div style="margin-top:1.2rem"><h3 style="font-size:1rem;margin-bottom:.4rem">Delivery</h3><p class="muted" style="margin:0">${esc(shipLine)}</p>${o.billing_same_as_shipping ? '<p class="muted" style="font-size:.8rem;margin-top:.3rem">Billing same as shipping</p>' : ''}</div>` : ''}
+        ${billingLine ? `<div style="margin-top:1rem"><h3 style="font-size:1rem;margin-bottom:.4rem">Billing</h3><p class="muted" style="margin:0">${esc(billingLine)}</p></div>` : ''}
+        ${o.notes ? `<div style="margin-top:1rem"><h3 style="font-size:1rem;margin-bottom:.4rem">Notes</h3><p class="muted" style="margin:0">${esc(o.notes)}</p></div>` : ''}
+      </div>`;
+    }
+
+    views.shopOrders = () => `
+      <div class="portal-head"><h1>Shop Orders</h1><p class="muted">Track your product catalogue orders from the shop.</p></div>
+      <div class="panel-card">${shopOrders().length
+        ? shopOrders().map(o => shopOrderRow(o)).join('')
+        : `<p class="muted" style="margin:0">No shop orders yet. <a class="link-arrow" href="${esc(r().shop || '/shop')}">Browse the shop</a></p>`}</div>`;
+
+    views.shopOrderDetail = (orderId) => {
+      const o = shopOrders().find(x => String(x.id) === String(orderId));
+      if (!o) return views.shopOrders();
+      return `<div class="portal-head"><h1>Shop Order Details</h1><p class="muted">Items, sizes and delivery for this order.</p></div>${shopOrderDetail(o)}`;
     };
 
     function enquiryRow(e){
@@ -705,6 +801,7 @@
         b.dataset.view === view
         || (view === 'detail' && b.dataset.view === 'orders')
         || (view === 'uniformDetail' && b.dataset.view === 'uniformOrders')
+        || (view === 'shopOrderDetail' && b.dataset.view === 'shopOrders')
         || (view === 'enquiryDetail' && b.dataset.view === 'enquiries')
       ));
 
@@ -720,6 +817,7 @@
       main.querySelectorAll('[data-go]').forEach(b => b.onclick = () => render(b.dataset.go));
       main.querySelectorAll('[data-view-order]').forEach(b => b.onclick = () => render('detail', b.dataset.viewOrder));
       main.querySelectorAll('[data-view-uniform-order]').forEach(b => b.onclick = () => render('uniformDetail', b.dataset.viewUniformOrder));
+      main.querySelectorAll('[data-view-shop-order]').forEach(b => b.onclick = () => render('shopOrderDetail', b.dataset.viewShopOrder));
       main.querySelectorAll('[data-view-enquiry]').forEach(b => b.onclick = () => render('enquiryDetail', b.dataset.viewEnquiry));
       main.querySelectorAll('[data-reorder]').forEach(b => b.onclick = () => reorder(b.dataset.reorder));
       if (view !== 'artwork') bindArtButtons(main);
@@ -849,6 +947,10 @@
       }
       if (b.dataset.view === 'uniformOrders') {
         refreshPortalData().then(() => render('uniformOrders'));
+        return;
+      }
+      if (b.dataset.view === 'shopOrders') {
+        refreshPortalData().then(() => render('shopOrders'));
         return;
       }
       render(b.dataset.view);

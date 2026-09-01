@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\BrandingEnquiry;
 use App\Models\Order;
 use App\Models\SchoolUniformOrder;
+use App\Models\ShopOrder;
 use App\Models\User;
 use App\Models\UserArtwork;
 use App\Services\CartService;
@@ -255,6 +256,23 @@ class PortalController extends Controller
             ->values()
             ->all();
 
+        ShopOrder::query()
+            ->whereNull('user_id')
+            ->where('email', $user->email)
+            ->update(['user_id' => $user->id]);
+
+        $shopOrders = ShopOrder::query()
+            ->with('items')
+            ->where(function ($q) use ($user) {
+                $q->where('user_id', $user->id)
+                    ->orWhere('email', $user->email);
+            })
+            ->latest()
+            ->get()
+            ->map(fn (ShopOrder $o) => $this->transformShopOrder($o))
+            ->values()
+            ->all();
+
         return [
             'user' => [
                 'id' => $user->id,
@@ -267,19 +285,28 @@ class PortalController extends Controller
             ],
             'orders' => $transformed,
             'uniform_orders' => $uniformOrders,
+            'shop_orders' => $shopOrders,
             'enquiries' => $enquiries,
             'artwork' => $artwork,
             'stats' => [
                 'orders' => count($transformed),
                 'uniform_orders' => count($uniformOrders),
+                'shop_orders' => count($shopOrders),
                 'in_production' => $inProduction,
                 'artwork' => count($artwork),
                 'enquiries' => count($enquiries),
-                'lifetime_spend' => round((float) $orders->sum('total') + collect($uniformOrders)->sum('total'), 2),
+                'lifetime_spend' => round(
+                    (float) $orders->sum('total')
+                    + collect($uniformOrders)->sum('total')
+                    + collect($shopOrders)->sum('total'),
+                    2
+                ),
             ],
             'routes' => [
                 'bundles' => route('bundles'),
                 'cart' => route('cart'),
+                'shop' => route('shop'),
+                'shop_cart' => route('shop.cart'),
                 'logout' => route('logout'),
                 'profile' => route('api.portal.profile'),
                 'password' => route('api.portal.password'),
@@ -455,6 +482,72 @@ class PortalController extends Controller
                 'size' => $item->size,
                 'quantity' => $item->quantity,
                 'unit_price' => (float) $item->unit_price,
+                'total' => (float) $item->line_total,
+            ])->values()->all(),
+        ];
+    }
+
+    private function transformShopOrder(ShopOrder $order): array
+    {
+        $statusKey = match ($order->status) {
+            'pending', 'processing' => 'production',
+            'shipped' => 'dispatched',
+            'delivered' => 'delivered',
+            'cancelled' => 'cancelled',
+            default => $order->status,
+        };
+
+        $statusLabel = match ($statusKey) {
+            'production' => 'In Production',
+            'dispatched' => 'Shipped',
+            'delivered' => 'Delivered',
+            'cancelled' => 'Cancelled',
+            default => ucfirst($order->status),
+        };
+
+        $qty = (int) $order->items->sum('quantity');
+
+        return [
+            'id' => $order->id,
+            'ref' => $order->order_number,
+            'status' => $statusLabel,
+            'status_key' => $statusKey,
+            'date' => optional($order->created_at)->format('d M Y'),
+            'total' => (float) $order->total,
+            'subtotal' => (float) $order->subtotal,
+            'vat' => (float) $order->vat_amount,
+            'delivery' => 0.0,
+            'item_count' => $order->items->count(),
+            'garment_qty' => $qty,
+            'notes' => $order->additional_instructions,
+            'customer_name' => $order->name,
+            'customer_email' => $order->email,
+            'customer_phone' => $order->phone,
+            'company_name' => $order->company_name,
+            'shipping' => [
+                'line1' => $order->shipping_address_line1,
+                'city' => $order->shipping_city,
+                'state' => $order->shipping_state,
+                'postcode' => $order->shipping_zip,
+            ],
+            'billing_same_as_shipping' => (bool) $order->billing_same_as_shipping,
+            'billing' => $order->billing_same_as_shipping ? null : [
+                'company' => $order->billing_company_name,
+                'line1' => $order->billing_address_line1,
+                'city' => $order->billing_city,
+                'state' => $order->billing_state,
+                'postcode' => $order->billing_zip,
+            ],
+            'items' => $order->items->map(fn ($item) => [
+                'product_title' => $item->product_title,
+                'style_code' => $item->style_code,
+                'colour_name' => $item->colour_name,
+                'size' => $item->size,
+                'size_breakdown' => $item->size_breakdown,
+                'quantity' => $item->quantity,
+                'unit_price' => (float) $item->unit_price,
+                'decoration_fee' => (float) $item->decoration_fee,
+                'logo_setup_fee' => (float) $item->logo_setup_fee,
                 'total' => (float) $item->line_total,
             ])->values()->all(),
         ];
