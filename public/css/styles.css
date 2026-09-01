@@ -210,10 +210,12 @@ h1,h2,h3,h4,h5{font-family:var(--font-display);font-weight:800;line-height:1.04;
 .has-mega{position:static;padding-bottom:22px;margin-bottom:-22px}
 .mega{
   position:absolute;left:50%;transform:translateX(-50%) translateY(8px);
-  top:calc(var(--header-h) - 6px); /* overlap header so no dead hover gap */
-  width:min(1120px,94vw);background:var(--surface);border:1px solid var(--line);border-radius:20px;
-  padding:26px;box-shadow:var(--shadow);opacity:0;visibility:hidden;pointer-events:none;
+  top:calc(var(--header-h) - 6px);
+  width:min(1280px,96vw);max-height:calc(100vh - var(--header-h) - 36px);
+  background:var(--surface);border:1px solid var(--line);border-radius:16px;
+  padding:14px 16px 12px;box-shadow:var(--shadow);opacity:0;visibility:hidden;pointer-events:none;
   transition:opacity .18s ease,transform .18s ease,visibility .18s;z-index:950;
+  display:flex;flex-direction:column;overflow:hidden;
 }
 /* Invisible hover bridge from nav link down into the panel */
 .mega::before{
@@ -225,15 +227,43 @@ h1,h2,h3,h4,h5{font-family:var(--font-display);font-weight:800;line-height:1.04;
   transition-delay:0s;
 }
 .has-mega:not(:hover):not(:focus-within) .mega{
-  transition-delay:.12s; /* brief grace period when leaving */
+  transition-delay:.12s;
 }
-.mega-head{display:flex;justify-content:space-between;align-items:flex-end;gap:1rem;margin-bottom:18px;padding-bottom:16px;border-bottom:1px solid var(--line)}
-.mega-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
-.mega-grid a{display:flex;justify-content:space-between;align-items:center;gap:.5rem;padding:.65rem .8rem;border-radius:11px;
-  transition:background .18s;border:1px solid transparent}
+.mega-head{
+  display:flex;justify-content:space-between;align-items:center;gap:.75rem;
+  margin-bottom:10px;padding-bottom:10px;border-bottom:1px solid var(--line);flex:none;
+}
+.mega-head-copy{display:flex;align-items:baseline;gap:.65rem;min-width:0;flex-wrap:wrap}
+.mega-eyebrow{
+  font-size:.68rem;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--brand);
+  white-space:nowrap;
+}
+.mega-eyebrow::before{content:none}
+.mega-title{font-family:var(--font-display);font-size:1rem;font-weight:800;line-height:1.1;color:var(--text);white-space:nowrap}
+.mega-cart-btn{padding:.45rem .85rem!important;font-size:.82rem!important}
+.mega-grid{
+  display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:2px 6px;
+  flex:1;min-height:0;overflow-y:auto;align-content:start;
+  scrollbar-width:thin;scrollbar-color:var(--surface-3) transparent;
+}
+.mega-grid::-webkit-scrollbar{width:6px}
+.mega-grid::-webkit-scrollbar-thumb{background:var(--surface-3);border-radius:999px}
+.mega-grid a{
+  display:flex;justify-content:space-between;align-items:center;gap:.35rem;
+  padding:.32rem .45rem;border-radius:8px;min-height:0;
+  font-size:.78rem;line-height:1.15;
+  transition:background .15s,border-color .15s;border:1px solid transparent;
+}
+.mega-grid a .n{
+  min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--text);
+}
 .mega-grid a:hover{background:var(--surface-2);border-color:var(--line)}
-.mega-grid a .c{font-size:.72rem;color:var(--muted-2);font-variant-numeric:tabular-nums}
+.mega-grid a .c{font-size:.66rem;color:var(--muted-2);font-variant-numeric:tabular-nums;flex:none}
 .mega-grid a:hover .n{color:var(--brand-hi)}
+.mega-foot{
+  margin-top:8px;padding-top:8px;border-top:1px solid var(--line);
+  font-size:.76rem;line-height:1.35;flex:none;
+}
 
 /* Mobile drawer */
 .drawer{position:fixed;inset:0;z-index:980;visibility:hidden;pointer-events:none}
@@ -382,7 +412,7 @@ h1,h2,h3,h4,h5{font-family:var(--font-display);font-weight:800;line-height:1.04;
 /* ---------- Responsive base ---------- */
 @media (max-width:1080px){
   .footer-grid{grid-template-columns:1fr 1fr}
-  .mega-grid{grid-template-columns:repeat(3,1fr)}
+  .mega-grid{grid-template-columns:repeat(5,minmax(0,1fr))}
 }
 @media (max-width:900px){
   .nav-links,.nav .search-btn,.nav-cta,#navAuthSlot{display:none}
@@ -397,7 +427,7 @@ h1,h2,h3,h4,h5{font-family:var(--font-display);font-weight:800;line-height:1.04;
 @media (max-width:640px){
   .footer-grid{grid-template-columns:1fr}
   .footer-bottom{flex-direction:column;text-align:center}
-  .mega-grid{grid-template-columns:1fr 1fr}
+  .mega-grid{grid-template-columns:repeat(3,minmax(0,1fr))}
   .nav-logo img{height:60px;max-height:60px;max-width:min(148px,42vw)}
   .nav{height:60px}
   :root{--header-h:60px}
