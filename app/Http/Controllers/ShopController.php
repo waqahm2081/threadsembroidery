@@ -29,7 +29,7 @@ class ShopController extends Controller
         abort_unless($category, 404);
 
         $products = $this->catalog->getCategoryProducts($category['name']);
-        $filters = $this->catalog->getFilterOptions($category['name']);
+        $filters = $this->catalog->getFilterOptionsFromProducts($products);
 
         return view('shop.category', [
             'pageActive' => 'shop',

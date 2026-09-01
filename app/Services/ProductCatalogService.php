@@ -14,12 +14,24 @@ class ProductCatalogService
 
     public function getCategories(): array
     {
-        return array_values($this->buildCategoryIndex());
+        return array_values(array_map(function (array $category) {
+            unset($category['style_codes']);
+
+            return $category;
+        }, $this->buildCategoryIndex()));
     }
 
     public function resolveCategoryBySlug(string $slug): ?array
     {
-        return $this->buildCategoryIndex()[$slug] ?? null;
+        $category = $this->buildCategoryIndex()[$slug] ?? null;
+
+        if (! $category) {
+            return null;
+        }
+
+        unset($category['style_codes']);
+
+        return $category;
     }
 
     public function categorySlug(string $name): string
@@ -61,8 +73,17 @@ class ProductCatalogService
 
     public function getCategoryProducts(string $categoryName): Collection
     {
+        $slug = $this->categorySlug($categoryName);
+        $category = $this->buildCategoryIndex()[$slug] ?? null;
+
+        if (! $category || empty($category['style_codes'])) {
+            return collect();
+        }
+
+        $styleCodes = array_keys($category['style_codes']);
+
         $rows = PcProduct::active()
-            ->whereNotNull('categories')
+            ->whereIn('style_code', $styleCodes)
             ->orderBy('title')
             ->orderBy('colourway_code')
             ->orderBy('size')
@@ -170,8 +191,11 @@ class ProductCatalogService
 
     public function getFilterOptions(string $categoryName): array
     {
-        $products = $this->getCategoryProducts($categoryName);
+        return $this->getFilterOptionsFromProducts($this->getCategoryProducts($categoryName));
+    }
 
+    public function getFilterOptionsFromProducts(Collection $products): array
+    {
         $brands = $products->pluck('brand')->filter()->unique()->sort()->values()->all();
         $types = $products->pluck('type')->filter()->unique()->sort()->values()->all();
 
@@ -254,7 +278,7 @@ class ProductCatalogService
         }
 
         foreach ($index as &$category) {
-            unset($category['style_codes']);
+            $category['style_codes'] = $category['style_codes'] ?? [];
         }
         unset($category);
 
