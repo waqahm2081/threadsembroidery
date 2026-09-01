@@ -1,6 +1,6 @@
 /* Shared design tokens for restored shop / product pages.
-   Required because the main site styles.css uses a dark theme (--text is light),
-   while shop CSS expects these legacy catalogue variables. */
+   Required because shop CSS expects legacy catalogue variables.
+   Site header/footer keep the global dark theme — do not override body text globally. */
 
 :root {
   --c-primary: #ee6023;
@@ -26,14 +26,7 @@
   --trans: all 0.28s var(--ease);
 }
 
-/* Light catalogue sections sit on white/grey backgrounds — override dark-site body text. */
-body.shop-page,
-body.product-page,
-body.cart-page,
-body.checkout-page {
-  color: #14110d;
-}
-
+/* Light catalogue sections — scoped to shop content only */
 #shop-body,
 #pd-breadcrumb,
 #pd-detail,
@@ -41,6 +34,7 @@ body.checkout-page {
 #pd-related,
 #pd-reviews,
 #checkout-main,
+#cart-main,
 .cc-container {
   color: #14110d;
 }
@@ -49,6 +43,130 @@ body.checkout-page {
 #pd-detail button,
 #pd-desc button,
 #pd-related button,
-#pd-reviews button {
+#pd-reviews button,
+#cart-main button,
+#checkout-main button {
   color: inherit;
+}
+
+/* ── Preserve global header / footer on shop routes ── */
+body.shop-page,
+body.product-page,
+body.cart-page,
+body.checkout-page {
+  background: var(--bg);
+  color: var(--text);
+}
+
+body.cart-page,
+body.checkout-page {
+  background: #f8f9fb;
+}
+
+body.shop-page .site-header,
+body.product-page .site-header,
+body.cart-page .site-header,
+body.checkout-page .site-header {
+  background: #0c0c0e;
+  border-bottom-color: var(--line);
+  color: var(--text);
+}
+
+body.shop-page .topbar,
+body.product-page .topbar,
+body.cart-page .topbar,
+body.checkout-page .topbar {
+  color: #fff;
+}
+
+body.shop-page .site-header .nav-links > li > a,
+body.product-page .site-header .nav-links > li > a,
+body.cart-page .site-header .nav-links > li > a,
+body.checkout-page .site-header .nav-links > li > a,
+body.shop-page .site-header .icon-btn,
+body.product-page .site-header .icon-btn,
+body.cart-page .site-header .icon-btn,
+body.checkout-page .site-header .icon-btn,
+body.shop-page .site-header .btn--ghost,
+body.product-page .site-header .btn--ghost,
+body.cart-page .site-header .btn--ghost,
+body.checkout-page .site-header .btn--ghost {
+  color: var(--text);
+}
+
+body.shop-page .mega,
+body.product-page .mega,
+body.cart-page .mega,
+body.checkout-page .mega {
+  color: var(--text);
+}
+
+body.shop-page .mega .h-3,
+body.product-page .mega .h-3,
+body.cart-page .mega .h-3,
+body.checkout-page .mega .h-3,
+body.shop-page .mega-grid a .n,
+body.product-page .mega-grid a .n,
+body.cart-page .mega-grid a .n,
+body.checkout-page .mega-grid a .n {
+  color: var(--text);
+}
+
+body.shop-page .mega-grid a .c,
+body.product-page .mega-grid a .c,
+body.cart-page .mega-grid a .c,
+body.checkout-page .mega-grid a .c {
+  color: var(--muted-2);
+}
+
+body.shop-page .site-footer,
+body.product-page .site-footer,
+body.cart-page .site-footer,
+body.checkout-page .site-footer {
+  color: var(--text);
+  background: var(--bg-2);
+}
+
+body.shop-page .footer-brand p,
+body.product-page .footer-brand p,
+body.cart-page .footer-brand p,
+body.checkout-page .footer-brand p,
+body.shop-page .footer-col a,
+body.product-page .footer-col a,
+body.cart-page .footer-col a,
+body.checkout-page .footer-col a,
+body.shop-page .footer-contact li,
+body.product-page .footer-contact li,
+body.cart-page .footer-contact li,
+body.checkout-page .footer-contact li,
+body.shop-page .footer-bottom,
+body.product-page .footer-bottom,
+body.cart-page .footer-bottom,
+body.checkout-page .footer-bottom,
+body.shop-page .footer-bottom a,
+body.product-page .footer-bottom a,
+body.cart-page .footer-bottom a,
+body.checkout-page .footer-bottom a {
+  color: var(--muted);
+}
+
+body.shop-page .footer-col h4,
+body.product-page .footer-col h4,
+body.cart-page .footer-col h4,
+body.checkout-page .footer-col h4 {
+  color: var(--muted-2);
+}
+
+body.shop-page .footer-social a,
+body.product-page .footer-social a,
+body.cart-page .footer-social a,
+body.checkout-page .footer-social a {
+  color: var(--muted);
+}
+
+body.shop-page .drawer .panel,
+body.product-page .drawer .panel,
+body.cart-page .drawer .panel,
+body.checkout-page .drawer .panel {
+  color: var(--text);
 }

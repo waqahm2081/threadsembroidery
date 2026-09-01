@@ -7,7 +7,7 @@ checkout-page
 @endsection
 
 @push('styles')
-<link rel="stylesheet" href="{{ asset('assets/css/shop-theme.css') }}">
+<link rel="stylesheet" href="{{ asset('assets/css/shop-theme.css') }}?v=1.1">
 <link rel="stylesheet" href="{{ asset('assets/css/cart-checkout.css') }}?v=1.6">
 @endpush
 
@@ -209,5 +209,5 @@ window.SHOP_ROUTES = {
   checkout_url: @json(route('shop.checkout')),
 };
 </script>
-<script src="{{ asset('assets/js/cart-checkout.js') }}?v=1.3"></script>
+<script src="{{ asset('assets/js/cart-checkout.js') }}?v=1.6"></script>
 @endpush

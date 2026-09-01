@@ -7,7 +7,7 @@ cart-page
 @endsection
 
 @push('styles')
-<link rel="stylesheet" href="{{ asset('assets/css/shop-theme.css') }}">
+<link rel="stylesheet" href="{{ asset('assets/css/shop-theme.css') }}?v=1.1">
 <link rel="stylesheet" href="{{ asset('assets/css/cart-checkout.css') }}?v=1.6">
 @endpush
 
@@ -18,7 +18,7 @@ cart-page
     'eyebrow' => 'Your Order',
     'title' => 'Your',
     'accent' => 'Cart',
-    'subtitle' => 'Review your items and custom designs before proceeding to checkout.',
+    'subtitle' => 'Review your items before proceeding to checkout.',
     'breadcrumbs' => [
         ['label' => 'Home', 'url' => route('home')],
         ['label' => 'Cart'],
@@ -132,43 +132,15 @@ cart-page
     </div>
 </main>
 
-{{-- Design preview modal (legacy customised items only) --}}
-<div class="modal fade" id="cartDesignModal" tabindex="-1" aria-labelledby="cartDesignModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered cdm-dialog">
-        <div class="modal-content cdm-content">
-            <div class="modal-header cdm-header">
-                <div>
-                    <h5 class="modal-title cdm-title" id="cartDesignModalLabel"><i class="bi bi-palette"></i> Your Design</h5>
-                    <p class="cdm-sub" id="cdmSubtitle"></p>
-                </div>
-                <button type="button" class="cdm-close" data-bs-dismiss="modal" aria-label="Close">
-                    <i class="bi bi-x-lg"></i>
-                </button>
-            </div>
-            <div class="modal-body cdm-body">
-                <div class="cdm-preview-wrap">
-                    <div class="cdm-preview-canvas" id="cdmPreviewCanvas">
-                        <img class="cdm-garment-img" id="cdmGarmentImg" src="" alt="Garment preview">
-                        <div class="cdm-layers" id="cdmLayers"></div>
-                    </div>
-                </div>
-                <div class="cdm-details" id="cdmDetails"></div>
-            </div>
-        </div>
-    </div>
-</div>
-
 @endsection
 
 @push('scripts')
 <script>
-window.__CART_DESIGNS__ = @json($designPreviews ?? []);
 window.SHOP_ROUTES = {
   cart_destroy_base: @json(url('/shop/cart/items')),
   cart_url: @json(route('shop.cart')),
   checkout_url: @json(route('shop.checkout')),
 };
 </script>
-<script src="{{ asset('assets/js/design-print-area.js') }}"></script>
-<script src="{{ asset('assets/js/cart-checkout.js') }}?v=1.5"></script>
+<script src="{{ asset('assets/js/cart-checkout.js') }}?v=1.6"></script>
 @endpush

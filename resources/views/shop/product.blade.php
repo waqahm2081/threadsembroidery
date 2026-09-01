@@ -15,7 +15,7 @@ product-page
 @endsection
 
 @push('styles')
-<link rel="stylesheet" href="{{ asset('assets/css/shop-theme.css') }}">
+<link rel="stylesheet" href="{{ asset('assets/css/shop-theme.css') }}?v=1.1">
 <link rel="stylesheet" href="{{ asset('assets/css/product-detail.css') }}">
 @endpush
 
