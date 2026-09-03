@@ -17,6 +17,9 @@
   <a class="nav-logo" href="{{ route('home') }}"><img src="{{ asset('assets/img/logo.png') }}" width="391" height="96" alt="{{ $site['name'] }}"></a>
   <ul class="nav-links">
 @foreach ($nav as $n)
+  @if (($n['key'] ?? '') === 'shop')
+    @continue
+  @endif
   @php $act = ($pageActive === ($n['key'] ?? '')) ? ' active' : ''; @endphp
   @if (!empty($n['mega']))
     <li class="has-mega"><a class="{{ trim($act) }}" href="{{ route($n['route']) }}">{{ $n['label'] }} <i class="bi bi-chevron-down" style="font-size:.7em"></i></a>
@@ -69,6 +72,9 @@
     <div class="d-top"><img src="{{ asset('assets/img/logo.png') }}" style="height:36px;width:auto;max-width:none;object-fit:contain" alt="Threads"><button class="icon-btn" data-drawer-close aria-label="Close menu"><i class="bi bi-x-lg"></i></button></div>
     <nav>
 @foreach ($nav as $n)
+      @if (($n['key'] ?? '') === 'shop')
+        @continue
+      @endif
       <a href="{{ route($n['route']) }}">{{ $n['label'] }}</a>
 @endforeach
     </nav>
