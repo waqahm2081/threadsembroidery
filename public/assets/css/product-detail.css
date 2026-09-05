@@ -266,6 +266,40 @@
   gap: 10px;
 }
 
+#pd-detail .pd-addon-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+#pd-detail .pd-addon-option--nested {
+  margin-left: 18px;
+  padding: 12px 14px;
+  background: #faf8f6;
+  border-style: dashed;
+}
+
+#pd-detail .pd-addon-option--nested[hidden] {
+  display: none !important;
+}
+
+#pd-detail .pd-addon-check--radio {
+  border-radius: 50%;
+}
+
+#pd-detail .pd-addon-option input[type="radio"]:checked + .pd-addon-check--radio::after {
+  content: '';
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #fff;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-family: inherit;
+}
+
 #pd-detail .pd-addon-option {
   display: flex;
   align-items: center;

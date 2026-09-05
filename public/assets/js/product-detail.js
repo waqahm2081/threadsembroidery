@@ -170,15 +170,14 @@
   }
 
   function getSelectedDecorationMethods() {
-    const methods = [];
-    if (document.getElementById('pdMethodPrint')?.checked) methods.push('print');
-    if (document.getElementById('pdMethodEmbroidery')?.checked) methods.push('embroidery');
+    const selected = document.querySelector('input[name="decoration_method"]:checked');
+    if (selected?.value) return [selected.value];
 
-    // Fall back to all available methods if checkboxes missing
-    if (!methods.length && productData.decoration?.methods) {
-      return [...productData.decoration.methods];
+    // Fall back to first available method if radios missing
+    if (productData.decoration?.methods?.length) {
+      return [productData.decoration.methods[0]];
     }
-    return methods;
+    return [];
   }
 
   function syncLogoSetupAvailability() {
@@ -186,12 +185,9 @@
     const logoInput = document.getElementById('pdLogoSetup');
     if (!logoOption || !logoInput) return;
 
-    const embroiderySelected = document.getElementById('pdMethodEmbroidery')?.checked;
-    const embroideryAvailable = (productData.decoration?.methods || []).includes('embroidery');
-    const enabled = embroideryAvailable && (embroiderySelected !== false);
-
-    logoOption.style.display = enabled ? '' : 'none';
-    if (!enabled) {
+    const embroiderySelected = document.getElementById('pdMethodEmbroidery')?.checked === true;
+    logoOption.hidden = !embroiderySelected;
+    if (!embroiderySelected) {
       logoInput.checked = false;
     }
   }

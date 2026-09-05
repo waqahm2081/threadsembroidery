@@ -152,37 +152,49 @@ product-page
                 <div class="pd-option-label-row">
                     <span class="pd-option-label">Optional Add-ons</span>
                 </div>
+                @php
+                    $hasPrint = in_array('print', $decoration['methods'] ?? [], true);
+                    $hasEmbroidery = in_array('embroidery', $decoration['methods'] ?? [], true);
+                    $defaultMethod = $hasPrint ? 'print' : ($hasEmbroidery ? 'embroidery' : null);
+                @endphp
                 <div class="pd-addons-list" id="pdAddonsList">
-                    @if(in_array('print', $decoration['methods'] ?? [], true))
+                    @if($hasPrint)
                     <label class="pd-addon-option" id="pdMethodPrintOption">
-                        <input type="checkbox" id="pdMethodPrint" name="method_print" value="1" checked>
-                        <span class="pd-addon-check"></span>
+                        <input type="radio" id="pdMethodPrint" name="decoration_method" value="print"
+                               {{ $defaultMethod === 'print' ? 'checked' : '' }}>
+                        <span class="pd-addon-check pd-addon-check--radio"></span>
                         <span class="pd-addon-body">
                             <span class="pd-addon-title">Print</span>
                             <span class="pd-addon-desc">DTF / print decoration available for this product</span>
                         </span>
                     </label>
                     @endif
-                    @if(in_array('embroidery', $decoration['methods'] ?? [], true))
-                    <label class="pd-addon-option" id="pdMethodEmbroideryOption">
-                        <input type="checkbox" id="pdMethodEmbroidery" name="method_embroidery" value="1" checked>
-                        <span class="pd-addon-check"></span>
-                        <span class="pd-addon-body">
-                            <span class="pd-addon-title">Embroidery</span>
-                            <span class="pd-addon-desc">Stitched embroidery decoration available for this product</span>
-                        </span>
-                    </label>
-                    @endif
-                    @if(!empty($decoration['logo_setup_available']))
-                    <label class="pd-addon-option" id="pdLogoSetupOption">
-                        <input type="checkbox" id="pdLogoSetup" name="logo_setup" value="1">
-                        <span class="pd-addon-check"></span>
-                        <span class="pd-addon-body">
-                            <span class="pd-addon-title">Embroidery Logo Set Up</span>
-                            <span class="pd-addon-desc">One-time digitisation fee for new embroidery artwork</span>
-                        </span>
-                        <span class="pd-addon-price">+£12.00 <small class="pd-vat-note">+ VAT</small></span>
-                    </label>
+
+                    @if($hasEmbroidery)
+                    <div class="pd-addon-stack" id="pdMethodEmbroideryStack">
+                        <label class="pd-addon-option" id="pdMethodEmbroideryOption">
+                            <input type="radio" id="pdMethodEmbroidery" name="decoration_method" value="embroidery"
+                                   {{ $defaultMethod === 'embroidery' ? 'checked' : '' }}>
+                            <span class="pd-addon-check pd-addon-check--radio"></span>
+                            <span class="pd-addon-body">
+                                <span class="pd-addon-title">Embroidery</span>
+                                <span class="pd-addon-desc">Stitched embroidery decoration available for this product</span>
+                            </span>
+                        </label>
+
+                        @if(!empty($decoration['logo_setup_available']))
+                        <label class="pd-addon-option pd-addon-option--nested" id="pdLogoSetupOption"
+                               @if($defaultMethod !== 'embroidery') hidden @endif>
+                            <input type="checkbox" id="pdLogoSetup" name="logo_setup" value="1">
+                            <span class="pd-addon-check"></span>
+                            <span class="pd-addon-body">
+                                <span class="pd-addon-title">Embroidery Logo Set Up</span>
+                                <span class="pd-addon-desc">One-time digitisation fee for new embroidery artwork</span>
+                            </span>
+                            <span class="pd-addon-price">+£12.00 <small class="pd-vat-note">+ VAT</small></span>
+                        </label>
+                        @endif
+                    </div>
                     @endif
                 </div>
             </div>
@@ -332,5 +344,5 @@ window.SHOP_ROUTES = {
 };
 </script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-<script src="{{ asset('assets/js/product-detail.js') }}?v=1.6"></script>
+<script src="{{ asset('assets/js/product-detail.js') }}?v=1.7"></script>
 @endpush
