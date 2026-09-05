@@ -1125,141 +1125,150 @@ document.addEventListener('DOMContentLoaded', function () {
   }
 
   async function exportPreviewBlob() {
+    const canvas = await renderDesignCanvas({ includeGarment: true, cropToPrintArea: false });
+    if (!canvas) return null;
+    return new Promise(resolve => canvas.toBlob(resolve, 'image/png'));
+  }
+
+  /**
+   * Print-area crop using the SAME coordinate system as the mockup/View image,
+   * so sizing and positioning always match what the customer placed.
+   */
+  async function exportPrintArtworkBlob() {
+    const canvas = await renderDesignCanvas({ includeGarment: false, cropToPrintArea: true });
+    if (!canvas) return null;
+    return new Promise(resolve => canvas.toBlob(resolve, 'image/png'));
+  }
+
+  async function renderDesignCanvas({ includeGarment = true, cropToPrintArea = false } = {}) {
     const wrap = document.getElementById('pcmPreviewCanvas');
     if (!wrap) return null;
 
-    // Print-ready mockup (~300 DPI equivalent for garment preview)
-    const canvas = document.createElement('canvas');
+    // Keep garment aspect consistent with the live customizer canvas
+    const liveRect = canvas?.getBoundingClientRect();
+    const aspect = (liveRect && liveRect.width && liveRect.height)
+      ? (liveRect.height / liveRect.width)
+      : (3000 / 2400);
+
     const w = 2400;
-    const h = 3000;
-    canvas.width = w;
-    canvas.height = h;
-    const ctx = canvas.getContext('2d');
+    const h = Math.round(w * aspect);
+    const exportCanvas = document.createElement('canvas');
+    exportCanvas.width = w;
+    exportCanvas.height = h;
+    const ctx = exportCanvas.getContext('2d');
     ctx.imageSmoothingEnabled = true;
     ctx.imageSmoothingQuality = 'high';
-    ctx.fillStyle = '#f0f0f0';
-    ctx.fillRect(0, 0, w, h);
 
-    const garment = wrap.querySelector('#pcmGarmentImg');
-    if (garment && garment.complete) {
-      await drawImageToCanvas(ctx, garment, 0, 0, w, h);
+    if (includeGarment) {
+      ctx.fillStyle = '#f0f0f0';
+      ctx.fillRect(0, 0, w, h);
+      const garment = wrap.querySelector('#pcmGarmentImg') || garmentImg;
+      if (garment && garment.complete && garment.naturalWidth) {
+        await drawImageToCanvas(ctx, garment, 0, 0, w, h);
+      }
+    } else {
+      ctx.clearRect(0, 0, w, h);
     }
 
-    const previewW = wrap.getBoundingClientRect().width || 260;
+    const previewW = wrap.getBoundingClientRect().width || liveRect?.width || 260;
     const exportScale = w / previewW;
 
     const bounds = getPrintAreaBounds();
     const pa = window.TEDesignPrintArea;
     const clip = pa ? pa.clipRect(w, h, bounds) : null;
 
-    if (clip) {
+    if (clip && (cropToPrintArea || includeGarment)) {
       ctx.save();
       ctx.beginPath();
       ctx.rect(clip.x, clip.y, clip.w, clip.h);
       ctx.clip();
     }
 
-    const layerEls = wrap.querySelectorAll('.pcc-layer-item');
-    for (const el of layerEls) {
-      const img = el.querySelector('img');
-      if (img) {
-        const lx = (parseFloat(el.style.left) / 100) * w;
-        const ly = (parseFloat(el.style.top) / 100) * h;
-        const lw = (parseFloat(el.style.width) / 100) * w;
-        const lh = (parseFloat(el.style.height) / 100) * h;
-        await drawImageToCanvas(ctx, img, lx, ly, lw, lh);
-      } else {
-        const span = el.querySelector('.pcc-layer-text');
-        const lx = (parseFloat(el.style.left) / 100) * w;
-        const ly = (parseFloat(el.style.top) / 100) * h;
-        const lw = (parseFloat(el.style.width) / 100) * w;
-        const domFontSize = parseInt(span?.style.fontSize, 10) || 16;
-        const fontSize = Math.max(1, Math.round(domFontSize * exportScale));
-        ctx.fillStyle = span?.style.color || el.style.color || '#fff';
-        ctx.font = `${span?.style.fontStyle === 'italic' ? 'italic ' : ''}${span?.style.fontWeight || 'normal'} ${fontSize}px ${span?.style.fontFamily || 'sans-serif'}`;
-        ctx.textAlign = 'center';
-        ctx.textBaseline = 'alphabetic';
-        ctx.fillText((span?.textContent || el.textContent || '').trim(), lx + lw / 2, ly + fontSize);
+    // Prefer live layer elements in the preview (exact same layout as View)
+    let layerEls = wrap.querySelectorAll('.pcc-layer-item');
+    if (!layerEls.length && layersContainer) {
+      layerEls = layersContainer.querySelectorAll('.pcc-layer-item');
+    }
+
+    if (layerEls.length) {
+      for (const el of layerEls) {
+        const img = el.querySelector('img');
+        if (img) {
+          const lx = (parseFloat(el.style.left) / 100) * w;
+          const ly = (parseFloat(el.style.top) / 100) * h;
+          const lw = (parseFloat(el.style.width) / 100) * w;
+          const lh = (parseFloat(el.style.height) / 100) * h;
+          await drawImageToCanvas(ctx, img, lx, ly, lw, lh);
+        } else {
+          const span = el.querySelector('.pcc-layer-text');
+          const lx = (parseFloat(el.style.left) / 100) * w;
+          const ly = (parseFloat(el.style.top) / 100) * h;
+          const lw = (parseFloat(el.style.width) / 100) * w;
+          const domFontSize = parseInt(span?.style.fontSize, 10) || 16;
+          const fontSize = Math.max(1, Math.round(domFontSize * exportScale));
+          ctx.fillStyle = span?.style.color || el.style.color || '#fff';
+          ctx.font = `${span?.style.fontStyle === 'italic' ? 'italic ' : ''}${span?.style.fontWeight || 'normal'} ${fontSize}px ${span?.style.fontFamily || 'sans-serif'}`;
+          ctx.textAlign = 'center';
+          ctx.textBaseline = 'alphabetic';
+          ctx.fillText((span?.textContent || el.textContent || '').trim(), lx + lw / 2, ly + fontSize);
+        }
+      }
+    } else {
+      // Fallback: render from state.layers with the same % coordinate system
+      const visibleLayers = state.layers.filter(l => l.view === state.view);
+      for (const layer of visibleLayers) {
+        if (pa && bounds && !pa.intersects(layer, bounds)) continue;
+        const lx = (layer.x / 100) * w;
+        const ly = (layer.y / 100) * h;
+        const lw = (layer.w / 100) * w;
+        const lh = (layer.h / 100) * h;
+        if (layer.type === 'image') {
+          const src = layer.src
+            || (layer.asset_path ? ((customizerData.storage_base || '/storage') + '/' + layer.asset_path) : '');
+          if (!src) continue;
+          const img = await new Promise(resolve => {
+            const i = new Image();
+            i.crossOrigin = 'anonymous';
+            i.onload = () => resolve(i);
+            i.onerror = () => resolve(null);
+            i.src = src;
+          });
+          if (img) ctx.drawImage(img, lx, ly, lw, lh);
+        } else {
+          const fontSize = Math.max(1, Math.round((layer.fontSize || 16) * exportScale));
+          const italic = layer.fontWeight === 'italic' || layer.fontStyle === 'italic';
+          ctx.fillStyle = layer.colour || '#000';
+          ctx.font = `${italic ? 'italic ' : ''}${italic ? '400' : (layer.fontWeight || '700')} ${fontSize}px ${layer.font || 'sans-serif'}`;
+          ctx.textAlign = 'center';
+          ctx.textBaseline = 'middle';
+          ctx.fillText(String(layer.text || '').trim(), lx + lw / 2, ly + lh / 2);
+        }
       }
     }
 
-    if (clip) ctx.restore();
+    if (clip && (cropToPrintArea || includeGarment)) ctx.restore();
 
-    return new Promise(resolve => canvas.toBlob(resolve, 'image/png'));
-  }
-
-  /** High-res print-area only (transparent PNG) for production print/embroidery. */
-  async function exportPrintArtworkBlob() {
-    const bounds = getPrintAreaBounds();
-    if (!bounds) return null;
-
-    const refW = 620;
-    const refH = 775;
-    const pa = window.TEDesignPrintArea;
-    const clip = pa
-      ? pa.clipRect(refW, refH, bounds)
-      : {
-          x: (bounds.x / 100) * refW,
-          y: (bounds.y / 100) * refH,
-          w: (bounds.w / 100) * refW,
-          h: (bounds.h / 100) * refH,
-        };
-
-    if (!clip || clip.w <= 0 || clip.h <= 0) return null;
-
-    // ~300 DPI headroom for a typical chest/back print area
-    const targetW = 3600;
-    const scale = targetW / clip.w;
-    const outW = Math.round(clip.w * scale);
-    const outH = Math.round(clip.h * scale);
-
-    const canvasEl = document.createElement('canvas');
-    canvasEl.width = outW;
-    canvasEl.height = outH;
-    const ctx = canvasEl.getContext('2d');
-    ctx.imageSmoothingEnabled = true;
-    ctx.imageSmoothingQuality = 'high';
-    ctx.clearRect(0, 0, outW, outH);
-
-    const visibleLayers = state.layers.filter(l => l.view === state.view);
-    for (const layer of visibleLayers) {
-      if (pa && !pa.intersects(layer, bounds)) continue;
-
-      const lx = ((layer.x / 100) * refW - clip.x) * scale;
-      const ly = ((layer.y / 100) * refH - clip.y) * scale;
-      const lw = (layer.w / 100) * refW * scale;
-      const lh = (layer.h / 100) * refH * scale;
-
-      if (layer.type === 'image') {
-        const src = layer.src
-          || (layer.asset_path ? ((customizerData.storage_base || '/storage') + '/' + layer.asset_path) : '');
-        if (!src) continue;
-        const img = await loadImage(src);
-        if (img) ctx.drawImage(img, lx, ly, lw, lh);
-      } else {
-        // layer.fontSize is CSS px on the live canvas; scale to print pixels
-        const textSize = Math.max(12, Math.round((layer.fontSize || 16) * scale));
-        const italic = layer.fontWeight === 'italic' || layer.fontStyle === 'italic';
-        const weight = italic ? '400' : (layer.fontWeight || '700');
-        ctx.fillStyle = layer.colour || '#000000';
-        ctx.font = `${italic ? 'italic ' : ''}${weight} ${textSize}px ${layer.font || 'sans-serif'}`;
-        ctx.textAlign = 'center';
-        ctx.textBaseline = 'middle';
-        ctx.fillText(String(layer.text || '').trim(), lx + lw / 2, ly + lh / 2);
-      }
+    if (!cropToPrintArea || !clip) {
+      return exportCanvas;
     }
 
-    return new Promise(resolve => canvasEl.toBlob(resolve, 'image/png'));
-  }
-
-  function loadImage(src) {
-    return new Promise(resolve => {
-      const img = new Image();
-      img.crossOrigin = 'anonymous';
-      img.onload = () => resolve(img);
-      img.onerror = () => resolve(null);
-      img.src = src;
-    });
+    // Upscale print-area crop for production (~2x the mockup print region)
+    const scale = 2;
+    const outW = Math.max(1, Math.round(clip.w * scale));
+    const outH = Math.max(1, Math.round(clip.h * scale));
+    const printCanvas = document.createElement('canvas');
+    printCanvas.width = outW;
+    printCanvas.height = outH;
+    const pctx = printCanvas.getContext('2d');
+    pctx.imageSmoothingEnabled = true;
+    pctx.imageSmoothingQuality = 'high';
+    pctx.clearRect(0, 0, outW, outH);
+    pctx.drawImage(
+      exportCanvas,
+      clip.x, clip.y, clip.w, clip.h,
+      0, 0, outW, outH
+    );
+    return printCanvas;
   }
 
   function drawImageToCanvas(ctx, img, x, y, w, h) {

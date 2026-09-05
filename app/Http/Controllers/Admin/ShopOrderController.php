@@ -80,43 +80,52 @@ class ShopOrderController extends Controller
         return back()->with('success', 'Order status updated to '.$validated['status'].'.');
     }
 
-    public function downloadDesign(ShopOrder $shopOrder, ShopOrderItem $item): StreamedResponse|RedirectResponse
+    public function downloadDesign(Request $request, ShopOrder $shopOrder, ShopOrderItem $item): StreamedResponse|RedirectResponse
     {
         abort_unless($item->shop_order_id === $shopOrder->id, 404);
 
-        $candidates = array_filter([
-            $item->design_data['print_file_path'] ?? null,
-            $item->design_file_path,
-        ]);
-
-        // Prefer print-* files from assets (high-res production artwork)
+        $type = $request->query('type', 'preview'); // preview (matches View) | print
         $assets = collect($item->design_assets ?? [])
             ->filter(fn ($asset) => is_string($asset) && Storage::disk('public')->exists($asset));
 
-        $printAsset = $assets->first(fn ($asset) => str_contains(basename($asset), 'print-'));
-        if ($printAsset) {
-            array_unshift($candidates, $printAsset);
+        $previewAsset = $assets->first(fn ($asset) => str_contains(basename($asset), 'preview-'));
+        $printAsset = $assets->first(fn ($asset) => str_contains(basename($asset), 'print-'))
+            ?: ($item->design_data['print_file_path'] ?? null);
+
+        if ($type === 'print') {
+            $candidates = [
+                $printAsset,
+                $previewAsset,
+                $item->design_file_path,
+            ];
+            $label = 'print-artwork';
+        } else {
+            // Default download = same mockup as View (correct size & position)
+            $candidates = [
+                $previewAsset,
+                $item->design_file_path,
+                $printAsset,
+            ];
+            $label = 'design-mockup';
         }
 
         $path = collect($candidates)
-            ->filter(fn ($p) => is_string($p) && Storage::disk('public')->exists($p))
+            ->filter(fn ($p) => is_string($p) && $p !== '' && Storage::disk('public')->exists($p))
+            ->reject(fn ($p) => str_ends_with(strtolower($p), '.json'))
+            // Never serve raw uploaded layer files as the main design download
+            ->reject(fn ($p) => str_contains(basename($p), 'artwork-layer-'))
             ->first();
 
         if (! $path) {
-            $path = $assets->first();
-        }
-
-        if (! $path || ! Storage::disk('public')->exists($path)) {
             return back()->with('error', 'No downloadable design file found for this item.');
         }
 
-        $extension = pathinfo($path, PATHINFO_EXTENSION) ?: 'bin';
-        $isPrint = str_contains(basename($path), 'print-');
+        $extension = pathinfo($path, PATHINFO_EXTENSION) ?: 'png';
         $filename = sprintf(
             '%s-item-%d-%s.%s',
             $shopOrder->order_number,
             $item->id,
-            $isPrint ? 'print-artwork' : 'design',
+            $label,
             $extension
         );
 

@@ -28,6 +28,9 @@
                     ? $item->design_file_path
                     : null);
               $previewUrl = $previewPath ? asset('storage/'.$previewPath) : null;
+              $hasPrintFile = collect($item->design_assets ?? [])
+                ->contains(fn ($p) => is_string($p) && str_contains(basename($p), 'print-'))
+                || ! empty($item->design_data['print_file_path']);
               $hasDesign = !empty($item->design_data) || !empty($item->design_file_path);
             @endphp
             <tr>
@@ -88,9 +91,14 @@
                           <i class="bi bi-eye"></i> View
                         </a>
                       @endif
-                      <a class="ad-btn sm" href="{{ route('admin.shop-orders.design.download', [$order, $item]) }}">
+                      <a class="ad-btn sm" href="{{ route('admin.shop-orders.design.download', [$order, $item]) }}?type=preview">
                         <i class="bi bi-download"></i> Download Design
                       </a>
+                      @if($hasPrintFile)
+                        <a class="ad-btn sm" href="{{ route('admin.shop-orders.design.download', [$order, $item]) }}?type=print">
+                          <i class="bi bi-printer"></i> Download Print Plate
+                        </a>
+                      @endif
                     </div>
                   </div>
                 </div>
