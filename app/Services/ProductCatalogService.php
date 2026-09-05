@@ -151,6 +151,12 @@ class ProductCatalogService
             $code = $row->colourway_code ?: 'default';
 
             if (! isset($colours[$code])) {
+                // Prefer plain front shot for customizer; model shot is fallback.
+                $frontRaw = $row->image_front ?: $row->image_model;
+                $backRaw = $row->image_back ?: null;
+                $frontUrl = $this->resolveOptionalImageUrl($frontRaw);
+                $backUrl = $this->resolveOptionalImageUrl($backRaw) ?: $frontUrl;
+
                 $colours[$code] = [
                     'code' => $code,
                     'name' => $row->colourway_name ?: $code,
@@ -162,6 +168,10 @@ class ProductCatalogService
                         $row->image_side,
                         $row->image_detail,
                     ])),
+                    // Plain catalogue images for the live customizer (per colourway)
+                    'image_front' => $frontUrl,
+                    'image_back' => $backUrl,
+                    'has_plain_photo' => (bool) $frontUrl,
                     'sizes' => [],
                 ];
             }
@@ -183,7 +193,12 @@ class ProductCatalogService
         $minPrice = $rows->min('price_single');
         $attributes = $this->parseAttributes($first->attributes);
         $representativeId = (int) $rows->min('id');
-        $customizerImage = $this->getCustomizerImagePath($representativeId);
+        $uploadedCustomizer = $this->getUploadedCustomizerImagePath($representativeId);
+        $fallbackCustomizer = asset('assets/images/customizer/tshirtcustom.png');
+        // Prefer the first colourway's plain catalogue photo over the generic t-shirt
+        $customizerImage = $colourList[0]['image_front']
+            ?? $uploadedCustomizer
+            ?? $fallbackCustomizer;
 
         return [
             'style_code' => $first->style_code,
@@ -205,6 +220,7 @@ class ProductCatalogService
             'min_price' => (float) $minPrice,
             'colours' => $colourList,
             'customizer_image' => $customizerImage,
+            'uploaded_customizer_image' => $uploadedCustomizer,
             'representative_id' => $representativeId,
         ];
     }
@@ -331,13 +347,19 @@ class ProductCatalogService
 
     public function getCustomizerImagePath(int $productId): string
     {
+        return $this->getUploadedCustomizerImagePath($productId)
+            ?? asset('assets/images/customizer/tshirtcustom.png');
+    }
+
+    public function getUploadedCustomizerImagePath(int $productId): ?string
+    {
         $record = PcProductCustomizerImage::where('product_id', $productId)->first();
 
         if ($record && $record->image) {
             return $this->resolveImageUrl($record->image);
         }
 
-        return asset('assets/images/customizer/tshirtcustom.png');
+        return null;
     }
 
     public function productsForSearch(): Collection
@@ -588,8 +610,13 @@ class ProductCatalogService
 
     private function resolveImageUrl(?string $path): string
     {
+        return $this->resolveOptionalImageUrl($path) ?? asset('assets/images/prod1.jpg');
+    }
+
+    private function resolveOptionalImageUrl(?string $path): ?string
+    {
         if (! $path) {
-            return asset('assets/images/prod1.jpg');
+            return null;
         }
 
         if (str_starts_with($path, 'http://') || str_starts_with($path, 'https://')) {

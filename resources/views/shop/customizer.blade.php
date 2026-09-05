@@ -1,5 +1,12 @@
 @php
-    $activeColour = $product['colours'][0] ?? null;
+    $requestedColour = request('colour');
+    $activeColour = collect($product['colours'])->firstWhere('code', $requestedColour)
+        ?? ($product['colours'][0] ?? null);
+    $garmentFront = $activeColour['image_front']
+        ?? $product['customizer_image']
+        ?? asset('assets/images/customizer/tshirtcustom.png');
+    $garmentBack = $activeColour['image_back']
+        ?? asset('assets/images/customizer/tshirtcustom-back.png');
     $productUrl = route('shop.product', ['categorySlug' => $category['slug'], 'productSlug' => $product['slug']]);
     $subtitle = collect([$product['brand'], $product['material'], $product['type'], $product['gender']])->filter()->implode(' · ');
     $priceWhole = floor($product['min_price']);
@@ -66,7 +73,7 @@ pc-body
 
                 <div class="pcl-section pcl-product">
                     <div class="pcl-product-thumb">
-                        <img src="{{ $product['customizer_image'] }}" alt="{{ $product['title'] }}" id="pclProductThumb">
+                        <img src="{{ $garmentFront }}" alt="{{ $product['title'] }}" id="pclProductThumb">
                     </div>
                     <div class="pcl-product-info">
                         <h2 class="pcl-product-title" id="pclProductTitle">{{ $product['title'] }}</h2>
@@ -90,7 +97,7 @@ pc-body
                             <div class="pcl-acc-body-inner">
                                 <div class="pcl-swatches" id="pcSwatches">
                                     @foreach($product['colours'] as $index => $colour)
-                                        <button class="pcl-swatch {{ $index === 0 ? 'active' : '' }}"
+                                        <button class="pcl-swatch {{ ($activeColour['code'] ?? null) === $colour['code'] ? 'active' : '' }}"
                                                 data-colour="{{ $colour['name'] }}"
                                                 data-code="{{ $colour['code'] }}"
                                                 data-hex="{{ $colour['hex'] }}"
@@ -263,7 +270,7 @@ pc-body
                     <div class="pcc-canvas" id="pcCanvas">
                         <div class="pcc-garment-render" id="pcGarmentRender">
                             <img class="pcc-garment-img" id="pcGarmentImg"
-                                 src="{{ $product['customizer_image'] }}"
+                                 src="{{ $garmentFront }}"
                                  alt="{{ $product['title'] }} preview">
                         </div>
                         <div class="pcc-print-area" id="pcPrintArea" aria-hidden="true"></div>
@@ -331,7 +338,7 @@ pc-body
                 <div class="modal-body pcm-body">
                     <div class="pcm-preview-wrap">
                         <div class="pcm-preview-canvas" id="pcmPreviewCanvas">
-                            <img class="pcc-garment-img" id="pcmGarmentImg" src="{{ $product['customizer_image'] }}" alt="{{ $product['title'] }} preview">
+                            <img class="pcc-garment-img" id="pcmGarmentImg" src="{{ $garmentFront }}" alt="{{ $product['title'] }} preview">
                             <div class="pcc-layers" id="pcmLayers"></div>
                         </div>
                     </div>
@@ -369,14 +376,15 @@ pc-body
         'type' => $product['type'],
         'brand' => $product['brand'],
         'min_price' => $cartItem?->unit_price ?? $product['min_price'],
-        'customizer_image' => $product['customizer_image'],
-        'customizer_image_back' => asset('assets/images/customizer/tshirtcustom-back.png'),
+        'customizer_image' => $garmentFront,
+        'customizer_image_back' => $garmentBack,
         'fallback_customizer_front' => asset('assets/images/customizer/tshirtcustom.png'),
         'fallback_customizer_back' => asset('assets/images/customizer/tshirtcustom-back.png'),
+        'uploaded_customizer_image' => $product['uploaded_customizer_image'] ?? null,
         'colours' => $product['colours'],
         'default_size' => $defaultSize,
         'default_qty' => $defaultQty,
-        'default_colour' => request('colour'),
+        'default_colour' => $activeColour['code'] ?? request('colour'),
         'size_breakdown' => $sizeBreakdown,
         'size_display' => $sizeDisplay,
         'cart_item_id' => request('cart_item_id'),
@@ -391,5 +399,5 @@ window.__CUSTOMIZER_DATA__ = @json($customizerData);
 </script>
 <script src="{{ asset('assets/js/design-print-area.js') }}?v=1.2"></script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-<script src="{{ asset('assets/js/product-customizer.js?v=2.1') }}"></script>
+<script src="{{ asset('assets/js/product-customizer.js?v=2.2') }}"></script>
 @endpush

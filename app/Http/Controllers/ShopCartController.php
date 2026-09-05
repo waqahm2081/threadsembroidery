@@ -69,11 +69,15 @@ class ShopCartController extends Controller
         if ($category) {
             $product = $this->catalog->getProductDetail($item->style_code, $category['name']);
             if ($product) {
-                $customizerImage = $product['customizer_image'];
+        $customizerImage = $product['customizer_image'];
                 $colour = collect($product['colours'])->firstWhere('code', $item->colour_code)
                     ?? ($product['colours'][0] ?? null);
-                if ($colour && ! empty($colour['images'])) {
-                    $productImage = $colour['images'][0];
+                if ($colour) {
+                    $productImage = $colour['image_front']
+                        ?? (($colour['images'][0] ?? null));
+                    if (! empty($colour['image_front'])) {
+                        $customizerImage = $colour['image_front'];
+                    }
                 }
             }
         }

@@ -61,7 +61,8 @@ document.addEventListener('DOMContentLoaded', function () {
     allowedViews: null,
     layers: [],
     selectedLayerId: null,
-    nextId: 1
+    nextId: 1,
+    usesPlainPhoto: !!(initialColour.has_plain_photo || initialColour.image_front),
   };
 
   /* ============================================================
@@ -125,6 +126,35 @@ document.addEventListener('DOMContentLoaded', function () {
 
   let activeTextColour  = '#ffffff';
 
+  function getColourRecord(code) {
+    const colours = customizerData.colours || [];
+    return colours.find(c => c.code === code) || colours[0] || null;
+  }
+
+  function resolveGarmentImagesForColour(colour) {
+    const fallbackFront = customizerData.fallback_customizer_front || '';
+    const fallbackBack = customizerData.fallback_customizer_back || '';
+    const front = colour?.image_front
+      || customizerData.uploaded_customizer_image
+      || garmentImages.front
+      || fallbackFront;
+    const back = colour?.image_back
+      || colour?.image_front
+      || garmentImages.back
+      || fallbackBack;
+    const usesPlainPhoto = !!(colour?.has_plain_photo || colour?.image_front);
+
+    return { front, back, usesPlainPhoto };
+  }
+
+  function syncGarmentImagesFromColour() {
+    const colour = getColourRecord(state.colourCode);
+    const resolved = resolveGarmentImagesForColour(colour);
+    garmentImages.front = resolved.front;
+    garmentImages.back = resolved.back;
+    state.usesPlainPhoto = resolved.usesPlainPhoto;
+  }
+
   function getGarmentImageForView(view) {
     return view === 'back' ? garmentImages.back : garmentImages.front;
   }
@@ -133,12 +163,13 @@ document.addEventListener('DOMContentLoaded', function () {
     const src = getGarmentImageForView(state.view);
     if (!src) return;
     if (garmentImg) garmentImg.src = src;
+    const thumb = document.getElementById('pclProductThumb');
+    if (thumb && state.view === 'front') thumb.src = garmentImages.front;
     applyColourToGarment();
   }
 
+  syncGarmentImagesFromColour();
   if (garmentImages.front) {
-    const thumb = document.getElementById('pclProductThumb');
-    if (thumb) thumb.src = garmentImages.front;
     updateGarmentImageSrc();
   }
 
@@ -178,6 +209,8 @@ document.addEventListener('DOMContentLoaded', function () {
           });
         }
         if (colourNameEl) colourNameEl.textContent = match.name;
+        syncGarmentImagesFromColour();
+        updateGarmentImageSrc();
       }
     }
 
@@ -273,24 +306,21 @@ document.addEventListener('DOMContentLoaded', function () {
 
       state.colourName = swatch.dataset.colour;
       state.colourHex  = swatch.dataset.hex;
+      state.colourCode = swatch.dataset.code || state.colourCode;
 
       if (colourNameEl) colourNameEl.textContent = state.colourName;
 
-      applyColourToGarment();
+      syncGarmentImagesFromColour();
+      updateGarmentImageSrc();
       updateSummary();
     });
   }
 
-  /* The garment PNG is a white/light garment with natural shading baked
-     in. To recolour it for any swatch we run a CSS filter chain that:
-       1. desaturates the source image,
-       2. shifts it toward the target hue,
-       3. saturates it to the target colour's intensity,
-       4. brightens/darkens it to roughly match the target lightness.
-     This produces a realistic recoloured garment that keeps all of the
-     original fabric shading and folds. */
+  /* When we only have a blank silhouette PNG, recolour it with CSS filters.
+     When we already have the real plain product photo for that colourway,
+     show it as-is (no filter). */
   function applyColourToGarment() {
-    const filter = computeGarmentFilter(state.colourHex);
+    const filter = state.usesPlainPhoto ? 'none' : computeGarmentFilter(state.colourHex);
     if (garmentImg) garmentImg.style.filter = filter;
     if (pcmGarmentImg) pcmGarmentImg.style.filter = filter;
   }
@@ -1038,8 +1068,8 @@ document.addEventListener('DOMContentLoaded', function () {
     const designPayload = {
       garment: state.garmentLabel,
       colour: { name: state.colourName, hex: state.colourHex, code: state.colourCode },
-      customizer_image: customizerData.customizer_image || null,
-      customizer_image_back: customizerData.customizer_image_back || garmentImages.back || null,
+      customizer_image: garmentImages.front || customizerData.customizer_image || null,
+      customizer_image_back: garmentImages.back || customizerData.customizer_image_back || null,
       canvas_width: canvas.getBoundingClientRect().width,
       decoration_placement: state.placement,
       decoration_placement_label: state.placementLabel,
