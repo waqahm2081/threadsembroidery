@@ -389,15 +389,24 @@ class ProductCatalogService
             return $this->categoryIndex;
         }
 
-        return $this->categoryIndex = Cache::remember('pc_category_index', now()->addHour(), function () {
+        return $this->categoryIndex = Cache::remember('pc_category_index_v2', now()->addHour(), function () {
             $index = [];
 
+            // One row per product style — avoids counting every colour/size SKU.
             foreach (
                 PcProduct::active()
                     ->whereNotNull('categories')
-                    ->select(['categories', 'style_code'])
+                    ->whereNotNull('style_code')
+                    ->where('style_code', '!=', '')
+                    ->selectRaw('style_code, MIN(categories) as categories')
+                    ->groupBy('style_code')
                     ->cursor() as $row
             ) {
+                $styleCode = strtoupper(trim((string) $row->style_code));
+                if ($styleCode === '') {
+                    continue;
+                }
+
                 foreach ($this->parseCategoryNames($row->categories) as $name) {
                     $slug = $this->categorySlug($name);
                     if (! isset($index[$slug])) {
@@ -409,12 +418,16 @@ class ProductCatalogService
                         ];
                     }
 
-                    if (! isset($index[$slug]['style_codes'][$row->style_code])) {
-                        $index[$slug]['style_codes'][$row->style_code] = true;
-                        $index[$slug]['count']++;
+                    if (! isset($index[$slug]['style_codes'][$styleCode])) {
+                        $index[$slug]['style_codes'][$styleCode] = true;
                     }
                 }
             }
+
+            foreach ($index as &$category) {
+                $category['count'] = count($category['style_codes']);
+            }
+            unset($category);
 
             uasort($index, fn ($a, $b) => strcasecmp($a['name'], $b['name']));
 
