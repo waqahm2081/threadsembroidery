@@ -7,13 +7,45 @@
 
   const PLACEMENT_FEES = {
     left_chest: 3.50,
+    right_chest: 3.50,
+    front_print: 3.50,
+    front_embroidery: 3.50,
     back_print: 6.00,
     back_embroidery: 8.00,
+    apron_left: 3.50,
+    apron_right: 3.50,
+    apron_middle: 3.50,
+    rucksack_top_print: 6.00,
+    rucksack_top_embroidery: 3.50,
+    bag_print: 6.00,
+    keyring_print: 6.00,
+    towel_embroidery: 3.50,
+    full_print: 6.00,
   };
+
+  const FULL = { x: 8, y: 8, w: 84, h: 84, centered: false };
 
   const PLACEMENTS = {
     left_chest: {
       label: 'Left Chest',
+      view: 'front',
+      allowedViews: ['front'],
+      printArea: { x: 51, y: 20, w: 18, h: 20, centered: false },
+    },
+    right_chest: {
+      label: 'Right Chest',
+      view: 'front',
+      allowedViews: ['front'],
+      printArea: { x: 31, y: 20, w: 18, h: 20, centered: false },
+    },
+    front_print: {
+      label: 'Front Print',
+      view: 'front',
+      allowedViews: ['front'],
+      printArea: { x: 50, y: 18, w: 34, h: 42, centered: true },
+    },
+    front_embroidery: {
+      label: 'Front Embroidery',
       view: 'front',
       allowedViews: ['front'],
       printArea: { x: 51, y: 20, w: 18, h: 20, centered: false },
@@ -30,9 +62,63 @@
       allowedViews: ['back'],
       printArea: { x: 51, y: 12, w: 38, h: 84, centered: true },
     },
+    apron_left: {
+      label: 'Left Side',
+      view: 'front',
+      allowedViews: ['front'],
+      printArea: { x: 28, y: 28, w: 20, h: 24, centered: false },
+    },
+    apron_right: {
+      label: 'Right Side',
+      view: 'front',
+      allowedViews: ['front'],
+      printArea: { x: 52, y: 28, w: 20, h: 24, centered: false },
+    },
+    apron_middle: {
+      label: 'Centre',
+      view: 'front',
+      allowedViews: ['front'],
+      printArea: { x: 50, y: 26, w: 30, h: 32, centered: true },
+    },
+    rucksack_top_print: {
+      label: 'Top Print',
+      view: 'front',
+      allowedViews: ['front'],
+      printArea: { x: 50, y: 12, w: 42, h: 32, centered: true },
+    },
+    rucksack_top_embroidery: {
+      label: 'Top Embroidery',
+      view: 'front',
+      allowedViews: ['front'],
+      printArea: { x: 50, y: 14, w: 28, h: 22, centered: true },
+    },
+    bag_print: {
+      label: 'Bag Print',
+      view: 'front',
+      allowedViews: ['front'],
+      printArea: { ...FULL },
+    },
+    keyring_print: {
+      label: 'Keyring Print',
+      view: 'front',
+      allowedViews: ['front'],
+      printArea: { ...FULL },
+    },
+    towel_embroidery: {
+      label: 'Towel Embroidery',
+      view: 'front',
+      allowedViews: ['front'],
+      printArea: { x: 50, y: 34, w: 36, h: 28, centered: true },
+    },
+    full_print: {
+      label: 'Full Product Print',
+      view: 'front',
+      allowedViews: ['front', 'back'],
+      printArea: { ...FULL },
+    },
   };
 
-  const DEFAULT = PLACEMENTS.left_chest.printArea;
+  const DEFAULT = PLACEMENTS.full_print.printArea;
 
   function fromElements(canvasEl, printAreaEl) {
     if (!canvasEl || !printAreaEl) return { ...DEFAULT };
@@ -116,10 +202,6 @@
     return { ...DEFAULT };
   }
 
-  /**
-   * Scale factor when re-rendering a design from the editor canvas
-   * onto a smaller preview canvas (modal / cart).
-   */
   function previewScaleFactor(sourceCanvas, targetCanvas, fallbackTargetMax) {
     const sourceW = sourceCanvas?.getBoundingClientRect().width;
     if (!sourceW) return 1;

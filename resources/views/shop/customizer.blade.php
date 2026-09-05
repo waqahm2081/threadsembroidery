@@ -298,25 +298,17 @@ pc-body
                     </div>
                 </div>
                 <div class="modal-body pcm-placement-body">
-                    <div class="pcm-placement-options">
-                        <button type="button" class="pcm-placement-option" data-placement="left_chest">
-                            <span class="pcm-placement-icon"><i class="bi bi-heart"></i></span>
-                            <span class="pcm-placement-label">Left Chest</span>
-                            <span class="pcm-placement-desc">Classic logo position on the front</span>
-                            <span class="pcm-placement-price">£3.50 + VAT</span>
+                    <div class="pcm-placement-options" id="pcPlacementOptions">
+                        @foreach(($decoration['placements'] ?? []) as $placement)
+                        <button type="button" class="pcm-placement-option"
+                                data-placement="{{ $placement['key'] }}"
+                                data-methods="{{ implode(',', $placement['methods'] ?? []) }}">
+                            <span class="pcm-placement-icon"><i class="bi bi-{{ $placement['icon'] ?? 'bounding-box' }}"></i></span>
+                            <span class="pcm-placement-label">{{ $placement['label'] }}</span>
+                            <span class="pcm-placement-desc">{{ $placement['desc'] }}</span>
+                            <span class="pcm-placement-price">£{{ number_format((float) $placement['fee'], 2) }} + VAT</span>
                         </button>
-                        <button type="button" class="pcm-placement-option" data-placement="back_print">
-                            <span class="pcm-placement-icon"><i class="bi bi-printer"></i></span>
-                            <span class="pcm-placement-label">Back Print</span>
-                            <span class="pcm-placement-desc">Full back print area</span>
-                            <span class="pcm-placement-price">£6.00 + VAT</span>
-                        </button>
-                        <button type="button" class="pcm-placement-option" data-placement="back_embroidery">
-                            <span class="pcm-placement-icon"><i class="bi bi-magic"></i></span>
-                            <span class="pcm-placement-label">Back Embroidery</span>
-                            <span class="pcm-placement-desc">Full back embroidery area</span>
-                            <span class="pcm-placement-price">£8.00 + VAT</span>
-                        </button>
+                        @endforeach
                     </div>
                 </div>
             </div>
@@ -393,11 +385,14 @@ pc-body
         'cart_url' => route('shop.cart'),
         'checkout_url' => route('shop.checkout'),
         'pricing' => \App\Services\ShopPricingService::clientConfig(),
+        'decoration' => $decoration,
+        'selected_methods' => $cartItem?->design_data['decoration_methods']
+            ?? ($decoration['methods'] ?? ['print']),
     ];
 @endphp
 window.__CUSTOMIZER_DATA__ = @json($customizerData);
 </script>
-<script src="{{ asset('assets/js/design-print-area.js') }}?v=1.2"></script>
+<script src="{{ asset('assets/js/design-print-area.js') }}?v=1.3"></script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-<script src="{{ asset('assets/js/product-customizer.js?v=2.2') }}"></script>
+<script src="{{ asset('assets/js/product-customizer.js?v=2.3') }}"></script>
 @endpush

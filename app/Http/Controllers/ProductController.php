@@ -27,11 +27,14 @@ class ProductController extends Controller
 
         $related = $this->catalog->getRelatedProducts($category['name'], $product['style_code']);
 
+        $decoration = \App\Services\ShopDecorationRulesService::forProduct($product, $category['name']);
+
         return view('shop.product', [
             'pageActive' => 'shop',
             'category' => $category,
             'product' => $product,
             'related' => $related,
+            'decoration' => $decoration,
         ]);
     }
 
@@ -51,11 +54,14 @@ class ProductController extends Controller
             $cartItem = $this->cartService->findItem((int) $cartItemId);
         }
 
+        $decoration = \App\Services\ShopDecorationRulesService::forProduct($product, $category['name']);
+
         return view('shop.customizer', [
             'pageActive' => 'shop',
             'category' => $category,
             'product' => $product,
             'cartItem' => $cartItem,
+            'decoration' => $decoration,
         ]);
     }
 }

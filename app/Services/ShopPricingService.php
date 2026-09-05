@@ -13,8 +13,20 @@ class ShopPricingService
 
     public const PLACEMENT_FEES = [
         'left_chest' => 3.50,
+        'right_chest' => 3.50,
+        'front_print' => 3.50,
+        'front_embroidery' => 3.50,
         'back_print' => 6.00,
         'back_embroidery' => 8.00,
+        'apron_left' => 3.50,
+        'apron_right' => 3.50,
+        'apron_middle' => 3.50,
+        'rucksack_top_print' => 6.00,
+        'rucksack_top_embroidery' => 3.50,
+        'bag_print' => 6.00,
+        'keyring_print' => 6.00,
+        'towel_embroidery' => 3.50,
+        'full_print' => 6.00,
     ];
 
     public const DISPLAY_INCLUDED_PLACEMENT = 'left_chest';

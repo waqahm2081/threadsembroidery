@@ -260,6 +260,12 @@
   font-weight: 900;
 }
 
+#pd-detail .pd-addons-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
 #pd-detail .pd-addon-option {
   display: flex;
   align-items: center;

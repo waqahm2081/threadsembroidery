@@ -398,19 +398,90 @@ document.addEventListener('DOMContentLoaded', function () {
   let placementModal = null;
 
   function getDefaultLayerPosition(type) {
-    if (state.placement === 'left_chest') {
+    if (state.placement === 'left_chest' || state.placement === 'front_embroidery') {
       return type === 'text'
         ? { x: 52, y: 28, w: 22, h: 12 }
         : { x: 54, y: 26, w: 16, h: 18 };
+    }
+    if (state.placement === 'right_chest') {
+      return type === 'text'
+        ? { x: 28, y: 28, w: 22, h: 12 }
+        : { x: 30, y: 26, w: 16, h: 18 };
+    }
+    if (state.placement === 'front_print' || state.placement === 'apron_middle') {
+      return type === 'text'
+        ? { x: 28, y: 30, w: 44, h: 14 }
+        : { x: 32, y: 26, w: 36, h: 32 };
+    }
+    if (state.placement === 'apron_left') {
+      return type === 'text'
+        ? { x: 28, y: 34, w: 20, h: 12 }
+        : { x: 30, y: 32, w: 16, h: 18 };
+    }
+    if (state.placement === 'apron_right') {
+      return type === 'text'
+        ? { x: 52, y: 34, w: 20, h: 12 }
+        : { x: 54, y: 32, w: 16, h: 18 };
     }
     if (state.placement === 'back_print' || state.placement === 'back_embroidery') {
       return type === 'text'
         ? { x: 25, y: 28, w: 50, h: 14 }
         : { x: 22, y: 22, w: 56, h: 40 };
     }
+    if (state.placement === 'rucksack_top_print' || state.placement === 'rucksack_top_embroidery') {
+      return type === 'text'
+        ? { x: 28, y: 16, w: 44, h: 12 }
+        : { x: 30, y: 14, w: 40, h: 24 };
+    }
+    if (state.placement === 'towel_embroidery') {
+      return type === 'text'
+        ? { x: 28, y: 40, w: 44, h: 14 }
+        : { x: 32, y: 38, w: 36, h: 24 };
+    }
+    // full_print / bag / keyring
     return type === 'text'
       ? { x: 28, y: 42, w: 44, h: 14 }
-      : { x: 32, y: 28, w: 36, h: 36 };
+      : { x: 22, y: 22, w: 56, h: 50 };
+  }
+
+  function getSelectedMethods() {
+    const fromCart = customizerData.selected_methods;
+    if (Array.isArray(fromCart) && fromCart.length) return fromCart;
+    const fromRules = customizerData.decoration?.methods;
+    if (Array.isArray(fromRules) && fromRules.length) return fromRules;
+    return ['print'];
+  }
+
+  function placementMatchesMethods(btn, methods) {
+    const raw = (btn.dataset.methods || '').split(',').map(s => s.trim()).filter(Boolean);
+    if (!raw.length) return true;
+    return raw.some(m => methods.includes(m));
+  }
+
+  function filterPlacementOptions() {
+    const methods = getSelectedMethods();
+    const buttons = placementModalEl
+      ? Array.from(placementModalEl.querySelectorAll('[data-placement]'))
+      : [];
+
+    buttons.forEach(btn => {
+      const show = placementMatchesMethods(btn, methods);
+      btn.hidden = !show;
+      btn.style.display = show ? '' : 'none';
+    });
+
+    let visible = buttons.filter(btn => !btn.hidden);
+
+    // If method filter hid everything, fall back to all category placements
+    if (!visible.length && buttons.length) {
+      buttons.forEach(btn => {
+        btn.hidden = false;
+        btn.style.display = '';
+      });
+      visible = buttons;
+    }
+
+    return visible;
   }
 
   function applyViewToggleRestrictions() {
@@ -452,15 +523,33 @@ document.addEventListener('DOMContentLoaded', function () {
   }
 
   function initPlacementModal() {
+    const decoration = customizerData.decoration || {};
+    const visible = filterPlacementOptions();
+
+    // Auto-apply when modal should be skipped, or only one option remains
+    const autoKey = decoration.auto_placement
+      || (decoration.skip_modal && visible[0]?.dataset.placement)
+      || (visible.length === 1 ? visible[0].dataset.placement : null);
+
+    if (autoKey) {
+      applyPlacement(autoKey);
+      return;
+    }
+
     if (pcApp) pcApp.classList.add('pc-awaiting-placement');
 
-    if (!placementModalEl || typeof bootstrap === 'undefined') return;
+    if (!placementModalEl || typeof bootstrap === 'undefined') {
+      // Fallback: first available placement
+      if (visible[0]) applyPlacement(visible[0].dataset.placement);
+      return;
+    }
 
     placementModal = new bootstrap.Modal(placementModalEl);
     placementModal.show();
 
     placementModalEl.querySelectorAll('[data-placement]').forEach(btn => {
       btn.addEventListener('click', function () {
+        if (btn.hidden) return;
         applyPlacement(btn.dataset.placement);
         placementModal.hide();
         updateSummary();
@@ -1073,6 +1162,7 @@ document.addEventListener('DOMContentLoaded', function () {
       canvas_width: canvas.getBoundingClientRect().width,
       decoration_placement: state.placement,
       decoration_placement_label: state.placementLabel,
+      decoration_methods: getSelectedMethods(),
       print_area: getPrintAreaBounds(),
       size: state.size,
       qty: state.qty,

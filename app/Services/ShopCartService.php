@@ -71,6 +71,9 @@ class ShopCartService
             'decoration_fee' => $data['decoration_fee'] ?? 0,
             'logo_setup_fee' => ShopPricingService::logoSetupFee((bool) ($data['logo_setup'] ?? false)),
             'is_customized' => false,
+            'design_data' => [
+                'decoration_methods' => array_values(array_unique($data['decoration_methods'] ?? [])),
+            ],
         ]);
     }
 

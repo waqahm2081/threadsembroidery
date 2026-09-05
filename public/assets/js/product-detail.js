@@ -169,6 +169,33 @@
     }
   }
 
+  function getSelectedDecorationMethods() {
+    const methods = [];
+    if (document.getElementById('pdMethodPrint')?.checked) methods.push('print');
+    if (document.getElementById('pdMethodEmbroidery')?.checked) methods.push('embroidery');
+
+    // Fall back to all available methods if checkboxes missing
+    if (!methods.length && productData.decoration?.methods) {
+      return [...productData.decoration.methods];
+    }
+    return methods;
+  }
+
+  function syncLogoSetupAvailability() {
+    const logoOption = document.getElementById('pdLogoSetupOption');
+    const logoInput = document.getElementById('pdLogoSetup');
+    if (!logoOption || !logoInput) return;
+
+    const embroiderySelected = document.getElementById('pdMethodEmbroidery')?.checked;
+    const embroideryAvailable = (productData.decoration?.methods || []).includes('embroidery');
+    const enabled = embroideryAvailable && (embroiderySelected !== false);
+
+    logoOption.style.display = enabled ? '' : 'none';
+    if (!enabled) {
+      logoInput.checked = false;
+    }
+  }
+
 
   /* â”€â”€ 5. Description / Features tabs â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
   document.querySelectorAll('#pd-desc .pd-tab').forEach(tab => {
@@ -370,6 +397,12 @@
       return;
     }
 
+    const methods = getSelectedDecorationMethods();
+    if (!methods.length) {
+      alert('Please select at least one decoration method (Print and/or Embroidery).');
+      return;
+    }
+
     const colour = getActiveColour();
     const avgPrice = sizeBreakdown.reduce((sum, r) => sum + r.unit_price * r.qty, 0) / totalQty;
     const inner = btn.querySelector('.pd-customize-btn-inner');
@@ -384,6 +417,7 @@
     try {
       const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content;
       const shopRoutes = window.SHOP_ROUTES || { cart_store: '/shop/cart', cart_url: '/shop/cart' };
+      const embroiderySelected = methods.includes('embroidery');
       const res = await fetch(shopRoutes.cart_store, {
         method: 'POST',
         headers: {
@@ -403,7 +437,8 @@
           size_breakdown: sizeBreakdown,
           quantity: totalQty,
           unit_price: avgPrice,
-          logo_setup: document.getElementById('pdLogoSetup')?.checked || false,
+          logo_setup: embroiderySelected && (document.getElementById('pdLogoSetup')?.checked || false),
+          decoration_methods: methods,
         }),
       });
 
@@ -434,12 +469,18 @@
   /* ── Init ─────────────────────────────────────────────────── */
   function init() {
     initQtyButtons();
+    syncLogoSetupAvailability();
     recalcTotal();
 
-    const logoSetupCheckbox = document.getElementById('pdLogoSetup');
-    if (logoSetupCheckbox) {
-      logoSetupCheckbox.addEventListener('change', recalcTotal);
-    }
+    ['pdMethodPrint', 'pdMethodEmbroidery', 'pdLogoSetup'].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) {
+        el.addEventListener('change', () => {
+          syncLogoSetupAvailability();
+          recalcTotal();
+        });
+      }
+    });
 
     const customizeBtn = document.getElementById('pdCustomizeBtn');
     if (customizeBtn) {

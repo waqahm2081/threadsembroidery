@@ -147,19 +147,44 @@ product-page
 
             <div class="pd-divider"></div>
 
-            <div class="pd-option-group">
+            <div class="pd-option-group" id="pdAddonsGroup"
+                 @if(empty($decoration['methods']) && empty($decoration['logo_setup_available'])) style="display:none" @endif>
                 <div class="pd-option-label-row">
                     <span class="pd-option-label">Optional Add-ons</span>
                 </div>
-                <label class="pd-addon-option" id="pdLogoSetupOption">
-                    <input type="checkbox" id="pdLogoSetup" name="logo_setup" value="1">
-                    <span class="pd-addon-check"></span>
-                    <span class="pd-addon-body">
-                        <span class="pd-addon-title">Embroidery Logo Set Up</span>
-                        <span class="pd-addon-desc">One-time digitisation fee for new embroidery artwork</span>
-                    </span>
-                    <span class="pd-addon-price">+£12.00 <small class="pd-vat-note">+ VAT</small></span>
-                </label>
+                <div class="pd-addons-list" id="pdAddonsList">
+                    @if(in_array('print', $decoration['methods'] ?? [], true))
+                    <label class="pd-addon-option" id="pdMethodPrintOption">
+                        <input type="checkbox" id="pdMethodPrint" name="method_print" value="1" checked>
+                        <span class="pd-addon-check"></span>
+                        <span class="pd-addon-body">
+                            <span class="pd-addon-title">Print</span>
+                            <span class="pd-addon-desc">DTF / print decoration available for this product</span>
+                        </span>
+                    </label>
+                    @endif
+                    @if(in_array('embroidery', $decoration['methods'] ?? [], true))
+                    <label class="pd-addon-option" id="pdMethodEmbroideryOption">
+                        <input type="checkbox" id="pdMethodEmbroidery" name="method_embroidery" value="1" checked>
+                        <span class="pd-addon-check"></span>
+                        <span class="pd-addon-body">
+                            <span class="pd-addon-title">Embroidery</span>
+                            <span class="pd-addon-desc">Stitched embroidery decoration available for this product</span>
+                        </span>
+                    </label>
+                    @endif
+                    @if(!empty($decoration['logo_setup_available']))
+                    <label class="pd-addon-option" id="pdLogoSetupOption">
+                        <input type="checkbox" id="pdLogoSetup" name="logo_setup" value="1">
+                        <span class="pd-addon-check"></span>
+                        <span class="pd-addon-body">
+                            <span class="pd-addon-title">Embroidery Logo Set Up</span>
+                            <span class="pd-addon-desc">One-time digitisation fee for new embroidery artwork</span>
+                        </span>
+                        <span class="pd-addon-price">+£12.00 <small class="pd-vat-note">+ VAT</small></span>
+                    </label>
+                    @endif
+                </div>
             </div>
 
             <div class="pd-divider"></div>
@@ -288,9 +313,11 @@ product-page
         'category_slug' => $category['slug'],
         'product_slug' => $product['slug'],
         'min_price' => $product['min_price'],
-        'display_decoration_included' => \App\Services\ShopPricingService::displayIncludedDecorationFee(),
+        'display_decoration_included' => $decoration['display_decoration_fee']
+            ?? \App\Services\ShopPricingService::displayIncludedDecorationFee(),
         'colours' => $product['colours'],
         'pricing' => \App\Services\ShopPricingService::clientConfig(),
+        'decoration' => $decoration,
         'customizer_url' => route('shop.product.customizer', [
             'categorySlug' => $category['slug'],
             'productSlug' => $product['slug'],
@@ -305,5 +332,5 @@ window.SHOP_ROUTES = {
 };
 </script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-<script src="{{ asset('assets/js/product-detail.js') }}?v=1.5"></script>
+<script src="{{ asset('assets/js/product-detail.js') }}?v=1.6"></script>
 @endpush

@@ -104,6 +104,8 @@ class ShopCartController extends Controller
             'quantity' => ['required', 'integer', 'min:1'],
             'unit_price' => ['required', 'numeric', 'min:0'],
             'logo_setup' => ['nullable', 'boolean'],
+            'decoration_methods' => ['nullable', 'array'],
+            'decoration_methods.*' => ['string', 'in:print,embroidery'],
         ]);
 
         $item = $this->cartService->addItem($validated);
@@ -139,6 +141,15 @@ class ShopCartController extends Controller
         ]);
 
         $designData = json_decode($validated['design_data'], true);
+        if (! is_array($designData)) {
+            $designData = [];
+        }
+
+        // Preserve previously selected methods if the payload omitted them
+        if (empty($designData['decoration_methods']) && ! empty($item->design_data['decoration_methods'])) {
+            $designData['decoration_methods'] = $item->design_data['decoration_methods'];
+        }
+
         $placement = $designData['decoration_placement'] ?? null;
         $decorationFee = ShopPricingService::placementFee($placement);
         $designDir = 'shop-designs/'.$item->id;
