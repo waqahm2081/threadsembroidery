@@ -1130,3 +1130,18 @@ button.cc-customize-link:hover {
   font-weight: 600;
   text-align: right;
 }
+
+.cdm-artwork-preview {
+  display: none;
+  align-items: center;
+  justify-content: center;
+  min-height: 280px;
+  width: 100%;
+}
+
+.cdm-artwork-preview img {
+  max-width: 100%;
+  max-height: 360px;
+  object-fit: contain;
+  border-radius: 8px;
+}

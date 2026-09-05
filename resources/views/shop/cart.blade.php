@@ -8,7 +8,7 @@ cart-page
 
 @push('styles')
 <link rel="stylesheet" href="{{ asset('assets/css/shop-theme.css') }}?v=1.1">
-<link rel="stylesheet" href="{{ asset('assets/css/cart-checkout.css') }}?v=1.6">
+<link rel="stylesheet" href="{{ asset('assets/css/cart-checkout.css') }}?v=1.7">
 @endpush
 
 @section('content')
@@ -98,6 +98,10 @@ cart-page
                                         <a href="{{ $item->customizerUrl() }}" class="cc-customize-link">
                                             <i class="bi bi-magic"></i> Complete your design
                                         </a>
+                                    @else
+                                        <button type="button" class="cc-view-design-btn" data-design-id="{{ $item->id }}">
+                                            <i class="bi bi-eye"></i> View Design
+                                        </button>
                                     @endif
                                 </div>
                             </div>
@@ -139,15 +143,45 @@ cart-page
     </div>
 </main>
 
+{{-- Design preview modal --}}
+<div class="modal fade" id="cartDesignModal" tabindex="-1" aria-labelledby="cartDesignModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered cdm-dialog">
+        <div class="modal-content cdm-content">
+            <div class="modal-header cdm-header">
+                <div>
+                    <h5 class="modal-title cdm-title" id="cartDesignModalLabel"><i class="bi bi-palette"></i> Your Design</h5>
+                    <p class="cdm-sub" id="cdmSubtitle"></p>
+                </div>
+                <button type="button" class="cdm-close" data-bs-dismiss="modal" aria-label="Close">
+                    <i class="bi bi-x-lg"></i>
+                </button>
+            </div>
+            <div class="modal-body cdm-body">
+                <div class="cdm-preview-wrap">
+                    <div class="cdm-preview-canvas" id="cdmPreviewCanvas">
+                        <img class="cdm-garment-img" id="cdmGarmentImg" src="" alt="Garment preview">
+                        <div class="cdm-layers" id="cdmLayers"></div>
+                    </div>
+                    <div class="cdm-artwork-preview" id="cdmArtworkPreview" style="display:none"></div>
+                </div>
+                <div class="cdm-details" id="cdmDetails"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
 @endsection
 
 @push('scripts')
 <script>
+window.__CART_DESIGNS__ = @json($designPreviews ?? []);
 window.SHOP_ROUTES = {
   cart_destroy_base: @json(url('/shop/cart/items')),
   cart_url: @json(route('shop.cart')),
   checkout_url: @json(route('shop.checkout')),
 };
 </script>
-<script src="{{ asset('assets/js/cart-checkout.js') }}?v=1.6"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="{{ asset('assets/js/design-print-area.js') }}?v=1.2"></script>
+<script src="{{ asset('assets/js/cart-checkout.js') }}?v=1.7"></script>
 @endpush
