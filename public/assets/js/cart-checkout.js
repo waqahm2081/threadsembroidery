@@ -106,10 +106,8 @@
   function initDesignPreview() {
     const designs = window.__CART_DESIGNS__ || {};
     const modalEl = document.getElementById('cartDesignModal');
-    if (!modalEl || typeof bootstrap === 'undefined') return;
-    if (!Object.keys(designs).length) return;
+    if (!modalEl || !Object.keys(designs).length) return;
 
-    const modal = new bootstrap.Modal(modalEl);
     const garmentImg = document.getElementById('cdmGarmentImg');
     const layersEl = document.getElementById('cdmLayers');
     const previewCanvas = document.getElementById('cdmPreviewCanvas');
@@ -117,22 +115,32 @@
     const titleEl = document.getElementById('cartDesignModalLabel');
     const subtitleEl = document.getElementById('cdmSubtitle');
     const detailsEl = document.getElementById('cdmDetails');
-    let pendingPreview = null;
+
+    function showModal() {
+      modalEl.hidden = false;
+      modalEl.setAttribute('aria-hidden', 'false');
+      document.body.style.overflow = 'hidden';
+    }
+
+    function hideModal() {
+      modalEl.hidden = true;
+      modalEl.setAttribute('aria-hidden', 'true');
+      document.body.style.overflow = '';
+    }
+
+    document.getElementById('cdmModalBackdrop')?.addEventListener('click', hideModal);
+    document.getElementById('cdmModalClose')?.addEventListener('click', hideModal);
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && !modalEl.hidden) hideModal();
+    });
 
     document.querySelectorAll('[data-design-id]').forEach(btn => {
       btn.addEventListener('click', () => {
         const preview = designs[btn.dataset.designId];
         if (!preview) return;
-        pendingPreview = preview;
-        modal.show();
+        openDesignPreview(preview);
+        showModal();
       });
-    });
-
-    modalEl.addEventListener('shown.bs.modal', () => {
-      if (pendingPreview) {
-        openDesignPreview(pendingPreview);
-        pendingPreview = null;
-      }
     });
 
     function escapeHtml(str) {

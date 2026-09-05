@@ -8,7 +8,7 @@ cart-page
 
 @push('styles')
 <link rel="stylesheet" href="{{ asset('assets/css/shop-theme.css') }}?v=1.1">
-<link rel="stylesheet" href="{{ asset('assets/css/cart-checkout.css') }}?v=1.7">
+<link rel="stylesheet" href="{{ asset('assets/css/cart-checkout.css') }}?v=1.8">
 @endpush
 
 @section('content')
@@ -143,20 +143,21 @@ cart-page
     </div>
 </main>
 
-{{-- Design preview modal --}}
-<div class="modal fade" id="cartDesignModal" tabindex="-1" aria-labelledby="cartDesignModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered cdm-dialog">
-        <div class="modal-content cdm-content">
-            <div class="modal-header cdm-header">
+{{-- Design preview modal (custom overlay — site does not load Bootstrap CSS) --}}
+<div class="cdm-modal" id="cartDesignModal" hidden aria-hidden="true">
+    <div class="cdm-modal-backdrop" id="cdmModalBackdrop"></div>
+    <div class="cdm-modal-dialog" role="dialog" aria-labelledby="cartDesignModalLabel" aria-modal="true">
+        <div class="cdm-content">
+            <div class="cdm-header">
                 <div>
-                    <h5 class="modal-title cdm-title" id="cartDesignModalLabel"><i class="bi bi-palette"></i> Your Design</h5>
+                    <h5 class="cdm-title" id="cartDesignModalLabel"><i class="bi bi-palette"></i> Your Design</h5>
                     <p class="cdm-sub" id="cdmSubtitle"></p>
                 </div>
-                <button type="button" class="cdm-close" data-bs-dismiss="modal" aria-label="Close">
+                <button type="button" class="cdm-close" id="cdmModalClose" aria-label="Close">
                     <i class="bi bi-x-lg"></i>
                 </button>
             </div>
-            <div class="modal-body cdm-body">
+            <div class="cdm-body">
                 <div class="cdm-preview-wrap">
                     <div class="cdm-preview-canvas" id="cdmPreviewCanvas">
                         <img class="cdm-garment-img" id="cdmGarmentImg" src="" alt="Garment preview">
@@ -181,7 +182,6 @@ window.SHOP_ROUTES = {
   checkout_url: @json(route('shop.checkout')),
 };
 </script>
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 <script src="{{ asset('assets/js/design-print-area.js') }}?v=1.2"></script>
-<script src="{{ asset('assets/js/cart-checkout.js') }}?v=1.7"></script>
+<script src="{{ asset('assets/js/cart-checkout.js') }}?v=1.8"></script>
 @endpush
