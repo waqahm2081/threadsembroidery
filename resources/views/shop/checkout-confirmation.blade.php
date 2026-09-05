@@ -61,9 +61,9 @@ checkout-page
 
             <div class="cc-confirmation-actions">
                 @auth
-                    <a href="{{ route('user-dashboard') }}" class="cc-btn-primary">Go to Dashboard <i class="bi bi-arrow-right"></i></a>
+                    <a href="{{ route('portal') }}" class="cc-btn-primary">Go to Portal <i class="bi bi-arrow-right"></i></a>
                 @else
-                    <a href="{{ route('signup') }}" class="cc-btn-primary">Create Account to Track Order <i class="bi bi-arrow-right"></i></a>
+                    <a href="{{ route('login') }}#signup" class="cc-btn-primary">Create Account to Track Order <i class="bi bi-arrow-right"></i></a>
                 @endauth
                 <a href="{{ route('shop') }}" class="cc-btn-secondary">Continue Shopping</a>
             </div>
