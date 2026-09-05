@@ -6,6 +6,9 @@
 // Requires .env in project root with:
 //   DB_HOST, DB_DATABASE, DB_USERNAME, DB_PASSWORD
 //   PENCARRIE_API_TOKEN=<your bearer token>
+//
+// Only imports the curated style-code whitelist below, then
+// removes any pc_products rows whose style_code is not listed.
 // ============================================================
 
 /**
@@ -61,104 +64,72 @@ if (DB_NAME === '' || DB_USER === '') {
     die("Missing DB_DATABASE or DB_USERNAME in .env\n");
 }
 
-// ── Brand whitelist ──────────────────────────────────────────
-// Only products from these brands will be imported. Matching is
-// case-insensitive and ignores punctuation/extra spaces.
-// "JUST_PREFIX" handles all Just Brands (Just Hoods, Just Cool, etc.)
-// "HAT_KEYWORDS" lets ANY brand's hat/cap/headwear items through,
-// per "All brands and items of hats" requirement.
+// ── Style-code whitelist ─────────────────────────────────────
+// Only these styles are imported. Matching is case-insensitive.
+// Gender notes in the brief are decoration guidance — Pencarrie
+// usually stores gender as a separate column on the same style.
 
-const JUST_PREFIX = 'just';
+$ALLOWED_STYLE_CODES = [
+    // T-shirts
+    'GD05', 'GD01', 'AT002', 'JC001', 'JC003', 'AM15', 'AT003', 'AT004', '03806', 'RX151',
 
-$ALLOWED_BRANDS = [
-    'awdis',
-    'findan hales',          // Findan + Hales
-    'fruit of the loom',
-    'gildan',
-    'anthem',
-    'native spirit',
-    'sols',                  // Sol's
-    'kustom kit',
-    'henbury',
-    'regatta',                // All Regatta items
-    'bagbase',                // Bag Base
-    'rtx',                     // RTX Pro
-    'rtx pro',
-    'result',                  // All Result
-    'stormtech',
-    'spiro',
-    'russell',
-    'dennys',                 // Dennys
-    'premier',                 // Premier all products
-    'tee jays',
-    'teejays',
-    'westford mill',
-    'helly hansen',
-    'nike',
+    // Hoodies, zip hoodies, midlayer, fleece, sweatshirt
+    '03568', '03812', '575M', '575B', 'AM101', 'AM02', 'GD57', 'GD57B',
+    'JC057', 'JC058', 'JC305', 'JH001', 'JH006', 'JH050', 'JH120', 'JH125', 'JH305',
+    'K304', 'LV341', 'NS460', 'RX351', '55000', 'BK480', 'BK481',
+    'RX301', 'RX305', 'RX350', '02088', '03814', 'AM20', 'GD612', 'GD67', 'H842',
+    'JH030', 'JH037', 'JH043', 'JH043B', 'JH046', 'JH123', 'K302', 'K335', 'NS432',
+
+    // Bodywarmers & coats
+    '02887', '02888', 'BK525', 'BK482', 'BK528', 'BK529', 'BK557', 'CR331',
+    'RG115', 'RG116', 'RG154', 'RG155', 'RG447', 'RG652',
+    '04444', '04445', '04758', 'AFP1', 'AFP1W', 'HXP1', 'HXP1W',
+    'RG045', 'RG085', 'RG086', 'RG443', 'RG150', 'RG151',
+    'RX550', 'RX500', 'RX500F', 'RX551',
+
+    // Hi-vis
+    'PW1250', 'RG564', 'RS503', 'RX740', 'PW002', 'PW055', 'PW003', 'WR002',
+    'PW061', 'PW059', 'PW309', 'WR010', 'YK206', 'RX760', 'RG475', 'RS200E',
+    'PW450', 'YK302', 'RX710',
+
+    // Hats
+    'F9297', 'BB20', 'BB188', 'BB183', 'BB10', 'BB67', 'BB655', 'BB654', 'BB651',
+    'BB15', 'F6506', 'BB640', 'BB640B', 'BB52N', 'BB460', 'BB390', 'RX290',
+    'BB383R', 'RG661', 'BB443', 'BB445', 'BB426', 'BB440',
+
+    // Bags & keyrings
+    '04089', '70100', '70600', 'BG100', 'BG10', 'BG118', 'BG125', 'BG144',
+    'BG25', 'BG324', 'BG723', 'W600', 'W610', 'W201', 'W406', 'W696',
+    'BR003', 'W901', 'W261',
+
+    // Polos
+    'RX101', 'RX101F', 'RX102', 'RX105', 'RX105F',
+    '01180', '01179', '03566', '03575', '04442',
+    '539F', '539M', '539B',
+    'K400', 'K408', 'K412', 'K444', 'K430', 'K703', 'NS207', 'NS208',
+
+    // Towels
+    'PA574', 'TC13', 'TC34', 'W710',
+
+    // Aprons
+    '88019', 'DE111', 'LE100', 'PR023', 'PRE102', 'PR116', 'PR115',
+    'PR141', 'PR149', 'PR155', 'PR172', 'PR181',
 ];
 
-$HAT_KEYWORDS = [
-    'hat', 'hats', 'cap', 'caps', 'beanie', 'beanies',
-    'bucket hat', 'headwear', 'visor', 'trucker cap', 'snapback',
-];
-
-/**
- * Normalize a brand/type string for comparison:
- * lowercase, strip punctuation (apostrophes, plus signs, ampersands,
- * hyphens), collapse whitespace.
- */
-function normalize_str(string $str): string
-{
-    $str = strtolower($str);
-    $str = str_replace(["'", '’', '+', '&', '-', '.'], ' ', $str);
-    $str = preg_replace('/\s+/', ' ', $str);
-
-    return trim($str);
+/** @var array<string, true> Lookup map of uppercase style codes */
+$ALLOWED_STYLE_LOOKUP = [];
+foreach ($ALLOWED_STYLE_CODES as $code) {
+    $ALLOWED_STYLE_LOOKUP[strtoupper(trim($code))] = true;
 }
 
 /**
- * Whether a product's brand is in the allowed whitelist
- * (including the "Just" brand family).
+ * Whether a CSV style code is in the curated allowlist.
  */
-function is_allowed_brand(string $brand, array $allowedBrands): bool
+function is_allowed_style_code(string $styleCode, array $lookup): bool
 {
-    $norm = normalize_str($brand);
-    if ($norm === '') {
-        return false;
-    }
+    $norm = strtoupper(trim($styleCode));
 
-    if (strpos($norm, JUST_PREFIX) === 0) {
-        return true; // Just Hoods, Just Cool, etc.
-    }
-
-    foreach ($allowedBrands as $allowed) {
-        if ($norm === $allowed || strpos($norm, $allowed) === 0) {
-            return true;
-        }
-    }
-
-    return false;
-}
-
-/**
- * Whether a product looks like a hat/headwear item, regardless of
- * brand — checked across Type, Categories, Collections and Title.
- */
-function is_hat_item(array $row, array $col, array $hatKeywords): bool
-{
-    $haystack = normalize_str(
-        get_col($row, $col, 'Type') . ' ' .
-        get_col($row, $col, 'Suggested Categories') . ' ' .
-        get_col($row, $col, 'Suggested Collections') . ' ' .
-        get_col($row, $col, 'Title')
-    );
-    foreach ($hatKeywords as $kw) {
-        if (strpos($haystack, normalize_str($kw)) !== false) {
-            return true;
-        }
-    }
-
-    return false;
+    return $norm !== '' && isset($lookup[$norm]);
 }
 
 // ── DB connect ───────────────────────────────────────────────
@@ -174,6 +145,7 @@ try {
 }
 
 log_msg('=== Pencarrie Product Import started ===');
+log_msg('Allowlist: ' . count($ALLOWED_STYLE_CODES) . ' style codes');
 
 // ── Step 1: Download ZIP ─────────────────────────────────────
 log_msg('Downloading product ZIP...');
@@ -249,7 +221,8 @@ $col = array_flip($header);
 $batch = [];
 $totalRows = 0;
 $insertedRows = 0;
-$skippedBrand = 0;
+$skippedStyle = 0;
+$matchedStyles = [];
 
 // Prepare upsert SQL
 $sql = 'INSERT INTO pc_products (
@@ -297,23 +270,23 @@ while (($row = fgetcsv($handle)) !== false) {
         continue;
     }
 
-    $brand = get_col($row, $col, 'Brand');
+    $styleCode = get_col($row, $col, 'Style Code');
 
-    // ── Brand whitelist filter ──────────────────────────────
-    // Skip the row unless its brand is on the allowed list, OR
-    // it's a hat/headwear item (any brand allowed for those).
-    if (! is_allowed_brand($brand, $ALLOWED_BRANDS) && ! is_hat_item($row, $col, $HAT_KEYWORDS)) {
-        $skippedBrand++;
+    // ── Style-code whitelist filter ─────────────────────────
+    if (! is_allowed_style_code($styleCode, $ALLOWED_STYLE_LOOKUP)) {
+        $skippedStyle++;
 
         continue;
     }
 
+    $matchedStyles[strtoupper($styleCode)] = true;
+
     $batch[] = [
         'sku' => $sku,
-        'style_code' => get_col($row, $col, 'Style Code'),
+        'style_code' => $styleCode,
         'title' => get_col($row, $col, 'Title'),
         'body' => get_col($row, $col, 'Body'),
-        'brand' => $brand,
+        'brand' => get_col($row, $col, 'Brand'),
         'gender' => get_col($row, $col, 'Gender'),
         'type' => get_col($row, $col, 'Type'),
         'categories' => get_col($row, $col, 'Suggested Categories'),
@@ -349,7 +322,7 @@ while (($row = fgetcsv($handle)) !== false) {
     if (count($batch) >= BATCH_SIZE) {
         $insertedRows += flush_batch($pdo, $sql, $batch);
         $batch = [];
-        log_msg("  Processed $totalRows rows (kept $insertedRows, skipped $skippedBrand by brand filter)...");
+        log_msg("  Processed $totalRows rows (kept $insertedRows, skipped $skippedStyle by style filter)...");
     }
 }
 
@@ -361,11 +334,42 @@ if (! empty($batch)) {
 fclose($handle);
 unlink(TMP_CSV);
 
-// Log success
-$pdo->prepare("INSERT INTO pc_import_log (type, status, rows, message) VALUES ('products','success',?,?)")
-    ->execute([$insertedRows, "Processed $totalRows rows, upserted $insertedRows, skipped $skippedBrand (brand filter)"]);
+// ── Step 4: Remove styles not on the allowlist ───────────────
+log_msg('Removing products not on the style-code allowlist...');
+$placeholders = implode(',', array_fill(0, count($ALLOWED_STYLE_CODES), '?'));
+$deleteStmt = $pdo->prepare(
+    "DELETE FROM pc_products WHERE UPPER(TRIM(style_code)) NOT IN ($placeholders)"
+);
+$deleteStmt->execute(array_map('strtoupper', $ALLOWED_STYLE_CODES));
+$deletedRows = $deleteStmt->rowCount();
+log_msg("Removed $deletedRows SKU rows outside the allowlist");
 
-log_msg("✓ Done. Processed $totalRows rows, upserted $insertedRows, skipped $skippedBrand (not in brand whitelist / not hats).");
+// Report any allowlisted styles that were not found in the feed
+$missingStyles = array_values(array_filter(
+    array_map('strtoupper', $ALLOWED_STYLE_CODES),
+    static fn (string $code) => ! isset($matchedStyles[$code])
+));
+sort($missingStyles);
+if ($missingStyles) {
+    log_msg('⚠ Style codes on allowlist but not found in feed (' . count($missingStyles) . '): ' . implode(', ', $missingStyles));
+} else {
+    log_msg('All allowlisted style codes were present in the feed.');
+}
+
+// Clear category index cache if Laravel cache table exists (best-effort)
+try {
+    $pdo->exec("DELETE FROM cache WHERE `key` LIKE '%pc_category_index%'");
+} catch (Throwable $e) {
+    // ignore — cache driver may not be database
+}
+
+// Log success
+$message = "Processed $totalRows rows, upserted $insertedRows, skipped $skippedStyle (style filter), deleted $deletedRows outside allowlist";
+$pdo->prepare("INSERT INTO pc_import_log (type, status, rows, message) VALUES ('products','success',?,?)")
+    ->execute([$insertedRows, $message]);
+
+log_msg("✓ Done. $message");
+log_msg('Matched ' . count($matchedStyles) . ' distinct style codes from allowlist of ' . count($ALLOWED_STYLE_CODES));
 log_msg('=== Import complete ===');
 
 // ── Helpers ──────────────────────────────────────────────────
