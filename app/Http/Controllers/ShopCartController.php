@@ -108,6 +108,7 @@ class ShopCartController extends Controller
             'message' => 'Product added to cart.',
             'cart_item_id' => $item->id,
             'cart_count' => $this->cartService->itemCount(),
+            'customizer_url' => $item->customizerUrl(),
             'customize_url' => route('shop.cart.customize', $item->id),
             'cart_url' => route('shop.cart'),
         ]);

@@ -31,7 +31,7 @@ pc-body
         <header id="pc-topbar">
             <div class="pct-left">
                 <a href="{{ route('home') }}" class="pct-logo">
-                    <img src="{{ asset('assets/images/logo.png') }}" alt="Threads Embroidery &amp; Print" class="pct-logo-img">
+                    <img src="{{ asset('assets/img/logo.png') }}" alt="Threads Embroidery &amp; Print" class="pct-logo-img">
                     <div class="pct-logo-fallback" style="display:none;">
                         <span class="pct-logo-fallback-icon"><i class="bi bi-stars"></i></span>
                         <span class="pct-logo-fallback-text">Threads<span>Embroidery &amp; Print</span></span>
@@ -391,5 +391,5 @@ window.__CUSTOMIZER_DATA__ = @json($customizerData);
 </script>
 <script src="{{ asset('assets/js/design-print-area.js') }}?v=1.2"></script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-<script src="{{ asset('assets/js/product-customizer.js?v=1.8') }}"></script>
+<script src="{{ asset('assets/js/product-customizer.js?v=1.9') }}"></script>
 @endpush

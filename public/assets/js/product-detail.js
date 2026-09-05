@@ -1,7 +1,7 @@
-/* ============================================================
-   PRODUCT DETAIL PAGE  —  product-detail.js
-   Thumbnail gallery · colour swatches · qty +/- · price calc ·
-   description tabs · review modal (star picker + validation)
+﻿/* ============================================================
+   PRODUCT DETAIL PAGE  â€”  product-detail.js
+   Thumbnail gallery Â· colour swatches Â· qty +/- Â· price calc Â·
+   description tabs Â· review modal (star picker + validation)
    ============================================================ */
 
 (function () {
@@ -19,7 +19,7 @@
   function formatMoney(amount) {
     const whole = Math.floor(amount);
     const dec = String(Math.round((amount - whole) * 100)).padStart(2, '0');
-    return `£${whole}<small style="font-size:0.8em">.${dec}</small>`;
+    return `Â£${whole}<small style="font-size:0.8em">.${dec}</small>`;
   }
 
   const VAT_NOTE = ' <small class="pd-vat-note">+ VAT</small>';
@@ -71,7 +71,7 @@
       row.innerHTML = `
         <label class="pd-size-label" for="qty-${slug}"><span class="pd-size-chip">${sizeRow.size}</span></label>
         <div class="pd-qty-ctrl">
-          <button type="button" class="pd-qty-btn pd-qty-minus" aria-label="Decrease ${sizeRow.size}">−</button>
+          <button type="button" class="pd-qty-btn pd-qty-minus" aria-label="Decrease ${sizeRow.size}">âˆ’</button>
           <input type="number" id="qty-${slug}" class="pd-qty-input" value="0" min="0" max="999" data-unit-price="${sizeRow.price_single}">
           <button type="button" class="pd-qty-btn pd-qty-plus" aria-label="Increase ${sizeRow.size}">+</button>
         </div>`;
@@ -82,7 +82,7 @@
     recalcTotal();
   }
 
-  /* ── 1. Thumbnail gallery ─────────────────────────────────── */
+  /* â”€â”€ 1. Thumbnail gallery â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
   const mainImg = document.getElementById('pdMainImage');
   const thumbs  = document.querySelectorAll('#pd-detail .pd-thumb');
 
@@ -98,7 +98,7 @@
   });
 
 
-  /* ── 2. Colour swatches ──────────────────────────────────── */
+  /* â”€â”€ 2. Colour swatches â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
   const swatches    = document.querySelectorAll('#pd-detail .pd-swatch');
   const colourLabel = document.getElementById('pdColourName');
 
@@ -115,7 +115,7 @@
   });
 
 
-  /* ── 3. Qty +/− buttons ─────────────────────────────────── */
+  /* â”€â”€ 3. Qty +/âˆ’ buttons â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
   function initQtyButtons() {
     document.querySelectorAll('#pd-detail .pd-size-row-item').forEach(row => {
       const minus = row.querySelector('.pd-qty-minus');
@@ -135,7 +135,7 @@
   }
 
 
-  /* ── 4. Live price calc ──────────────────────────────────── */
+  /* â”€â”€ 4. Live price calc â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
   const totalUnitsEl = document.getElementById('pdTotalUnits');
   const estTotalEl   = document.getElementById('pdEstTotal');
 
@@ -170,7 +170,7 @@
   }
 
 
-  /* ── 5. Description / Features tabs ─────────────────────── */
+  /* â”€â”€ 5. Description / Features tabs â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
   document.querySelectorAll('#pd-desc .pd-tab').forEach(tab => {
     tab.addEventListener('click', function () {
       document.querySelectorAll('#pd-desc .pd-tab').forEach(t => t.classList.remove('active'));
@@ -182,7 +182,7 @@
   });
 
 
-  /* ── 6. Review modal ─────────────────────────────────────── */
+  /* â”€â”€ 6. Review modal â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
   const starBtns   = document.querySelectorAll('.pd-rev-star-btn');
   const starLabel  = document.getElementById('pdRevStarLabel');
   const ratingInput = document.getElementById('pdRevRating');
@@ -268,7 +268,7 @@
 
       // Simulate submit
       submitBtn.disabled  = true;
-      submitBtn.innerHTML = '<i class="bi bi-hourglass-split"></i> Submitting…';
+      submitBtn.innerHTML = '<i class="bi bi-hourglass-split"></i> Submittingâ€¦';
 
       setTimeout(() => {
         // Inject new review card at the top of the grid
@@ -340,27 +340,6 @@
   }
 
 
-  function showCartModal() {
-    const modal = document.getElementById('pdCartModal');
-    if (!modal) return;
-    modal.hidden = false;
-    modal.setAttribute('aria-hidden', 'false');
-    document.body.style.overflow = 'hidden';
-  }
-
-  function hideCartModal() {
-    const modal = document.getElementById('pdCartModal');
-    if (!modal) return;
-    modal.hidden = true;
-    modal.setAttribute('aria-hidden', 'true');
-    document.body.style.overflow = '';
-  }
-
-  function initCartModal() {
-    document.getElementById('pdCartModalBackdrop')?.addEventListener('click', hideCartModal);
-    document.getElementById('pdCartModalContinue')?.addEventListener('click', hideCartModal);
-  }
-
   function collectCartPayload() {
     const sizeBreakdown = [];
     let totalQty = 0;
@@ -383,11 +362,11 @@
     return { sizeBreakdown, totalQty, primarySize };
   }
 
-  async function addToCart(btn) {
+  async function startCustomize(btn) {
     const { sizeBreakdown, totalQty, primarySize } = collectCartPayload();
 
     if (totalQty === 0) {
-      alert('Please select a quantity for at least one size.');
+      alert('Please select a quantity for at least one size before customizing.');
       return;
     }
 
@@ -397,8 +376,9 @@
     const originalHtml = inner ? inner.innerHTML : btn.innerHTML;
 
     btn.disabled = true;
+    btn.style.pointerEvents = 'none';
     if (inner) {
-      inner.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span> Adding to cart…';
+      inner.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span> Opening customizer…';
     }
 
     try {
@@ -429,25 +409,21 @@
 
       const data = await res.json();
       if (!res.ok) {
-        throw new Error(data.message || 'Failed to add to cart');
+        throw new Error(data.message || 'Failed to start customizer');
       }
 
-      const badge = document.getElementById('navShopCartBadge');
+      const badge = document.getElementById('navShopCartBadge')
+        || document.querySelector('[data-cart-badge]');
       if (badge && data.cart_count > 0) {
         badge.textContent = data.cart_count;
         badge.style.display = '';
       }
 
-      const goLink = document.getElementById('pdCartModalGo');
-      if (goLink && data.cart_url) {
-        goLink.href = data.cart_url;
-      }
-
-      showCartModal();
+      window.location.href = data.customizer_url || productData.customizer_url;
     } catch (err) {
-      alert(err.message || 'Could not add to cart. Please try again.');
-    } finally {
+      alert(err.message || 'Could not open the customizer. Please try again.');
       btn.disabled = false;
+      btn.style.pointerEvents = '';
       if (inner) {
         inner.innerHTML = originalHtml;
       }
@@ -458,7 +434,6 @@
   /* ── Init ─────────────────────────────────────────────────── */
   function init() {
     initQtyButtons();
-    initCartModal();
     recalcTotal();
 
     const logoSetupCheckbox = document.getElementById('pdLogoSetup');
@@ -466,9 +441,12 @@
       logoSetupCheckbox.addEventListener('change', recalcTotal);
     }
 
-    const addBtn = document.getElementById('pdAddToCartBtn');
-    if (addBtn) {
-      addBtn.addEventListener('click', () => addToCart(addBtn));
+    const customizeBtn = document.getElementById('pdCustomizeBtn');
+    if (customizeBtn) {
+      customizeBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        startCustomize(customizeBtn);
+      });
     }
   }
 

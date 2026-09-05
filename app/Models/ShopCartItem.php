@@ -62,7 +62,7 @@ class ShopCartItem extends Model
 
     public function customizerUrl(): string
     {
-        return route('shop.product', [
+        return route('shop.product.customizer', [
             'categorySlug' => $this->category_slug,
             'productSlug' => $this->product_slug,
         ]).'?'.http_build_query(array_filter([

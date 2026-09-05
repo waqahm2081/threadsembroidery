@@ -164,10 +164,10 @@ product-page
 
             <div class="pd-divider"></div>
 
-            <button type="button" class="pd-customize-btn" id="pdAddToCartBtn">
+            <button type="button" class="pd-customize-btn" id="pdCustomizeBtn">
                 <span class="pd-customize-btn-inner">
-                    <i class="bi bi-bag-plus"></i>
-                    Add to Cart
+                    <i class="bi bi-magic"></i>
+                    Upload Your Design / Customize
                 </span>
                 <span class="pd-customize-btn-glow"></span>
             </button>
@@ -256,7 +256,7 @@ product-page
                     <div class="pd-related-img-wrap">
                         <img src="{{ $item['image'] }}" alt="{{ $item['title'] }}" loading="lazy">
                         <div class="pd-related-actions">
-                            <a href="{{ $item['url'] }}" class="pd-related-quick-btn"><i class="bi bi-eye"></i> View</a>
+                            <a href="{{ $item['url'] }}" class="pd-related-quick-btn"><i class="bi bi-magic"></i> Customise</a>
                         </div>
                         @if($item['is_new'])<span class="pd-related-badge pd-related-badge--new">New In</span>@endif
                     </div>
@@ -265,7 +265,7 @@ product-page
                         <h3 class="pd-related-name">{{ $item['title'] }}</h3>
                         <div class="pd-related-footer">
                             <span class="pd-related-price">From £{{ $relWhole }}<small>.{{ $relDec }}</small> <small class="pd-vat-note">+ VAT</small></span>
-                            <a href="{{ $item['url'] }}" class="pd-related-btn">View <i class="bi bi-arrow-right"></i></a>
+                            <a href="{{ $item['url'] }}" class="pd-related-btn">Customise <i class="bi bi-arrow-right"></i></a>
                         </div>
                     </div>
                 </article>
@@ -276,19 +276,6 @@ product-page
 @endif
 
 @include('shop.partials.reviews', ['productTitle' => $product['title']])
-
-<div class="pd-cart-modal" id="pdCartModal" hidden aria-hidden="true">
-    <div class="pd-cart-modal-backdrop" id="pdCartModalBackdrop"></div>
-    <div class="pd-cart-modal-dialog" role="dialog" aria-labelledby="pdCartModalTitle" aria-modal="true">
-        <div class="pd-cart-modal-icon"><i class="bi bi-bag-check-fill"></i></div>
-        <h3 class="pd-cart-modal-title" id="pdCartModalTitle">Added to cart</h3>
-        <p class="pd-cart-modal-text">Your items have been added to your shop cart.</p>
-        <div class="pd-cart-modal-actions">
-            <a href="{{ route('shop.cart') }}" class="pd-cart-modal-btn pd-cart-modal-btn--primary" id="pdCartModalGo">Go to Cart</a>
-            <button type="button" class="pd-cart-modal-btn pd-cart-modal-btn--ghost" id="pdCartModalContinue">Keep Shopping</button>
-        </div>
-    </div>
-</div>
 
 @endsection
 
@@ -304,6 +291,10 @@ product-page
         'display_decoration_included' => \App\Services\ShopPricingService::displayIncludedDecorationFee(),
         'colours' => $product['colours'],
         'pricing' => \App\Services\ShopPricingService::clientConfig(),
+        'customizer_url' => route('shop.product.customizer', [
+            'categorySlug' => $category['slug'],
+            'productSlug' => $product['slug'],
+        ]),
     ];
 @endphp
 window.__PRODUCT_DATA__ = @json($productData);
@@ -314,5 +305,5 @@ window.SHOP_ROUTES = {
 };
 </script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-<script src="{{ asset('assets/js/product-detail.js') }}?v=1.4"></script>
+<script src="{{ asset('assets/js/product-detail.js') }}?v=1.5"></script>
 @endpush

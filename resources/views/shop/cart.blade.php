@@ -93,6 +93,13 @@ cart-page
                                         @endforeach
                                     </div>
                                 @endif
+                                <div class="cc-item-actions-row">
+                                    @if(!$item->is_customized)
+                                        <a href="{{ $item->customizerUrl() }}" class="cc-customize-link">
+                                            <i class="bi bi-magic"></i> Complete your design
+                                        </a>
+                                    @endif
+                                </div>
                             </div>
                             <div class="cc-item-actions">
                                 <div class="cc-item-price">&pound;{{ number_format($item->lineTotal(), 2) }}</div>
