@@ -22,7 +22,12 @@
               $sizeLabel = $item->size_breakdown
                 ? collect($item->size_breakdown)->map(fn ($r) => ($r['size'] ?? '').' × '.($r['qty'] ?? 0))->implode(', ')
                 : ($item->size ?: '—');
-              $previewUrl = $item->design_file_path ? asset('storage/'.$item->design_file_path) : null;
+              $previewPath = collect($item->design_assets ?? [])
+                ->first(fn ($p) => is_string($p) && str_contains(basename($p), 'preview-'))
+                ?: ($item->design_file_path && ! str_contains(basename((string) $item->design_file_path), 'print-')
+                    ? $item->design_file_path
+                    : null);
+              $previewUrl = $previewPath ? asset('storage/'.$previewPath) : null;
               $hasDesign = !empty($item->design_data) || !empty($item->design_file_path);
             @endphp
             <tr>
@@ -53,7 +58,7 @@
             </tr>
             @if($hasDesign)
             <tr>
-              <td colspan="5" style="background:#fafafa">
+              <td colspan="5" class="ad-shop-design-cell">
                 <div class="ad-shop-design">
                   <div class="ad-shop-design-preview">
                     @if($previewUrl)
@@ -66,24 +71,24 @@
                     @endif
                   </div>
                   <div class="ad-shop-design-meta">
-                    <h4 style="margin:0 0 .4rem">Saved Design</h4>
+                    <h4>Saved Design</h4>
                     @if($placement)
-                      <p class="ad-muted" style="margin:0 0 .35rem">Placement: {{ $placement }}</p>
+                      <p>Placement: {{ $placement }}</p>
                     @endif
                     @if(!empty($item->design_data['view']))
-                      <p class="ad-muted" style="margin:0 0 .35rem">View: {{ ucfirst($item->design_data['view']) }}</p>
+                      <p>View: {{ ucfirst($item->design_data['view']) }}</p>
                     @endif
                     @php $layerCount = count($item->design_data['layers'] ?? []); @endphp
                     @if($layerCount)
-                      <p class="ad-muted" style="margin:0 0 .65rem">{{ $layerCount }} design element{{ $layerCount === 1 ? '' : 's' }}</p>
+                      <p>{{ $layerCount }} design element{{ $layerCount === 1 ? '' : 's' }}</p>
                     @endif
-                    <div style="display:flex;flex-wrap:wrap;gap:.5rem">
+                    <div class="ad-shop-design-actions">
                       @if($previewUrl)
                         <a class="ad-btn sm" href="{{ $previewUrl }}" target="_blank" rel="noopener">
                           <i class="bi bi-eye"></i> View
                         </a>
                       @endif
-                      <a class="ad-btn sm ghost" href="{{ route('admin.shop-orders.design.download', [$order, $item]) }}">
+                      <a class="ad-btn sm" href="{{ route('admin.shop-orders.design.download', [$order, $item]) }}">
                         <i class="bi bi-download"></i> Download Design
                       </a>
                     </div>
@@ -182,20 +187,25 @@
 
 @push('styles')
 <style>
+.ad-shop-design-cell{
+  background:var(--ad-surface-2) !important;
+  border-top:1px solid var(--ad-line);
+}
 .ad-shop-design{
   display:grid;
-  grid-template-columns:160px 1fr;
-  gap:1rem;
+  grid-template-columns:180px 1fr;
+  gap:1.1rem;
   align-items:center;
-  padding:.35rem 0;
+  padding:.55rem 0;
+  color:var(--ad-text);
 }
 .ad-shop-design-preview{
-  width:160px;
-  min-height:120px;
+  width:180px;
+  min-height:140px;
   border-radius:12px;
   overflow:hidden;
-  background:#f0f0f0;
-  border:1px solid rgba(0,0,0,.08);
+  background:#0f1115;
+  border:1px solid var(--ad-line);
   display:flex;
   align-items:center;
   justify-content:center;
@@ -203,7 +213,7 @@
 .ad-shop-design-preview img{
   width:100%;
   height:auto;
-  max-height:180px;
+  max-height:200px;
   object-fit:contain;
   display:block;
 }
@@ -213,11 +223,37 @@
   align-items:center;
   gap:.35rem;
   padding:1rem;
-  color:#888;
+  color:var(--ad-muted);
   font-size:.78rem;
   text-align:center;
 }
-.ad-shop-design-empty i{font-size:1.4rem;color:var(--ad-brand,#e85820)}
+.ad-shop-design-empty i{font-size:1.4rem;color:var(--ad-brand-hi)}
+.ad-shop-design-meta h4{
+  margin:0 0 .45rem;
+  color:var(--ad-text);
+  font-size:1rem;
+  font-weight:700;
+}
+.ad-shop-design-meta p{
+  margin:0 0 .35rem;
+  color:var(--ad-muted);
+  font-size:.86rem;
+}
+.ad-shop-design-actions{
+  display:flex;
+  flex-wrap:wrap;
+  gap:.5rem;
+  margin-top:.75rem;
+}
+.ad-shop-design-actions .ad-btn{
+  color:#fff !important;
+  background:var(--ad-brand);
+  border:none;
+}
+.ad-shop-design-actions .ad-btn:hover{
+  background:var(--ad-brand-hi);
+  color:#fff !important;
+}
 @media (max-width:720px){
   .ad-shop-design{grid-template-columns:1fr}
   .ad-shop-design-preview{width:100%}

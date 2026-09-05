@@ -1063,8 +1063,12 @@ document.addEventListener('DOMContentLoaded', function () {
       if (previewBlob) {
         formData.append('preview_image', previewBlob, 'preview.png');
       }
+      const printBlob = await exportPrintArtworkBlob();
+      if (printBlob) {
+        formData.append('print_image', printBlob, 'print-artwork.png');
+      }
     } catch {
-      // Preview export is optional
+      // Preview/print export is optional; design JSON still saves
     }
 
     pcmConfirmAddBtn.disabled = true;
@@ -1124,12 +1128,15 @@ document.addEventListener('DOMContentLoaded', function () {
     const wrap = document.getElementById('pcmPreviewCanvas');
     if (!wrap) return null;
 
+    // Print-ready mockup (~300 DPI equivalent for garment preview)
     const canvas = document.createElement('canvas');
-    const w = 400;
-    const h = 500;
+    const w = 2400;
+    const h = 3000;
     canvas.width = w;
     canvas.height = h;
     const ctx = canvas.getContext('2d');
+    ctx.imageSmoothingEnabled = true;
+    ctx.imageSmoothingQuality = 'high';
     ctx.fillStyle = '#f0f0f0';
     ctx.fillRect(0, 0, w, h);
 
@@ -1171,6 +1178,7 @@ document.addEventListener('DOMContentLoaded', function () {
         ctx.fillStyle = span?.style.color || el.style.color || '#fff';
         ctx.font = `${span?.style.fontStyle === 'italic' ? 'italic ' : ''}${span?.style.fontWeight || 'normal'} ${fontSize}px ${span?.style.fontFamily || 'sans-serif'}`;
         ctx.textAlign = 'center';
+        ctx.textBaseline = 'alphabetic';
         ctx.fillText((span?.textContent || el.textContent || '').trim(), lx + lw / 2, ly + fontSize);
       }
     }
@@ -1178,6 +1186,80 @@ document.addEventListener('DOMContentLoaded', function () {
     if (clip) ctx.restore();
 
     return new Promise(resolve => canvas.toBlob(resolve, 'image/png'));
+  }
+
+  /** High-res print-area only (transparent PNG) for production print/embroidery. */
+  async function exportPrintArtworkBlob() {
+    const bounds = getPrintAreaBounds();
+    if (!bounds) return null;
+
+    const refW = 620;
+    const refH = 775;
+    const pa = window.TEDesignPrintArea;
+    const clip = pa
+      ? pa.clipRect(refW, refH, bounds)
+      : {
+          x: (bounds.x / 100) * refW,
+          y: (bounds.y / 100) * refH,
+          w: (bounds.w / 100) * refW,
+          h: (bounds.h / 100) * refH,
+        };
+
+    if (!clip || clip.w <= 0 || clip.h <= 0) return null;
+
+    // ~300 DPI headroom for a typical chest/back print area
+    const targetW = 3600;
+    const scale = targetW / clip.w;
+    const outW = Math.round(clip.w * scale);
+    const outH = Math.round(clip.h * scale);
+
+    const canvasEl = document.createElement('canvas');
+    canvasEl.width = outW;
+    canvasEl.height = outH;
+    const ctx = canvasEl.getContext('2d');
+    ctx.imageSmoothingEnabled = true;
+    ctx.imageSmoothingQuality = 'high';
+    ctx.clearRect(0, 0, outW, outH);
+
+    const visibleLayers = state.layers.filter(l => l.view === state.view);
+    for (const layer of visibleLayers) {
+      if (pa && !pa.intersects(layer, bounds)) continue;
+
+      const lx = ((layer.x / 100) * refW - clip.x) * scale;
+      const ly = ((layer.y / 100) * refH - clip.y) * scale;
+      const lw = (layer.w / 100) * refW * scale;
+      const lh = (layer.h / 100) * refH * scale;
+
+      if (layer.type === 'image') {
+        const src = layer.src
+          || (layer.asset_path ? ((customizerData.storage_base || '/storage') + '/' + layer.asset_path) : '');
+        if (!src) continue;
+        const img = await loadImage(src);
+        if (img) ctx.drawImage(img, lx, ly, lw, lh);
+      } else {
+        // layer.fontSize is CSS px on the live canvas; scale to print pixels
+        const textSize = Math.max(12, Math.round((layer.fontSize || 16) * scale));
+        const italic = layer.fontWeight === 'italic' || layer.fontStyle === 'italic';
+        const weight = italic ? '400' : (layer.fontWeight || '700');
+        ctx.fillStyle = layer.colour || '#000000';
+        ctx.font = `${italic ? 'italic ' : ''}${weight} ${textSize}px ${layer.font || 'sans-serif'}`;
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(String(layer.text || '').trim(), lx + lw / 2, ly + lh / 2);
+      }
+    }
+
+    return new Promise(resolve => canvasEl.toBlob(resolve, 'image/png'));
+  }
+
+  function loadImage(src) {
+    return new Promise(resolve => {
+      const img = new Image();
+      img.crossOrigin = 'anonymous';
+      img.onload = () => resolve(img);
+      img.onerror = () => resolve(null);
+      img.src = src;
+    });
   }
 
   function drawImageToCanvas(ctx, img, x, y, w, h) {

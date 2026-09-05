@@ -84,11 +84,26 @@ class ShopOrderController extends Controller
     {
         abort_unless($item->shop_order_id === $shopOrder->id, 404);
 
-        $path = $item->design_file_path;
-        if (! $path || ! Storage::disk('public')->exists($path)) {
-            // Fall back to first stored design asset
-            $assets = $item->design_assets ?? [];
-            $path = collect($assets)->first(fn ($asset) => is_string($asset) && Storage::disk('public')->exists($asset));
+        $candidates = array_filter([
+            $item->design_data['print_file_path'] ?? null,
+            $item->design_file_path,
+        ]);
+
+        // Prefer print-* files from assets (high-res production artwork)
+        $assets = collect($item->design_assets ?? [])
+            ->filter(fn ($asset) => is_string($asset) && Storage::disk('public')->exists($asset));
+
+        $printAsset = $assets->first(fn ($asset) => str_contains(basename($asset), 'print-'));
+        if ($printAsset) {
+            array_unshift($candidates, $printAsset);
+        }
+
+        $path = collect($candidates)
+            ->filter(fn ($p) => is_string($p) && Storage::disk('public')->exists($p))
+            ->first();
+
+        if (! $path) {
+            $path = $assets->first();
         }
 
         if (! $path || ! Storage::disk('public')->exists($path)) {
@@ -96,10 +111,12 @@ class ShopOrderController extends Controller
         }
 
         $extension = pathinfo($path, PATHINFO_EXTENSION) ?: 'bin';
+        $isPrint = str_contains(basename($path), 'print-');
         $filename = sprintf(
-            '%s-item-%d-design.%s',
+            '%s-item-%d-%s.%s',
             $shopOrder->order_number,
             $item->id,
+            $isPrint ? 'print-artwork' : 'design',
             $extension
         );
 

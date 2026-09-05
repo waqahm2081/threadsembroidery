@@ -129,8 +129,9 @@ class ShopCartController extends Controller
             'quantity' => ['nullable', 'integer', 'min:1'],
             'size' => ['nullable', 'string'],
             'colour_name' => ['nullable', 'string'],
-            'preview_image' => ['nullable', 'file', 'mimes:png,jpg,jpeg,svg,webp', 'max:10240'],
-            'artwork_file' => ['nullable', 'file', 'mimes:png,jpg,jpeg,svg,webp', 'max:10240'],
+            'preview_image' => ['nullable', 'file', 'mimes:png,jpg,jpeg,svg,webp', 'max:40960'],
+            'print_image' => ['nullable', 'file', 'mimes:png,jpg,jpeg,svg,webp', 'max:40960'],
+            'artwork_file' => ['nullable', 'file', 'mimes:png,jpg,jpeg,svg,webp', 'max:40960'],
         ]);
 
         $designData = json_decode($validated['design_data'], true);
@@ -159,8 +160,20 @@ class ShopCartController extends Controller
                 'preview-'.Str::uuid().'.'.$request->file('preview_image')->getClientOriginalExtension(),
                 'public'
             );
+            $assetPaths[] = $previewPath;
         } elseif (! empty($designData['artwork']['asset_path'])) {
             $previewPath = $designData['artwork']['asset_path'];
+        }
+
+        $printPath = null;
+        if ($request->hasFile('print_image')) {
+            $printPath = $request->file('print_image')->storeAs(
+                $designDir,
+                'print-'.Str::uuid().'.'.$request->file('print_image')->getClientOriginalExtension(),
+                'public'
+            );
+            $designData['print_file_path'] = $printPath;
+            $assetPaths[] = $printPath;
         }
 
         $designJsonPath = $designDir.'/design-'.Str::uuid().'.json';
@@ -168,7 +181,8 @@ class ShopCartController extends Controller
 
         $item->update([
             'design_data' => $designData,
-            'design_file_path' => $previewPath ?? $designJsonPath,
+            // Mockup preview for UI; print_file_path (in design_data) used for production download
+            'design_file_path' => $previewPath ?? $printPath ?? $designJsonPath,
             'design_assets' => $assetPaths,
             'unit_price' => $validated['unit_price'],
             'decoration_fee' => $decorationFee,
