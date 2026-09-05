@@ -31,6 +31,7 @@
       <a href="{{ route('admin.bundles.index') }}" class="{{ $nav === 'bundles' ? 'active' : '' }}"><i class="bi bi-boxes"></i> Bundles</a>
       <a href="{{ route('admin.size-guides.index') }}" class="{{ $nav === 'size-charts' ? 'active' : '' }}"><i class="bi bi-rulers"></i> Size Charts</a>
       <a href="{{ route('admin.orders.index') }}" class="{{ $nav === 'orders' ? 'active' : '' }}"><i class="bi bi-box-seam"></i> Orders</a>
+      <a href="{{ route('admin.shop-orders.index') }}" class="{{ $nav === 'shop-orders' ? 'active' : '' }}"><i class="bi bi-bag-check"></i> Shop Orders</a>
       <a href="{{ route('admin.enquiries.index') }}" class="{{ $nav === 'enquiries' ? 'active' : '' }}"><i class="bi bi-chat-left-text"></i> Branding Enquiries</a>
       <a href="{{ route('admin.customizer') }}" class="{{ $nav === 'customizer' ? 'active' : '' }}"><i class="bi bi-sliders"></i> Product Customizer</a>
       <a href="{{ route('admin.product-quotes.index') }}" class="{{ $nav === 'product-quotes' ? 'active' : '' }}"><i class="bi bi-file-earmark-text"></i> Product Quotes</a>

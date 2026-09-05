@@ -5,6 +5,7 @@ use App\Http\Controllers\Admin\SchoolController as AdminSchoolController;
 use App\Http\Controllers\Admin\SchoolProductCategoryController as AdminSchoolCategoryController;
 use App\Http\Controllers\Admin\SchoolProductController as AdminSchoolProductController;
 use App\Http\Controllers\Admin\SchoolUniformOrderController as AdminSchoolUniformOrderController;
+use App\Http\Controllers\Admin\ShopOrderController as AdminShopOrderController;
 use App\Http\Controllers\Api\UniformShopController;
 use App\Http\Controllers\Admin\BrandingEnquiryController as AdminBrandingEnquiryController;
 use App\Http\Controllers\Admin\BundleController as AdminBundleController;
@@ -107,6 +108,11 @@ Route::prefix('admin')->name('admin.')->group(function () {
         Route::get('/orders', [AdminOrderController::class, 'index'])->name('orders.index');
         Route::get('/orders/{order}', [AdminOrderController::class, 'show'])->name('orders.show');
         Route::patch('/orders/{order}/status', [AdminOrderController::class, 'updateStatus'])->name('orders.status');
+
+        Route::get('/shop-orders', [AdminShopOrderController::class, 'index'])->name('shop-orders.index');
+        Route::get('/shop-orders/{shopOrder}', [AdminShopOrderController::class, 'show'])->name('shop-orders.show');
+        Route::patch('/shop-orders/{shopOrder}/status', [AdminShopOrderController::class, 'updateStatus'])->name('shop-orders.status');
+        Route::get('/shop-orders/{shopOrder}/items/{item}/design-download', [AdminShopOrderController::class, 'downloadDesign'])->name('shop-orders.design.download');
 
         Route::get('/enquiries', [AdminBrandingEnquiryController::class, 'index'])->name('enquiries.index');
         Route::get('/enquiries/{enquiry}', [AdminBrandingEnquiryController::class, 'show'])->name('enquiries.show');
