@@ -356,11 +356,29 @@ if ($missingStyles) {
     log_msg('All allowlisted style codes were present in the feed.');
 }
 
-// Clear category index cache if Laravel cache table exists (best-effort)
+// Clear Laravel category cache (database + file drivers)
 try {
     $pdo->exec("DELETE FROM cache WHERE `key` LIKE '%pc_category_index%'");
 } catch (Throwable $e) {
     // ignore — cache driver may not be database
+}
+
+// Also wipe file-cache entries that contain the category index key
+$cacheRoot = __DIR__ . '/storage/framework/cache/data';
+if (is_dir($cacheRoot)) {
+    $iterator = new RecursiveIteratorIterator(
+        new RecursiveDirectoryIterator($cacheRoot, FilesystemIterator::SKIP_DOTS)
+    );
+    foreach ($iterator as $file) {
+        if (! $file->isFile()) {
+            continue;
+        }
+        $contents = @file_get_contents($file->getPathname());
+        if (is_string($contents) && str_contains($contents, 'pc_category_index')) {
+            @unlink($file->getPathname());
+        }
+    }
+    log_msg('Cleared Laravel file cache entries for pc_category_index');
 }
 
 // Log success

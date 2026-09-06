@@ -65,9 +65,14 @@ class AppServiceProvider extends ServiceProvider
 
             try {
                 $shopCategories = app(ProductCatalogService::class)->getCategories();
+            } catch (\Throwable $e) {
+                report($e);
+            }
+
+            try {
                 $shopCartCount = app(ShopCartService::class)->itemCount();
-            } catch (\Throwable) {
-                // pc_products may be unavailable in some environments
+            } catch (\Throwable $e) {
+                report($e);
             }
 
             $view->with([

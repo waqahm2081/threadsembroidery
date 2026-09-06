@@ -405,56 +405,86 @@ class ProductCatalogService
         return null;
     }
 
+    private const CATEGORY_CACHE_KEY = 'pc_category_index_v3';
+
     private function buildCategoryIndex(): array
     {
         if ($this->categoryIndex !== null) {
             return $this->categoryIndex;
         }
 
-        return $this->categoryIndex = Cache::remember('pc_category_index_v2', now()->addHour(), function () {
-            $index = [];
+        $cached = Cache::get(self::CATEGORY_CACHE_KEY);
+        if (is_array($cached) && $cached !== []) {
+            return $this->categoryIndex = $cached;
+        }
 
-            // One row per product style — avoids counting every colour/size SKU.
-            foreach (
-                PcProduct::active()
-                    ->whereNotNull('categories')
-                    ->whereNotNull('style_code')
-                    ->where('style_code', '!=', '')
-                    ->selectRaw('style_code, MIN(categories) as categories')
-                    ->groupBy('style_code')
-                    ->cursor() as $row
-            ) {
-                $styleCode = strtoupper(trim((string) $row->style_code));
-                if ($styleCode === '') {
-                    continue;
-                }
+        $index = $this->computeCategoryIndex();
 
-                foreach ($this->parseCategoryNames($row->categories) as $name) {
-                    $slug = $this->categorySlug($name);
-                    if (! isset($index[$slug])) {
-                        $index[$slug] = [
-                            'name' => $name,
-                            'slug' => $slug,
-                            'count' => 0,
-                            'style_codes' => [],
-                        ];
-                    }
+        // Never cache an empty index — that hides categories for up to an hour
+        // after a failed import / empty DB moment on live.
+        if ($index !== []) {
+            Cache::put(self::CATEGORY_CACHE_KEY, $index, now()->addHour());
+        } else {
+            Cache::forget(self::CATEGORY_CACHE_KEY);
+        }
 
-                    if (! isset($index[$slug]['style_codes'][$styleCode])) {
-                        $index[$slug]['style_codes'][$styleCode] = true;
-                    }
-                }
+        return $this->categoryIndex = $index;
+    }
+
+    /**
+     * @return array<string, array{name:string,slug:string,count:int,style_codes:array<string,bool>}>
+     */
+    private function computeCategoryIndex(): array
+    {
+        $index = [];
+
+        // One row per product style — avoids counting every colour/size SKU.
+        foreach (
+            PcProduct::active()
+                ->whereNotNull('categories')
+                ->whereNotNull('style_code')
+                ->where('style_code', '!=', '')
+                ->selectRaw('style_code, MIN(categories) as categories')
+                ->groupBy('style_code')
+                ->cursor() as $row
+        ) {
+            $styleCode = strtoupper(trim((string) $row->style_code));
+            if ($styleCode === '') {
+                continue;
             }
 
-            foreach ($index as &$category) {
-                $category['count'] = count($category['style_codes']);
+            foreach ($this->parseCategoryNames($row->categories) as $name) {
+                $slug = $this->categorySlug($name);
+                if (! isset($index[$slug])) {
+                    $index[$slug] = [
+                        'name' => $name,
+                        'slug' => $slug,
+                        'count' => 0,
+                        'style_codes' => [],
+                    ];
+                }
+
+                if (! isset($index[$slug]['style_codes'][$styleCode])) {
+                    $index[$slug]['style_codes'][$styleCode] = true;
+                }
             }
-            unset($category);
+        }
 
-            uasort($index, fn ($a, $b) => strcasecmp($a['name'], $b['name']));
+        foreach ($index as &$category) {
+            $category['count'] = count($category['style_codes']);
+        }
+        unset($category);
 
-            return $index;
-        });
+        uasort($index, fn ($a, $b) => strcasecmp($a['name'], $b['name']));
+
+        return $index;
+    }
+
+    public function clearCategoryCache(): void
+    {
+        Cache::forget(self::CATEGORY_CACHE_KEY);
+        Cache::forget('pc_category_index_v2');
+        $this->categoryIndex = null;
     }
 
     /**
