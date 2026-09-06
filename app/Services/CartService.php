@@ -156,7 +156,7 @@ class CartService
         $bundle = Bundle::query()
             ->where('slug', $data['bundle_slug'])
             ->where('is_active', true)
-            ->with('garments')
+            ->with(['garments.colours'])
             ->firstOrFail();
 
         $method = $data['method'];
@@ -165,6 +165,7 @@ class CartService
         }
 
         $sizeBreakdown = $data['sizes'] ?? [];
+        $garmentColours = $data['garment_colours'] ?? [];
         foreach ($bundle->garments as $index => $garment) {
             $row = $sizeBreakdown[(string) $index] ?? $sizeBreakdown[$index] ?? [];
             $sum = collect($row)->sum(fn ($v) => (int) $v);
@@ -172,6 +173,18 @@ class CartService
                 throw ValidationException::withMessages([
                     'sizes' => "Sizes for {$garment->label} must total {$garment->qty}.",
                 ]);
+            }
+
+            $allowed = $garment->colours->where('is_active', true);
+            if ($allowed->isNotEmpty()) {
+                $chosen = $garmentColours[(string) $index]['name']
+                    ?? $garmentColours[$index]['name']
+                    ?? null;
+                if (! $chosen || ! $allowed->contains(fn ($c) => strcasecmp($c->name, (string) $chosen) === 0)) {
+                    throw ValidationException::withMessages([
+                        'garment_colours' => "Please choose a valid colour for {$garment->label}.",
+                    ]);
+                }
             }
         }
 
@@ -219,11 +232,17 @@ class CartService
             'colour_hex' => $data['colour_hex'] ?? null,
             'method' => $method === 'embroidery' ? 'Embroidery' : 'DTF Print',
             'size_breakdown' => $sizeBreakdown,
-            'garments_snapshot' => $bundle->garments->map(fn ($g) => [
-                'label' => $g->label,
-                'qty' => $g->qty,
-                'cat' => $g->category_slug,
-            ])->values()->all(),
+            'garments_snapshot' => $bundle->garments->values()->map(function ($g, $i) use ($garmentColours) {
+                $colour = $garmentColours[(string) $i] ?? $garmentColours[$i] ?? [];
+
+                return [
+                    'label' => $g->label,
+                    'qty' => $g->qty,
+                    'cat' => $g->category_slug,
+                    'colour_name' => $colour['name'] ?? null,
+                    'colour_hex' => $colour['hex'] ?? null,
+                ];
+            })->all(),
             'addons' => $addons,
             'quantity' => $totalGarments,
             'base_price' => $basePrice,

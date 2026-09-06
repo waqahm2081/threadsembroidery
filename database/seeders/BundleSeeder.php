@@ -3,14 +3,18 @@
 namespace Database\Seeders;
 
 use App\Models\Bundle;
+use App\Models\BundleColour;
 use App\Models\PlacementOption;
 use App\Models\SizeGuide;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Str;
 
 class BundleSeeder extends Seeder
 {
     public function run(): void
     {
+        $colourIds = $this->seedColours();
+
         foreach ($this->sizeGuides() as $i => $guide) {
             SizeGuide::updateOrCreate(['key' => $guide['key']], [
                 ...$guide,
@@ -45,15 +49,107 @@ class BundleSeeder extends Seeder
 
             $bundle->garments()->delete();
             foreach ($garments as $j => $garment) {
-                $bundle->garments()->create([
+                $row = $bundle->garments()->create([
                     'category_slug' => $garment['cat'],
                     'qty' => $garment['qty'],
                     'label' => $garment['label'],
                     'size_guide_key' => $garment['guide'],
                     'sort_order' => $j,
                 ]);
+
+                $names = $this->coloursForGarment($garment['cat'], $garment['label']);
+                $sync = [];
+                foreach ($names as $ci => $name) {
+                    $id = $colourIds[$name] ?? null;
+                    if ($id) {
+                        $sync[$id] = ['sort_order' => $ci];
+                    }
+                }
+                if ($sync !== []) {
+                    $row->colours()->sync($sync);
+                }
             }
         }
+    }
+
+    /** @return array<string, int> */
+    private function seedColours(): array
+    {
+        $map = [];
+        foreach ($this->colourPalette() as $i => $colour) {
+            $row = BundleColour::updateOrCreate(
+                ['slug' => Str::slug($colour['name'])],
+                [
+                    'name' => $colour['name'],
+                    'hex' => $colour['hex'],
+                    'sort_order' => $i,
+                    'is_active' => true,
+                ]
+            );
+            $map[$colour['name']] = $row->id;
+        }
+
+        return $map;
+    }
+
+    /** @return list<array{name:string,hex:string}> */
+    private function colourPalette(): array
+    {
+        return [
+            ['name' => 'Black', 'hex' => '#1c1c1c'],
+            ['name' => 'Graphite Grey', 'hex' => '#5a5e63'],
+            ['name' => 'Navy', 'hex' => '#1f2a44'],
+            ['name' => 'Oxford Navy', 'hex' => '#152238'],
+            ['name' => 'Burgundy', 'hex' => '#6e1d2c'],
+            ['name' => 'Carbon', 'hex' => '#2f3336'],
+            ['name' => 'Charcoal', 'hex' => '#3d4349'],
+            ['name' => 'Eco Raw', 'hex' => '#cbb89a'],
+            ['name' => 'Forest Green', 'hex' => '#1e3d2f'],
+            ['name' => 'Grey Marl', 'hex' => '#8b8f94'],
+            ['name' => 'Khaki', 'hex' => '#8a7a4b'],
+            ['name' => 'Lavender', 'hex' => '#9b8bb8'],
+            ['name' => 'Stone', 'hex' => '#c5bba8'],
+            ['name' => 'Teal', 'hex' => '#1f6f6a'],
+            ['name' => 'White', 'hex' => '#f4f4f2'],
+            ['name' => 'Desert Sand', 'hex' => '#c2a57a'],
+            ['name' => 'Light Blue', 'hex' => '#7ba3c9'],
+            ['name' => 'Pink', 'hex' => '#d48aa8'],
+            ['name' => 'Red', 'hex' => '#b4232a'],
+            ['name' => 'Yellow', 'hex' => '#f5d000'],
+            ['name' => 'Orange', 'hex' => '#ff6a00'],
+        ];
+    }
+
+    /** @return list<string> */
+    private function coloursForGarment(string $categorySlug, string $label): array
+    {
+        $labelLower = strtolower($label);
+
+        if ($categorySlug === 'hi-vis') {
+            if (str_contains($labelLower, 'vest')) {
+                return ['Yellow'];
+            }
+
+            return ['Orange', 'Yellow'];
+        }
+
+        return match ($categorySlug) {
+            'polos' => ['Black', 'Graphite Grey', 'Navy'],
+            'jackets' => ['Black', 'Navy'],
+            't-shirts' => [
+                'Black', 'Burgundy', 'Carbon', 'Charcoal', 'Eco Raw', 'Forest Green',
+                'Grey Marl', 'Khaki', 'Lavender', 'Navy', 'Stone', 'Teal', 'White',
+            ],
+            'sweatshirts' => [
+                'Black', 'Burgundy', 'Charcoal', 'Desert Sand', 'Forest Green', 'Grey Marl',
+                'Light Blue', 'Navy', 'Pink', 'Red', 'White',
+            ],
+            'hoods' => [
+                'Black', 'Burgundy', 'Charcoal', 'Desert Sand', 'Grey Marl',
+                'Light Blue', 'Navy', 'Oxford Navy', 'Red',
+            ],
+            default => ['Black', 'Navy', 'White'],
+        };
     }
 
     private function sizeGuides(): array

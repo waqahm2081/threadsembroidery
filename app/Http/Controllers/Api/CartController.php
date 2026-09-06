@@ -40,18 +40,27 @@ class CartController extends Controller
             $libraryIds = json_decode($libraryIds, true) ?: [];
         }
 
+        $garmentColours = $request->input('garment_colours', []);
+        if (is_string($garmentColours)) {
+            $garmentColours = json_decode($garmentColours, true) ?: [];
+        }
+
         $request->merge([
             'sizes' => $sizes,
             'addons' => $addons,
             'artwork_labels' => $artworkLabels,
             'artwork_library' => $libraryIds,
+            'garment_colours' => $garmentColours,
         ]);
 
         $data = $request->validate([
             'bundle_slug' => ['required', 'string'],
             'method' => ['required', 'in:embroidery,print'],
-            'colour_name' => ['required', 'string', 'max:100'],
+            'colour_name' => ['required', 'string', 'max:255'],
             'colour_hex' => ['nullable', 'string', 'max:20'],
+            'garment_colours' => ['nullable', 'array'],
+            'garment_colours.*.name' => ['nullable', 'string', 'max:80'],
+            'garment_colours.*.hex' => ['nullable', 'string', 'max:20'],
             'sizes' => ['required', 'array'],
             'addons' => ['nullable', 'array'],
             'addons.*' => ['string'],

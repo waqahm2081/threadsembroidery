@@ -41,6 +41,11 @@
 .bb-gline .top{display:flex;justify-content:space-between;align-items:center;margin-bottom:.6rem}
 .bb-gline .top b{font-size:.95rem}
 .bb-gline .top .q{font-size:.8rem;color:var(--muted)}
+.bb-gcolours{display:flex;align-items:center;flex-wrap:wrap;gap:.45rem .65rem;margin-bottom:.7rem}
+.bb-gcolour-label{font-size:.78rem;color:var(--muted-2);font-weight:600}
+.bb-gcolour-name{font-size:.82rem;color:var(--text);font-weight:600}
+.bb-gcolours .bb-swatches{gap:.35rem}
+.bb-gcolours .bb-swatches button{width:26px;height:26px}
 .bb-sizes{display:grid;grid-template-columns:repeat(8,1fr);gap:.35rem}
 .bb-sizes .c{text-align:center}
 .bb-sizes .c .s{font-size:.68rem;color:var(--muted);margin-bottom:.2rem}

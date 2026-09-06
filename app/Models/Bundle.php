@@ -48,12 +48,21 @@ class Bundle extends Model
             'includes' => $this->includes->pluck('text')->values()->all(),
             'garmentCats' => $this->garments->pluck('category_slug')->unique()->values()->all(),
             'methods' => $this->methods ?? [],
-            'baseGarments' => $this->garments->map(fn (BundleGarment $g) => [
-                'cat' => $g->category_slug,
-                'qty' => (int) $g->qty,
-                'label' => $g->label,
-                'guide' => $g->size_guide_key,
-            ])->values()->all(),
+            'baseGarments' => $this->garments->map(function (BundleGarment $g) {
+                $colours = $g->colours
+                    ->where('is_active', true)
+                    ->values()
+                    ->map(fn (BundleColour $c) => $c->toFrontend())
+                    ->all();
+
+                return [
+                    'cat' => $g->category_slug,
+                    'qty' => (int) $g->qty,
+                    'label' => $g->label,
+                    'guide' => $g->size_guide_key,
+                    'colours' => $colours,
+                ];
+            })->values()->all(),
         ];
     }
 }

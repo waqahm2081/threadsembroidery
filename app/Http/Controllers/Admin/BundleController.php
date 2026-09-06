@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Bundle;
+use App\Models\BundleColour;
 use App\Models\SizeGuide;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -45,8 +46,9 @@ class BundleController extends Controller
             ]),
             'mode' => 'create',
             'sizeGuides' => SizeGuide::query()->orderBy('sort_order')->get(),
+            'allColours' => BundleColour::query()->where('is_active', true)->orderBy('sort_order')->orderBy('name')->get(),
             'includes' => [''],
-            'garments' => [['category_slug' => '', 'qty' => 1, 'label' => '', 'size_guide_key' => '']],
+            'garments' => [['category_slug' => '', 'qty' => 1, 'label' => '', 'size_guide_key' => '', 'colour_ids' => []]],
         ]);
     }
 
@@ -61,7 +63,7 @@ class BundleController extends Controller
 
     public function edit(Bundle $bundle): View
     {
-        $bundle->load(['includes', 'garments']);
+        $bundle->load(['includes', 'garments.colours']);
 
         $includes = $bundle->includes->pluck('text')->all();
         if ($includes === []) {
@@ -73,9 +75,10 @@ class BundleController extends Controller
             'qty' => $g->qty,
             'label' => $g->label,
             'size_guide_key' => $g->size_guide_key,
+            'colour_ids' => $g->colours->pluck('id')->all(),
         ])->all();
         if ($garments === []) {
-            $garments = [['category_slug' => '', 'qty' => 1, 'label' => '', 'size_guide_key' => '']];
+            $garments = [['category_slug' => '', 'qty' => 1, 'label' => '', 'size_guide_key' => '', 'colour_ids' => []]];
         }
 
         return view('admin.bundles.form', [
@@ -86,6 +89,7 @@ class BundleController extends Controller
             'bundle' => $bundle,
             'mode' => 'edit',
             'sizeGuides' => SizeGuide::query()->orderBy('sort_order')->get(),
+            'allColours' => BundleColour::query()->where('is_active', true)->orderBy('sort_order')->orderBy('name')->get(),
             'includes' => $includes,
             'garments' => $garments,
         ]);
@@ -137,6 +141,8 @@ class BundleController extends Controller
             'garments.*.qty' => ['nullable', 'integer', 'min:1'],
             'garments.*.label' => ['nullable', 'string', 'max:120'],
             'garments.*.size_guide_key' => ['nullable', 'string', 'max:80'],
+            'garments.*.colour_ids' => ['nullable', 'array'],
+            'garments.*.colour_ids.*' => ['integer', 'exists:bundle_colours,id'],
         ]);
     }
 
@@ -177,13 +183,22 @@ class BundleController extends Controller
             if (! filled($garment['label'] ?? null) && ! filled($garment['category_slug'] ?? null)) {
                 continue;
             }
-            $bundle->garments()->create([
+            $row = $bundle->garments()->create([
                 'category_slug' => $garment['category_slug'] ?: 'general',
                 'qty' => max(1, (int) ($garment['qty'] ?? 1)),
                 'label' => $garment['label'] ?: 'Garment',
                 'size_guide_key' => $garment['size_guide_key'] ?: null,
                 'sort_order' => $order++,
             ]);
+
+            $colourIds = array_values(array_unique(array_map('intval', $garment['colour_ids'] ?? [])));
+            if ($colourIds !== []) {
+                $sync = [];
+                foreach ($colourIds as $ci => $colourId) {
+                    $sync[$colourId] = ['sort_order' => $ci];
+                }
+                $row->colours()->sync($sync);
+            }
         }
     }
 }

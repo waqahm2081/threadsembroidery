@@ -67,9 +67,11 @@
     <button type="button" class="ad-btn ghost sm" id="addInclude"><i class="bi bi-plus"></i> Add include</button>
 
     <h3 class="ad-section-title">Garments</h3>
+    <p class="muted" style="margin:0 0 .8rem">Assign available colours for each garment. Manage the palette under the Colours tab.</p>
     <div id="garmentsList" class="ad-repeat">
       @foreach(old('garments', $garments) as $i => $g)
-        <div class="ad-repeat-row ad-garment-row">
+        @php $selectedColours = collect($g['colour_ids'] ?? [])->map(fn ($id) => (int) $id)->all(); @endphp
+        <div class="ad-repeat-row ad-garment-row" style="flex-wrap:wrap;align-items:flex-start">
           <input class="ad-input" name="garments[{{ $i }}][label]" value="{{ $g['label'] ?? '' }}" placeholder="Label">
           <input class="ad-input" name="garments[{{ $i }}][category_slug]" value="{{ $g['category_slug'] ?? '' }}" placeholder="Category slug" list="catList">
           <input class="ad-input" type="number" min="1" name="garments[{{ $i }}][qty]" value="{{ $g['qty'] ?? 1 }}" placeholder="Qty">
@@ -80,6 +82,17 @@
             @endforeach
           </select>
           <button type="button" class="ad-btn ghost sm" data-remove>Remove</button>
+          <div class="ad-garment-colours" style="flex:1 1 100%;display:flex;flex-wrap:wrap;gap:.45rem .75rem;padding:.35rem 0 .2rem">
+            @forelse($allColours as $colour)
+              <label class="ad-check" style="margin:0;font-size:.82rem">
+                <input type="checkbox" name="garments[{{ $i }}][colour_ids][]" value="{{ $colour->id }}" @checked(in_array((int) $colour->id, $selectedColours, true))>
+                <span style="display:inline-block;width:12px;height:12px;border-radius:50%;background:{{ $colour->hex }};border:1px solid rgba(255,255,255,.2);vertical-align:middle;margin-right:.25rem"></span>
+                {{ $colour->name }}
+              </label>
+            @empty
+              <span class="muted" style="font-size:.82rem">No colours yet — add some under the Colours tab.</span>
+            @endforelse
+          </div>
         </div>
       @endforeach
     </div>
@@ -102,7 +115,7 @@
   </div>
 </template>
 <template id="garmentTpl">
-  <div class="ad-repeat-row ad-garment-row">
+  <div class="ad-repeat-row ad-garment-row" style="flex-wrap:wrap;align-items:flex-start">
     <input class="ad-input" data-name="label" placeholder="Label">
     <input class="ad-input" data-name="category_slug" placeholder="Category slug" list="catList">
     <input class="ad-input" type="number" min="1" data-name="qty" value="1" placeholder="Qty">
@@ -113,6 +126,15 @@
       @endforeach
     </select>
     <button type="button" class="ad-btn ghost sm" data-remove>Remove</button>
+    <div class="ad-garment-colours" data-colours style="flex:1 1 100%;display:flex;flex-wrap:wrap;gap:.45rem .75rem;padding:.35rem 0 .2rem">
+      @foreach($allColours as $colour)
+        <label class="ad-check" style="margin:0;font-size:.82rem">
+          <input type="checkbox" data-colour-id="{{ $colour->id }}" value="{{ $colour->id }}">
+          <span style="display:inline-block;width:12px;height:12px;border-radius:50%;background:{{ $colour->hex }};border:1px solid rgba(255,255,255,.2);vertical-align:middle;margin-right:.25rem"></span>
+          {{ $colour->name }}
+        </label>
+      @endforeach
+    </div>
   </div>
 </template>
 <script>
@@ -128,6 +150,10 @@
     node.querySelectorAll('[data-name]').forEach(el => {
       el.name = `garments[${idx}][${el.dataset.name}]`;
       el.removeAttribute('data-name');
+    });
+    node.querySelectorAll('[data-colour-id]').forEach(el => {
+      el.name = `garments[${idx}][colour_ids][]`;
+      el.removeAttribute('data-colour-id');
     });
     garments.appendChild(node);
   });

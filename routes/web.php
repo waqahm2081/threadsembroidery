@@ -9,6 +9,7 @@ use App\Http\Controllers\Admin\ShopOrderController as AdminShopOrderController;
 use App\Http\Controllers\Api\UniformShopController;
 use App\Http\Controllers\Admin\BrandingEnquiryController as AdminBrandingEnquiryController;
 use App\Http\Controllers\Admin\BundleController as AdminBundleController;
+use App\Http\Controllers\Admin\BundleColourController as AdminBundleColourController;
 use App\Http\Controllers\Admin\DashboardController as AdminDashboardController;
 use App\Http\Controllers\Admin\OrderController as AdminOrderController;
 use App\Http\Controllers\Admin\PlacementOptionController as AdminPlacementOptionController;
@@ -105,6 +106,7 @@ Route::prefix('admin')->name('admin.')->group(function () {
         Route::resource('bundles', AdminBundleController::class)->except(['show']);
         Route::resource('size-guides', AdminSizeGuideController::class)->except(['show']);
         Route::resource('placements', AdminPlacementOptionController::class)->except(['show']);
+        Route::resource('colours', AdminBundleColourController::class)->except(['show']);
         Route::get('/orders', [AdminOrderController::class, 'index'])->name('orders.index');
         Route::get('/orders/{order}', [AdminOrderController::class, 'show'])->name('orders.show');
         Route::patch('/orders/{order}/status', [AdminOrderController::class, 'updateStatus'])->name('orders.status');

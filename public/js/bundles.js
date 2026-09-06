@@ -3,8 +3,25 @@
    ============================================================ */
 (function(){
   const T=window.THREADS, C=T.CONFIG, U=T.util, money=U.money;
-  const PALETTE = T.BUNDLE_COLOURS || [{name:'Black',hex:'#1c1c1c'},{name:'Navy',hex:'#1f2a44'},{name:'White',hex:'#f4f4f2'},{name:'Red',hex:'#b4232a'},{name:'Royal Blue',hex:'#1f5fd0'},{name:'Bottle Green',hex:'#12432c'},{name:'Grey',hex:'#6b6f76'},{name:'Purple',hex:'#5b2a86'}];
-  const state={bundle:null,colour:PALETTE[0],method:null,addons:{},sizes:{},step:1,artwork:{}};
+  const PALETTE = T.BUNDLE_COLOURS || [{name:'Black',hex:'#1c1c1c'},{name:'Navy',hex:'#1f2a44'},{name:'White',hex:'#f4f4f2'}];
+  const state={bundle:null,colours:{},method:null,addons:{},sizes:{},step:1,artwork:{}};
+
+  function garmentPalette(g){
+    if (Array.isArray(g?.colours) && g.colours.length) return g.colours;
+    return PALETTE;
+  }
+
+  function colourSummary(){
+    const b=state.bundle;
+    if(!b) return '—';
+    const names=b.baseGarments.map((g,gi)=>{
+      const c=state.colours[gi]||garmentPalette(g)[0];
+      return `${g.label}: ${c?.name||'—'}`;
+    });
+    const unique=[...new Set(b.baseGarments.map((g,gi)=>(state.colours[gi]||garmentPalette(g)[0])?.name).filter(Boolean))];
+    if(unique.length===1) return unique[0];
+    return names.join(' · ');
+  }
 
   function totalGarments(b){ return b.baseGarments.reduce((s,g)=>s+g.qty,0); }
   function placements(){ return T.BUNDLE_PLACEMENTS || C.placements || []; }
@@ -46,9 +63,14 @@
 
   function openBuilder(id){
     const b=THREADS.BUNDLES.find(x=>x.id===id); if(!b) return;
-    state.bundle=b; state.colour=PALETTE[0]; state.method=b.methods[0]; state.addons={}; state.sizes={}; state.step=1;
+    state.bundle=b; state.colours={}; state.method=b.methods[0]; state.addons={}; state.sizes={}; state.step=1;
     clearArtwork();
-    b.baseGarments.forEach((g,gi)=>{ state.sizes[gi]={}; C.sizeScale.forEach(s=>state.sizes[gi][s]=0); state.sizes[gi]['M']=g.qty; });
+    b.baseGarments.forEach((g,gi)=>{
+      state.sizes[gi]={};
+      C.sizeScale.forEach(s=>state.sizes[gi][s]=0);
+      state.sizes[gi]['M']=g.qty;
+      state.colours[gi]=garmentPalette(g)[0];
+    });
     drawBuilder();
     document.getElementById('bundleModal').classList.add('open');
   }
@@ -86,21 +108,35 @@
     const methodBtns=b.methods.map(m=>{const lbl=m==='embroidery'?'Embroidery':'DTF / Print';return `<button class="${state.method===m?'active':''}" data-m="${m}">${lbl}</button>`}).join('');
     body.innerHTML=`
       <div>
-        <div class="bb-block"><h4>1 · Colour</h4><div class="bb-swatches" id="bbColours">${PALETTE.map((c,i)=>`<button class="${state.colour.name===c.name?'active':''}" style="background:${c.hex}" data-i="${i}" title="${c.name}"></button>`).join('')}</div>
-          <p class="help mt-1">Selected: <b id="bbColourName" style="color:var(--text)">${state.colour.name}</b></p></div>
-        <div class="bb-block"><h4>2 · Branding Method</h4><div class="seg" id="bbMethod" style="max-width:320px">${methodBtns}</div></div>
-        <div class="bb-block"><h4>3 · Sizes per garment <span class="muted" style="text-transform:none;letter-spacing:0">(included in price)</span>
+        <div class="bb-block"><h4>1 · Branding Method</h4><div class="seg" id="bbMethod" style="max-width:320px">${methodBtns}</div></div>
+        <div class="bb-block"><h4>2 · Colour &amp; sizes per garment <span class="muted" style="text-transform:none;letter-spacing:0">(included in price)</span>
           <button type="button" class="bb-size-link" data-size-guide="${b.id}"><i class="bi bi-rulers"></i> Size Guide</button></h4>
-          <div class="bb-garments" id="bbGarments">${b.baseGarments.map((g,gi)=>`
-            <div class="bb-gline"><div class="top"><b>${g.label}</b><span class="q" data-gq="${gi}">0 / ${g.qty}</span></div>
-              <div class="bb-sizes">${C.sizeScale.map(s=>`<div class="c"><div class="s">${s}</div><input type="number" min="0" value="${state.sizes[gi][s]||0}" data-g="${gi}" data-s="${s}" inputmode="numeric"></div>`).join('')}</div></div>`).join('')}</div></div>
-        <div class="bb-block"><h4>4 · Add extra placements <span class="muted" style="text-transform:none;letter-spacing:0">(left chest included)</span></h4>
+          <div class="bb-garments" id="bbGarments">${b.baseGarments.map((g,gi)=>{
+            const palette=garmentPalette(g);
+            const selected=state.colours[gi]||palette[0];
+            return `
+            <div class="bb-gline">
+              <div class="top"><b>${g.label}</b><span class="q" data-gq="${gi}">0 / ${g.qty}</span></div>
+              <div class="bb-gcolours">
+                <span class="bb-gcolour-label">Colour:</span>
+                <div class="bb-swatches" data-gcolour="${gi}">${palette.map((c,ci)=>`<button type="button" class="${selected?.name===c.name?'active':''}" style="background:${c.hex}" data-gi="${gi}" data-ci="${ci}" title="${c.name}"></button>`).join('')}</div>
+                <span class="bb-gcolour-name">${selected?.name||'—'}</span>
+              </div>
+              <div class="bb-sizes">${C.sizeScale.map(s=>`<div class="c"><div class="s">${s}</div><input type="number" min="0" value="${state.sizes[gi][s]||0}" data-g="${gi}" data-s="${s}" inputmode="numeric"></div>`).join('')}</div>
+            </div>`;
+          }).join('')}</div></div>
+        <div class="bb-block"><h4>3 · Add extra placements <span class="muted" style="text-transform:none;letter-spacing:0">(left chest included)</span></h4>
           <div class="bb-addons" id="bbAddons">${addonPlacements().map(p=>`
             <div class="bb-addon ${state.addons[p.id]?'on':''}" data-a="${p.id}"><span class="chk"><i class="bi bi-check-lg"></i></span><span class="lb">${p.label}</span><span class="pr">+${money(p.price)}/garment</span></div>`).join('')}</div></div>
       </div>
       <div class="bb-side" id="bbSide"></div>`;
-    body.querySelectorAll('#bbColours button').forEach(bt=>bt.onclick=()=>{state.colour=PALETTE[+bt.dataset.i];drawBuilder();});
     body.querySelectorAll('#bbMethod button').forEach(bt=>bt.onclick=()=>{state.method=bt.dataset.m;state.addons={};drawBuilder();});
+    body.querySelectorAll('[data-gcolour] button').forEach(bt=>bt.onclick=()=>{
+      const gi=+bt.dataset.gi;
+      const palette=garmentPalette(b.baseGarments[gi]);
+      state.colours[gi]=palette[+bt.dataset.ci];
+      drawBuilder();
+    });
     body.querySelectorAll('#bbGarments input').forEach(inp=>inp.oninput=()=>{ state.sizes[inp.dataset.g][inp.dataset.s]=Math.max(0,+inp.value||0); updateGQ(); drawSide(); });
     body.querySelectorAll('#bbAddons .bb-addon').forEach(a=>a.onclick=()=>{ const id=a.dataset.a; state.addons[id]=!state.addons[id]; a.classList.toggle('on',state.addons[id]); drawSide(); });
     updateGQ(); drawSide();
@@ -256,7 +292,7 @@
         <div class="line"><span>Bundle base (${c.tg} garments)</span><b>${money(b.price)}</b></div>
         <div class="line"><span>Left chest branding</span><b>Included</b></div>
         <div class="line"><span>Extra placements</span><b>${c.addon?money(c.addon):'—'}</b></div>
-        <div class="line"><span>Colour</span><b>${state.colour.name}</b></div>
+        <div class="line"><span>Colour</span><b>${colourSummary()}</b></div>
         <div class="line"><span>Method</span><b>${state.method==='embroidery'?'Embroidery':'DTF Print'}</b></div>
         <div class="tot"><div><div style="font-size:.74rem;color:var(--muted)">${vat?'inc':'ex'} VAT</div><label class="vat-switch" style="font-size:.78rem;color:var(--muted);display:flex;gap:.4rem;align-items:center;cursor:pointer"><input type="checkbox" id="bbVat" ${vat?'checked':''} style="accent-color:var(--brand)"> inc VAT</label></div><div class="big">${U.show(c.sub,vat)}</div></div>
         <button class="btn btn--block mt-3" id="bbNext"><i class="bi bi-arrow-right"></i> Continue to Artwork</button>
@@ -286,11 +322,19 @@
     const btn=document.getElementById('bbAdd')||document.getElementById('bbSkip');
     if(btn){ btn.disabled=true; btn.innerHTML='<i class="bi bi-hourglass-split"></i> Adding…'; }
 
+    const colourPayload={};
+    state.bundle.baseGarments.forEach((g,gi)=>{
+      const c=state.colours[gi]||garmentPalette(g)[0];
+      colourPayload[gi]={name:c?.name||'',hex:c?.hex||''};
+    });
+    const uniqueNames=[...new Set(Object.values(colourPayload).map(c=>c.name).filter(Boolean))];
+
     const fd=new FormData();
     fd.append('bundle_slug', state.bundle.id);
     fd.append('method', state.method);
-    fd.append('colour_name', state.colour.name);
-    fd.append('colour_hex', state.colour.hex||'');
+    fd.append('colour_name', uniqueNames.length===1 ? uniqueNames[0] : uniqueNames.join(' / '));
+    fd.append('colour_hex', uniqueNames.length===1 ? (colourPayload[0]?.hex||'') : '');
+    fd.append('garment_colours', JSON.stringify(colourPayload));
     fd.append('sizes', JSON.stringify(state.sizes));
     Object.keys(state.addons).filter(id=>state.addons[id]).forEach(id=>fd.append('addons[]', id));
 
