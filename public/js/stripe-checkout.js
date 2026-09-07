@@ -4,12 +4,13 @@
 
   const STYLE = {
     base: {
-      color: '#1a1a1a',
+      color: '#ffffff',
       fontFamily: 'system-ui, -apple-system, Segoe UI, Roboto, sans-serif',
       fontSize: '16px',
-      '::placeholder': { color: '#8a8a8a' },
+      iconColor: '#ffffff',
+      '::placeholder': { color: 'rgba(255,255,255,0.45)' },
     },
-    invalid: { color: '#c0392b' },
+    invalid: { color: '#ff6b6b', iconColor: '#ff6b6b' },
   };
 
   async function loadStripeJs() {
