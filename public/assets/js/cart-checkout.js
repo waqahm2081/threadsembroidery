@@ -88,16 +88,89 @@
     });
   }
 
-  /* ── Place order button loading state ── */
+  /* ── Checkout: Stripe Card Element then submit ── */
   function initCheckoutForm() {
     const form = document.getElementById('checkoutForm');
     if (!form) return;
 
-    form.addEventListener('submit', () => {
+    let stripeCtx = null;
+    let submitting = false;
+
+    (async () => {
+      try {
+        if (!window.TEStripeCheckout) return;
+        stripeCtx = await window.TEStripeCheckout.initCardElement({
+          mountSelector: '#stripeCardElement',
+          errorSelector: '#stripeCardErrors',
+        });
+      } catch (err) {
+        const errEl = document.getElementById('stripeCardErrors');
+        if (errEl) errEl.textContent = err.message || 'Could not load payment form.';
+      }
+    })();
+
+    form.addEventListener('submit', async (e) => {
+      if (submitting) return;
+      e.preventDefault();
+
+      if (!form.reportValidity()) return;
+
       const btn = document.getElementById('placeOrderBtn');
+      const intentInput = document.getElementById('paymentIntentId');
+      const errEl = document.getElementById('stripeCardErrors');
+
+      if (!stripeCtx) {
+        if (errEl) errEl.textContent = 'Payment form is still loading. Please wait a moment.';
+        return;
+      }
+
+      const sameBilling = document.getElementById('billingSame')?.checked;
+      const name = form.querySelector('[name="name"]')?.value || '';
+      const email = form.querySelector('[name="email"]')?.value || '';
+
       if (btn) {
         btn.disabled = true;
-        btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span> Placing Order…';
+        btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span> Processing payment…';
+      }
+
+      try {
+        const paid = await window.TEStripeCheckout.pay({
+          stripe: stripeCtx.stripe,
+          card: stripeCtx.card,
+          context: 'shop',
+          email,
+          name,
+          billing: {
+            line1: sameBilling
+              ? form.querySelector('[name="shipping_address_line1"]')?.value
+              : form.querySelector('[name="billing_address_line1"]')?.value,
+            city: sameBilling
+              ? form.querySelector('[name="shipping_city"]')?.value
+              : form.querySelector('[name="billing_city"]')?.value,
+            state: sameBilling
+              ? form.querySelector('[name="shipping_state"]')?.value
+              : form.querySelector('[name="billing_state"]')?.value,
+            postal_code: sameBilling
+              ? form.querySelector('[name="shipping_zip"]')?.value
+              : form.querySelector('[name="billing_zip"]')?.value,
+            country: 'GB',
+          },
+          onStatus: (msg) => {
+            if (btn) btn.innerHTML = `<span class="spinner-border spinner-border-sm me-2"></span> ${msg}`;
+          },
+        });
+
+        if (intentInput) intentInput.value = paid.paymentIntentId;
+        if (btn) btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span> Placing order…';
+        submitting = true;
+        form.submit();
+      } catch (err) {
+        const msg = err.message || 'Payment failed. Please try again.';
+        if (errEl) errEl.textContent = msg;
+        if (btn) {
+          btn.disabled = false;
+          btn.innerHTML = 'Pay &amp; Place Order <i class="bi bi-lock-fill"></i>';
+        }
       }
     });
   }

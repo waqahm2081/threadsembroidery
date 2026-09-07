@@ -13,6 +13,7 @@
   let _cart = [];
   let _school = null;
   let _product = null;
+  let _stripeCtx = null;
 
   function loadPersisted() {
     try {
@@ -62,6 +63,7 @@
   function shopRender(view, data) {
     const el = document.getElementById('portalContent');
     if (!el) return;
+    _stripeCtx = null;
     switch (view) {
       case 'schools': el.innerHTML = viewSchools(data); break;
       case 'school': el.innerHTML = viewSchool(data); break;
@@ -71,6 +73,25 @@
       case 'confirmation': el.innerHTML = viewConfirmation(data); break;
     }
     wireShop();
+    if (view === 'checkout') initStripeCheckout();
+  }
+
+  async function initStripeCheckout() {
+    if (!window.TEStripeCheckout) {
+      const errEl = document.getElementById('stripeCardErrors');
+      if (errEl) errEl.textContent = 'Payment library failed to load. Please refresh the page.';
+      return;
+    }
+    try {
+      _stripeCtx = await window.TEStripeCheckout.initCardElement({
+        mountSelector: '#stripeCardElement',
+        errorSelector: '#stripeCardErrors',
+      });
+    } catch (err) {
+      const errEl = document.getElementById('stripeCardErrors');
+      if (errEl) errEl.textContent = err.message || 'Could not load payment form.';
+      T.toast && T.toast(err.message || 'Could not load payment form.');
+    }
   }
 
   async function apiGet(url) {
@@ -341,7 +362,14 @@
         </div>
 
         <div class="panel-card" style="margin-top:1rem">
-          <div class="su-checkout-section-head"><span class="n">4</span><div><h4>Order Notes</h4><p class="muted">Optional — anything we should know before production.</p></div></div>
+          <div class="su-checkout-section-head"><span class="n">4</span><div><h4>Payment</h4><p class="muted">Pay securely by card — your details stay on this page.</p></div></div>
+          <div id="stripeCardElement" class="su-stripe-element"></div>
+          <p id="stripeCardErrors" class="su-stripe-error" role="alert"></p>
+          <p class="help muted" style="margin-top:.55rem;font-size:.82rem"><i class="bi bi-shield-lock"></i> Payments are processed securely by Stripe.</p>
+        </div>
+
+        <div class="panel-card" style="margin-top:1rem">
+          <div class="su-checkout-section-head"><span class="n">5</span><div><h4>Order Notes</h4><p class="muted">Optional — anything we should know before production.</p></div></div>
           <div class="field-group"><textarea class="input textarea" name="notes" rows="3" placeholder="Delivery instructions, artwork notes, deadlines…"></textarea></div>
         </div>
       </form>
@@ -358,7 +386,8 @@
         <div class="su-summary-line"><span>VAT (20%)</span><span>${money(vat)}</span></div>
         <div class="su-summary-line"><span>Delivery</span><span>${delivery === 0 ? '<span style="color:var(--ok)">Free</span>' : money(delivery)}</span></div>
         <div class="su-summary-total"><span>Total</span><b>${money(total)}</b></div>
-        <button type="button" class="btn btn--block" id="suPlaceOrder"><i class="bi bi-bag-check"></i> Place Order</button>
+        <button type="button" class="btn btn--block" id="suPlaceOrder"><i class="bi bi-lock-fill"></i> Pay &amp; Place Order</button>
+        <p class="muted" style="text-align:center;font-size:.8rem;margin-top:.65rem"><i class="bi bi-shield-check"></i> Secure card payment via Stripe</p>
       </div>
     </div>`;
   }
@@ -540,12 +569,13 @@
     const form = document.getElementById('suCheckoutForm');
     if (!form) return;
     const placeBtn = document.getElementById('suPlaceOrder');
-    if (placeBtn) { placeBtn.disabled = true; placeBtn.textContent = 'Placing Order…'; }
+    const errEl = document.getElementById('stripeCardErrors');
+    if (placeBtn) { placeBtn.disabled = true; placeBtn.innerHTML = '<i class="bi bi-hourglass-split"></i> Processing payment…'; }
 
     const fd = new FormData(form);
     const sameBilling = !!document.getElementById('suBillingSame')?.checked;
     const body = {
-      school_id: _school?.id || (_cart[0] && null),
+      school_id: _school?.id || null,
       items: _cart.map((i) => ({ variant_id: i.variantId, quantity: i.qty })),
       name: fd.get('name') || '',
       email: fd.get('email') || '',
@@ -570,23 +600,52 @@
       body.billing_country = fd.get('billing_country') || 'United Kingdom';
     }
 
-    // Prefer school from first product if missing
     if (!body.school_id && _school?.id) body.school_id = _school.id;
 
+    if (!_stripeCtx) {
+      const msg = 'Payment form is still loading. Please wait a moment.';
+      if (errEl) errEl.textContent = msg;
+      T.toast && T.toast(msg);
+      if (placeBtn) { placeBtn.disabled = false; placeBtn.innerHTML = '<i class="bi bi-lock-fill"></i> Pay &amp; Place Order'; }
+      return;
+    }
+
     try {
+      const paid = await window.TEStripeCheckout.pay({
+        stripe: _stripeCtx.stripe,
+        card: _stripeCtx.card,
+        context: 'uniform',
+        email: body.email,
+        name: body.name,
+        items: body.items,
+        billing: {
+          line1: sameBilling ? body.shipping_address_line1 : body.billing_address_line1,
+          city: sameBilling ? body.shipping_city : body.billing_city,
+          postal_code: sameBilling ? body.shipping_postcode : body.billing_postcode,
+          country: 'GB',
+        },
+        onStatus: (msg) => {
+          if (placeBtn) placeBtn.innerHTML = `<i class="bi bi-hourglass-split"></i> ${msg}`;
+        },
+      });
+
+      body.payment_intent_id = paid.paymentIntentId;
+      if (placeBtn) placeBtn.innerHTML = '<i class="bi bi-hourglass-split"></i> Placing order…';
+
       const res = await apiPost('/api/portal/uniform/checkout', body);
       _cart = [];
       persistCart();
       shopRender('confirmation', res);
     } catch (err) {
       const errors = err?.data?.errors;
-      let msg = err?.data?.message || 'Could not place order. Please check your details.';
+      let msg = err?.data?.message || err.message || 'Could not place order. Please check your details.';
       if (errors && typeof errors === 'object') {
         const first = Object.values(errors)[0];
         if (Array.isArray(first) && first[0]) msg = first[0];
       }
+      if (errEl) errEl.textContent = msg;
       T.toast && T.toast(msg);
-      if (placeBtn) { placeBtn.disabled = false; placeBtn.innerHTML = '<i class="bi bi-bag-check"></i> Place Order'; }
+      if (placeBtn) { placeBtn.disabled = false; placeBtn.innerHTML = '<i class="bi bi-lock-fill"></i> Pay &amp; Place Order'; }
     }
   }
 

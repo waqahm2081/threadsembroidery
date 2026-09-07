@@ -8,7 +8,7 @@ checkout-page
 
 @push('styles')
 <link rel="stylesheet" href="{{ asset('assets/css/shop-theme.css') }}?v=1.1">
-<link rel="stylesheet" href="{{ asset('assets/css/cart-checkout.css') }}?v=1.6">
+<link rel="stylesheet" href="{{ asset('assets/css/cart-checkout.css') }}?v=1.7">
 @endpush
 
 @section('content')
@@ -138,6 +138,14 @@ checkout-page
                     </div>
 
                     <div class="cc-form-section">
+                        <h2 class="cc-form-section-title"><i class="bi bi-credit-card-2-front"></i> Payment</h2>
+                        <p class="cc-payment-help">Pay securely by card on this page. Your card details are handled by Stripe and never touch our servers.</p>
+                        <div id="stripeCardElement" class="cc-stripe-element"></div>
+                        <p id="stripeCardErrors" class="cc-stripe-error" role="alert"></p>
+                        <input type="hidden" name="payment_intent_id" id="paymentIntentId" value="">
+                    </div>
+
+                    <div class="cc-form-section">
                         <h2 class="cc-form-section-title"><i class="bi bi-chat-left-text"></i> Additional Instructions</h2>
                         <div class="cc-form-row">
                             <div class="cc-field">
@@ -189,8 +197,9 @@ checkout-page
                             <strong>&pound;{{ number_format($total, 2) }}</strong>
                         </div>
                         <button type="submit" class="cc-btn-primary cc-btn-full" id="placeOrderBtn">
-                            Place Order <i class="bi bi-check-circle"></i>
+                            Pay &amp; Place Order <i class="bi bi-lock-fill"></i>
                         </button>
+                        <p class="cc-secure-note"><i class="bi bi-shield-check"></i> Secure card payment via Stripe</p>
                         <a href="{{ route('shop.cart') }}" class="cc-btn-secondary cc-btn-full">Back to Cart</a>
                     </div>
                 </aside>
@@ -209,5 +218,6 @@ window.SHOP_ROUTES = {
   checkout_url: @json(route('shop.checkout')),
 };
 </script>
-<script src="{{ asset('assets/js/cart-checkout.js') }}?v=1.6"></script>
+<script src="{{ asset('js/stripe-checkout.js') }}?v=1.0"></script>
+<script src="{{ asset('assets/js/cart-checkout.js') }}?v=1.9"></script>
 @endpush

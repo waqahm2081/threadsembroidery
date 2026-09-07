@@ -30,7 +30,7 @@ class PortalController extends Controller
             'pageDescription' => 'Your Threads client portal — orders, artwork and account.',
             'pageActive' => '',
             'pageStyles' => ['pages.css', 'portal.css', 'cart.css'],
-            'pageScripts' => ['artwork-modal.js', 'portal.js', 'portal-shop.js'],
+            'pageScripts' => ['artwork-modal.js', 'stripe-checkout.js', 'portal.js', 'portal-shop.js'],
             'mount' => ['active' => '', 'onReady' => 'THREADS.initPortal'],
             'portalBootstrap' => $this->payload($user),
         ]);

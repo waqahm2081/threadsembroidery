@@ -21,6 +21,7 @@ use App\Http\Controllers\Admin\UserController as AdminUserController;
 use App\Http\Controllers\Api\BundleDataController;
 use App\Http\Controllers\Api\CartController as ApiCartController;
 use App\Http\Controllers\Api\CheckoutController as ApiCheckoutController;
+use App\Http\Controllers\Api\StripePaymentController as ApiStripePaymentController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\BrandingEnquiryController;
 use App\Http\Controllers\CheckoutPageController;
@@ -147,6 +148,8 @@ Route::prefix('api')->group(function () {
     Route::post('/cart/bundles', [ApiCartController::class, 'storeBundle'])->name('api.cart.bundles');
     Route::delete('/cart/items/{itemId}', [ApiCartController::class, 'destroyItem'])->name('api.cart.items.destroy');
     Route::post('/checkout', [ApiCheckoutController::class, 'store'])->name('api.checkout.store');
+    Route::get('/stripe/config', [ApiStripePaymentController::class, 'config'])->name('api.stripe.config');
+    Route::post('/stripe/payment-intent', [ApiStripePaymentController::class, 'createIntent'])->name('api.stripe.intent');
     Route::post('/branding-enquiries', [BrandingEnquiryController::class, 'store'])->name('api.branding-enquiries.store');
 });
 

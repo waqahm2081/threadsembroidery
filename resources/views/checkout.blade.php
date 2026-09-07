@@ -70,6 +70,16 @@
         <div class="form-card checkout-card">
           <div class="checkout-section-head">
             <span class="n">4</span>
+            <div><h3 class="h-3">Payment</h3><p class="muted" style="margin:.2rem 0 0;font-size:.9rem">Pay securely by card — your details stay on this page.</p></div>
+          </div>
+          <div id="stripeCardElement" class="stripe-card-element"></div>
+          <p id="stripeCardErrors" class="stripe-card-error" role="alert"></p>
+          <p class="help mt-1"><i class="bi bi-shield-lock"></i> Payments are processed securely by Stripe. We never store your full card number.</p>
+        </div>
+
+        <div class="form-card checkout-card">
+          <div class="checkout-section-head">
+            <span class="n">5</span>
             <div><h3 class="h-3">Order Notes</h3><p class="muted" style="margin:.2rem 0 0;font-size:.9rem">Optional — anything we should know before production.</p></div>
           </div>
           <div class="field-group"><textarea class="textarea" name="notes" placeholder="Delivery instructions, artwork notes, deadlines…"></textarea></div>

@@ -8,6 +8,7 @@ use App\Models\SchoolProduct;
 use App\Models\SchoolUniformOrder;
 use App\Models\SchoolUniformOrderItem;
 use App\Services\NotificationMailService;
+use App\Services\StripePaymentService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -15,8 +16,10 @@ use Illuminate\Validation\ValidationException;
 
 class UniformShopController extends Controller
 {
-    public function __construct(private NotificationMailService $mailNotifications)
-    {
+    public function __construct(
+        private NotificationMailService $mailNotifications,
+        private StripePaymentService $stripe,
+    ) {
     }
 
     public function schools()
@@ -101,6 +104,7 @@ class UniformShopController extends Controller
             'billing_postcode' => ['nullable', 'string', 'max:20'],
             'billing_country' => ['nullable', 'string', 'max:60'],
             'notes' => ['nullable', 'string', 'max:1000'],
+            'payment_intent_id' => ['required', 'string', 'max:190'],
             'items' => ['required', 'array', 'min:1'],
             'items.*.variant_id' => ['required', 'exists:school_product_variants,id'],
             'items.*.quantity' => ['required', 'integer', 'min:1', 'max:999'],
@@ -116,41 +120,47 @@ class UniformShopController extends Controller
             ]);
         }
 
-        $order = DB::transaction(function () use ($validated, $sameBilling) {
-            $subtotal = 0;
-            $lineItems = [];
-            $schoolId = $validated['school_id'] ?? null;
+        $subtotal = 0;
+        $lineItems = [];
+        $schoolId = $validated['school_id'] ?? null;
 
-            foreach ($validated['items'] as $item) {
-                $variant = \App\Models\SchoolProductVariant::with('product')->findOrFail($item['variant_id']);
-                $product = $variant->product;
-                if (! $product) {
-                    throw ValidationException::withMessages([
-                        'items' => 'One or more cart items are no longer available. Please refresh and try again.',
-                    ]);
-                }
-                $lineTotal = $variant->price * $item['quantity'];
-                $subtotal += $lineTotal;
-                $lineItems[] = [
-                    'variant' => $variant,
-                    'product' => $product,
-                    'quantity' => $item['quantity'],
-                    'lineTotal' => $lineTotal,
-                ];
-                if (! $schoolId) {
-                    $schoolId = $product->school_id;
-                }
+        foreach ($validated['items'] as $item) {
+            $variant = \App\Models\SchoolProductVariant::with('product')->findOrFail($item['variant_id']);
+            $product = $variant->product;
+            if (! $product) {
+                throw ValidationException::withMessages([
+                    'items' => 'One or more cart items are no longer available. Please refresh and try again.',
+                ]);
             }
+            $lineTotal = $variant->price * $item['quantity'];
+            $subtotal += $lineTotal;
+            $lineItems[] = [
+                'variant' => $variant,
+                'product' => $product,
+                'quantity' => $item['quantity'],
+                'lineTotal' => $lineTotal,
+            ];
+            if (! $schoolId) {
+                $schoolId = $product->school_id;
+            }
+        }
 
-            $vat = round($subtotal * 0.20, 2);
-            $delivery = $subtotal >= 50 ? 0 : 4.99;
-            $total = $subtotal + $vat + $delivery;
+        $vat = round($subtotal * 0.20, 2);
+        $delivery = $subtotal >= 50 ? 0 : 4.99;
+        $total = $subtotal + $vat + $delivery;
 
+        $this->stripe->assertPaid($validated['payment_intent_id'], (float) $total);
+
+        $order = DB::transaction(function () use ($validated, $sameBilling, $lineItems, $schoolId, $subtotal, $vat, $delivery, $total) {
             $order = SchoolUniformOrder::create([
                 'order_number' => SchoolUniformOrder::generateNumber(),
                 'user_id' => Auth::id(),
                 'school_id' => $schoolId,
                 'status' => 'pending',
+                'payment_status' => 'paid',
+                'payment_method' => 'card',
+                'stripe_payment_intent_id' => $validated['payment_intent_id'],
+                'paid_at' => now(),
                 'customer_name' => $validated['name'],
                 'customer_email' => $validated['email'],
                 'customer_phone' => $validated['phone'] ?? null,

@@ -3,14 +3,19 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Services\CartService;
 use App\Services\OrderService;
+use App\Services\StripePaymentService;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 
 class CheckoutController extends Controller
 {
-    public function __construct(private OrderService $orderService)
-    {
+    public function __construct(
+        private OrderService $orderService,
+        private CartService $cartService,
+        private StripePaymentService $stripe,
+    ) {
     }
 
     public function store(Request $request)
@@ -36,9 +41,19 @@ class CheckoutController extends Controller
             'billing_postcode' => [Rule::requiredIf(! $sameAsShipping), 'nullable', 'string', 'max:20'],
             'billing_country' => ['nullable', 'string', 'max:120'],
             'notes' => ['nullable', 'string', 'max:2000'],
+            'payment_intent_id' => ['required', 'string', 'max:190'],
         ]);
 
         $data['billing_same_as_shipping'] = $sameAsShipping;
+
+        $cart = $this->cartService->getCart();
+        $totals = $this->cartService->totals($cart);
+        $this->stripe->assertPaid($data['payment_intent_id'], (float) $totals['total']);
+
+        $data['payment_status'] = 'paid';
+        $data['payment_method'] = 'card';
+        $data['stripe_payment_intent_id'] = $data['payment_intent_id'];
+        $data['paid_at'] = now();
 
         $order = $this->orderService->place($data);
 

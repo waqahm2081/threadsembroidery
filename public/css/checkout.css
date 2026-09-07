@@ -26,6 +26,14 @@
 .checkout-summary-items{display:grid;gap:.85rem}
 .checkout-summary-item{display:flex;justify-content:space-between;gap:1rem;align-items:flex-start;font-size:.92rem}
 .checkout-summary-item b:last-child{flex:none;color:var(--text)}
+.stripe-card-element{
+  padding:.9rem 1rem;
+  border:1px solid var(--line);
+  border-radius:12px;
+  background:var(--bg-2,#fff);
+  min-height:44px;
+}
+.stripe-card-error{color:#c0392b;font-size:.86rem;min-height:1.2em;margin:.55rem 0 0}
 
 /* Order confirmation */
 .confirm-page{display:grid;gap:1.2rem;max-width:1100px;margin:0 auto}

@@ -19,7 +19,7 @@ class CheckoutPageController extends Controller
             'pageDescription' => 'Complete your branded garment order.',
             'pageActive' => '',
             'pageStyles' => ['pages.css', 'cart.css', 'checkout.css'],
-            'pageScripts' => ['artwork-modal.js', 'checkout.js'],
+            'pageScripts' => ['artwork-modal.js', 'stripe-checkout.js', 'checkout.js'],
             'mount' => ['active' => ''],
             'cartBootstrap' => $cart,
         ]);

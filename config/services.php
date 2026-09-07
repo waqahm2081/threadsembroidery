@@ -31,4 +31,11 @@ return [
         'region' => env('AWS_DEFAULT_REGION', 'us-east-1'),
     ],
 
+    'stripe' => [
+        // Supports both naming styles used in this project
+        'key' => env('STRIPE_KEY', env('STRIPE_PUBLISHKEY')),
+        'secret' => env('STRIPE_SECRET', env('STRIPE_SECRETKEY')),
+        'currency' => env('STRIPE_CURRENCY', 'gbp'),
+    ],
+
 ];

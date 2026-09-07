@@ -58,6 +58,10 @@ class OrderService
                 'vat_amount' => $totals['vat'],
                 'delivery_fee' => $totals['delivery'],
                 'total' => $totals['total'],
+                'payment_status' => $data['payment_status'] ?? 'paid',
+                'payment_method' => $data['payment_method'] ?? 'card',
+                'stripe_payment_intent_id' => $data['stripe_payment_intent_id'] ?? null,
+                'paid_at' => $data['paid_at'] ?? now(),
             ]);
 
             foreach ($cart->items as $item) {

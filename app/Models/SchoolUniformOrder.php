@@ -19,12 +19,14 @@ class SchoolUniformOrder extends Model
         'billing_address_line1', 'billing_address_line2',
         'billing_city', 'billing_postcode', 'billing_country',
         'subtotal', 'vat_amount', 'delivery_fee', 'total', 'notes',
+        'payment_status', 'payment_method', 'stripe_payment_intent_id', 'paid_at',
     ];
 
     protected $casts = [
         'subtotal' => 'float', 'vat_amount' => 'float',
         'delivery_fee' => 'float', 'total' => 'float',
         'billing_same_as_shipping' => 'boolean',
+        'paid_at' => 'datetime',
     ];
 
     public function user(): BelongsTo { return $this->belongsTo(User::class); }

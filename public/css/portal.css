@@ -250,6 +250,14 @@
 .su-checkout-section-head p{margin:.2rem 0 0;font-size:.85rem}
 .su-checkout-same{display:flex;align-items:center;gap:.55rem;font-size:.9rem;margin-bottom:1rem;cursor:pointer}
 .su-checkout-same input{accent-color:var(--brand)}
+.su-stripe-element{
+  padding:.85rem 1rem;
+  border:1px solid var(--line);
+  border-radius:12px;
+  background:var(--bg-2,#fff);
+  min-height:44px;
+}
+.su-stripe-error{color:#c0392b;font-size:.86rem;min-height:1.2em;margin:.55rem 0 0}
 .su-billing-fields{padding-top:.2rem}
 .su-form-row{display:grid;grid-template-columns:1fr 1fr;gap:1rem}
 .field-group{margin-bottom:.9rem}

@@ -1,7 +1,8 @@
-/* Checkout form -> place order */
+/* Checkout form -> Stripe card payment then place order */
 (function(){
   const T=window.THREADS, money=T.util.money;
   let cart = window.THREADS_CART || {items:[], totals:{}};
+  let stripeCtx = null;
 
   function renderSummary(){
     const box=document.getElementById('checkoutSummary'); if(!box) return;
@@ -24,8 +25,8 @@
       <div class="flex justify-between mt-1"><span class="muted">VAT (20%)</span><b>${money(t.vat||0)}</b></div>
       <div class="flex justify-between mt-1"><span class="muted">Delivery</span><b>${(t.delivery||0)>0?money(t.delivery):'FREE'}</b></div>
       <div class="flex justify-between mt-2"><span style="font-weight:700">Total (inc VAT)</span><b style="font-family:var(--font-display);font-size:1.45rem;color:var(--brand)">${money(t.total||0)}</b></div>
-      <button class="btn btn--block btn--lg mt-3" type="submit" form="checkoutForm"><i class="bi bi-lock-fill"></i> Place Order</button>
-      <p class="help mt-2" style="text-align:center"><i class="bi bi-shield-check"></i> Free UK delivery on orders over £150.</p>
+      <button class="btn btn--block btn--lg mt-3" type="submit" form="checkoutForm"><i class="bi bi-lock-fill"></i> Pay &amp; Place Order</button>
+      <p class="help mt-2" style="text-align:center"><i class="bi bi-shield-check"></i> Secure card payment via Stripe.</p>
       <a class="link-arrow mt-2" style="justify-content:center;display:flex" href="/cart">Back to cart</a>`;
   }
 
@@ -67,20 +68,45 @@
       return;
     }
 
+    if(!stripeCtx){
+      T.toast('Payment form is still loading. Please wait a moment.');
+      return;
+    }
+
     const btn=document.querySelector('[type=submit][form="checkoutForm"], #checkoutForm [type=submit]');
     const data=Object.fromEntries(new FormData(form).entries());
     data.billing_same_as_shipping = document.getElementById('billingSame')?.checked ? '1' : '0';
 
-    if(btn){ btn.disabled=true; btn.innerHTML='<i class="bi bi-hourglass-split"></i> Placing order…'; }
+    if(btn){ btn.disabled=true; btn.innerHTML='<i class="bi bi-hourglass-split"></i> Processing payment…'; }
     try{
+      const paid = await window.TEStripeCheckout.pay({
+        stripe: stripeCtx.stripe,
+        card: stripeCtx.card,
+        context: 'bundle',
+        email: data.email,
+        name: data.name,
+        billing: {
+          line1: data.billing_same_as_shipping === '1' ? data.shipping_address_line1 : data.billing_address_line1,
+          city: data.billing_same_as_shipping === '1' ? data.shipping_city : data.billing_city,
+          postal_code: data.billing_same_as_shipping === '1' ? data.shipping_postcode : data.billing_postcode,
+          country: 'GB',
+        },
+        onStatus: (msg)=>{ if(btn) btn.innerHTML = `<i class="bi bi-hourglass-split"></i> ${msg}`; },
+      });
+
+      data.payment_intent_id = paid.paymentIntentId;
+      if(btn) btn.innerHTML='<i class="bi bi-hourglass-split"></i> Placing order…';
+
       const res=await T.api.send('/api/checkout', { body:data });
       T.api.syncBadge({totals:{item_count:0}});
-      T.toast('Order placed successfully.', true);
+      T.toast('Payment successful — order placed.', true);
       location.href=res.redirect;
     }catch(err){
-      const msg=err?.data?.errors ? Object.values(err.data.errors).flat()[0] : (err?.data?.message || err.message || 'Could not place order.');
+      const msg=err?.data?.errors ? Object.values(err.data.errors).flat()[0] : (err?.data?.message || err.message || 'Could not complete checkout.');
       T.toast(msg);
-      if(btn){ btn.disabled=false; btn.innerHTML='<i class="bi bi-lock-fill"></i> Place Order'; }
+      const errEl=document.getElementById('stripeCardErrors');
+      if(errEl) errEl.textContent = msg;
+      if(btn){ btn.disabled=false; btn.innerHTML='<i class="bi bi-lock-fill"></i> Pay &amp; Place Order'; }
     }
   }
 
@@ -99,6 +125,17 @@
         input.addEventListener('blur', ()=>validateField(fg));
         input.addEventListener('input', ()=>{ if(fg.classList.contains('invalid')) validateField(fg); });
       });
+    }
+
+    try{
+      stripeCtx = await window.TEStripeCheckout.initCardElement({
+        mountSelector: '#stripeCardElement',
+        errorSelector: '#stripeCardErrors',
+      });
+    }catch(err){
+      const errEl=document.getElementById('stripeCardErrors');
+      if(errEl) errEl.textContent = err.message || 'Could not load payment form.';
+      T.toast(err.message || 'Could not load payment form.');
     }
   }});
 })();

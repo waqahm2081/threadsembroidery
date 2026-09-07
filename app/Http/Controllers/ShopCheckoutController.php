@@ -6,6 +6,7 @@ use App\Models\ShopOrder;
 use App\Models\ShopOrderItem;
 use App\Services\ShopCartService;
 use App\Services\ShopPricingService;
+use App\Services\StripePaymentService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -16,6 +17,7 @@ class ShopCheckoutController extends Controller
 {
     public function __construct(
         private ShopCartService $cartService,
+        private StripePaymentService $stripe,
     ) {
     }
 
@@ -61,6 +63,7 @@ class ShopCheckoutController extends Controller
             'billing_zip' => ['required_unless:billing_same_as_shipping,1', 'nullable', 'string', 'max:20'],
             'billing_company_name' => ['nullable', 'string', 'max:255'],
             'additional_instructions' => ['nullable', 'string', 'max:2000'],
+            'payment_intent_id' => ['required', 'string', 'max:190'],
         ]);
 
         $billingSame = $request->boolean('billing_same_as_shipping', true);
@@ -68,11 +71,17 @@ class ShopCheckoutController extends Controller
         $vatAmount = ShopPricingService::vatAmount($subtotalExVat);
         $total = ShopPricingService::totalIncVat($subtotalExVat);
 
+        $this->stripe->assertPaid($validated['payment_intent_id'], (float) $total);
+
         $order = DB::transaction(function () use ($cart, $validated, $billingSame, $subtotalExVat, $vatAmount, $total) {
             $order = ShopOrder::create([
                 'order_number' => 'PS-'.strtoupper(Str::random(8)),
                 'user_id' => auth()->id(),
                 'status' => 'pending',
+                'payment_status' => 'paid',
+                'payment_method' => 'card',
+                'stripe_payment_intent_id' => $validated['payment_intent_id'],
+                'paid_at' => now(),
                 'name' => $validated['name'],
                 'email' => $validated['email'],
                 'phone' => $validated['phone'],

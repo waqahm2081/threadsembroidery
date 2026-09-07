@@ -16,6 +16,7 @@ class Order extends Model
         'billing_address_line1', 'billing_address_line2', 'billing_city',
         'billing_postcode', 'billing_country',
         'notes', 'subtotal', 'vat_amount', 'delivery_fee', 'total',
+        'payment_status', 'payment_method', 'stripe_payment_intent_id', 'paid_at',
     ];
 
     protected $casts = [
@@ -24,6 +25,7 @@ class Order extends Model
         'vat_amount' => 'float',
         'delivery_fee' => 'float',
         'total' => 'float',
+        'paid_at' => 'datetime',
     ];
 
     public function user(): BelongsTo
