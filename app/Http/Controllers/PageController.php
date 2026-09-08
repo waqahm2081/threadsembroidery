@@ -89,6 +89,23 @@ HTML,
         ]);
     }
 
+    public function artworkStudio()
+    {
+        return view('artwork-studio', [
+            'pageTitle' => 'Artwork Studio | Threads Embroidery & Print',
+            'pageDescription' => 'Free artwork setup from Threads Embroidery & Print. Upload your logo and we will clean it up, match it to thread colours and get it ready to stitch or print.',
+            'pageActive' => 'artwork-studio',
+            'pageStyles' => ['studio.css'],
+            'pageScripts' => [
+                'artwork-studio/config.js',
+                'artwork-studio/thread-chart.js',
+                'artwork-studio/engine.js',
+                'artwork-studio/studio.js',
+            ],
+            'mount' => false,
+        ]);
+    }
+
     public function contact()
     {
         return view('contact', [

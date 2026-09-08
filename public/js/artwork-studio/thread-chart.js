@@ -1,0 +1,50 @@
+/* ============================================================
+   Standard embroidery thread chart.
+   Demo chart — on setup this is mapped to the shop's real
+   Madeira / Isacord / Gunold chart so codes match the cones
+   actually on the shelf.
+   ============================================================ */
+window.THREAD_CHART = [
+  { code:'TS-1000', name:'Snow White',      hex:'#FFFFFF' },
+  { code:'TS-1002', name:'Soft White',      hex:'#F3F0E9' },
+  { code:'TS-1010', name:'Cream',           hex:'#EFE3C6' },
+  { code:'TS-1020', name:'Ecru',            hex:'#DED3B8' },
+  { code:'TS-1105', name:'Lemon',           hex:'#F4D64B' },
+  { code:'TS-1110', name:'Gold',            hex:'#D8A32B' },
+  { code:'TS-1124', name:'Old Gold',        hex:'#B9892F' },
+  { code:'TS-1130', name:'Bronze',          hex:'#8C6A2F' },
+  { code:'TS-1220', name:'Tangerine',       hex:'#EE7B22' },
+  { code:'TS-1230', name:'Burnt Orange',    hex:'#C9541D' },
+  { code:'TS-1240', name:'Rust',            hex:'#9C4520' },
+  { code:'TS-1310', name:'Poppy Red',       hex:'#D8232A' },
+  { code:'TS-1320', name:'Post Box Red',    hex:'#B4232A' },
+  { code:'TS-1335', name:'Burgundy',        hex:'#7B1F2B' },
+  { code:'TS-1340', name:'Maroon',          hex:'#5C1A25' },
+  { code:'TS-1410', name:'Rose Pink',       hex:'#E38BA8' },
+  { code:'TS-1420', name:'Fuchsia',         hex:'#C2247E' },
+  { code:'TS-1510', name:'Lilac',           hex:'#A98BC4' },
+  { code:'TS-1520', name:'Purple',          hex:'#5B2A86' },
+  { code:'TS-1530', name:'Aubergine',       hex:'#3D1F4A' },
+  { code:'TS-1610', name:'Sky Blue',        hex:'#7FB6DE' },
+  { code:'TS-1620', name:'Royal Blue',      hex:'#1F5FD0' },
+  { code:'TS-1630', name:'Sapphire',        hex:'#14428F' },
+  { code:'TS-1640', name:'Navy',            hex:'#1C2D52' },
+  { code:'TS-1650', name:'Midnight Navy',   hex:'#141E36' },
+  { code:'TS-1710', name:'Teal',            hex:'#1C6B72' },
+  { code:'TS-1720', name:'Turquoise',       hex:'#1AA0A8' },
+  { code:'TS-1810', name:'Mint',            hex:'#9AD1B0' },
+  { code:'TS-1820', name:'Kelly Green',     hex:'#2E9B4E' },
+  { code:'TS-1830', name:'Bottle Green',    hex:'#175235' },
+  { code:'TS-1840', name:'Forest',          hex:'#123D28' },
+  { code:'TS-1850', name:'Olive',           hex:'#6B7233' },
+  { code:'TS-1860', name:'Lime',            hex:'#A6C93C' },
+  { code:'TS-1910', name:'Sand',            hex:'#C9B79A' },
+  { code:'TS-1920', name:'Camel',           hex:'#A98455' },
+  { code:'TS-1930', name:'Chocolate',       hex:'#5B3A26' },
+  { code:'TS-1940', name:'Taupe',           hex:'#8A7F72' },
+  { code:'TS-1950', name:'Silver Grey',     hex:'#C3C6CA' },
+  { code:'TS-1960', name:'Steel Grey',      hex:'#8A8F96' },
+  { code:'TS-1970', name:'Charcoal',        hex:'#4A4E54' },
+  { code:'TS-1980', name:'Graphite',        hex:'#2E3237' },
+  { code:'TS-1990', name:'Jet Black',       hex:'#111315' }
+];
