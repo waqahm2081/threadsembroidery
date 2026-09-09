@@ -55,7 +55,7 @@ class ProductCatalogService
     /**
      * Categories shown in the header mega menu and main shop page.
      *
-     * @return list<array{name:string,slug:string,count:int}>
+     * @return list<array{name:string,slug:string,count:int,image:?string,icon:string}>
      */
     public function getVisibleCategories(): array
     {
@@ -64,10 +64,121 @@ class ProductCatalogService
             true
         );
 
-        return array_values(array_filter(
-            $this->getCategories(),
-            fn (array $category) => ! isset($hiddenSlugs[$category['slug'] ?? ''])
-        ));
+        $visible = [];
+        $styleBySlug = [];
+
+        foreach ($this->buildCategoryIndex() as $slug => $category) {
+            if (isset($hiddenSlugs[$slug])) {
+                continue;
+            }
+
+            $styleCodes = array_keys($category['style_codes'] ?? []);
+            $firstStyle = $styleCodes[0] ?? null;
+            if ($firstStyle) {
+                $styleBySlug[$slug] = $firstStyle;
+            }
+
+            $visible[$slug] = [
+                'name' => $category['name'],
+                'slug' => $category['slug'],
+                'count' => (int) $category['count'],
+                'image' => null,
+                'icon' => $this->categoryIcon($category['name']),
+            ];
+        }
+
+        if ($styleBySlug !== []) {
+            $images = $this->thumbnailsForStyleCodes(array_values(array_unique(array_values($styleBySlug))));
+            foreach ($styleBySlug as $slug => $styleCode) {
+                $visible[$slug]['image'] = $images[$styleCode] ?? null;
+            }
+        }
+
+        return array_values($visible);
+    }
+
+    /**
+     * @param  list<string>  $styleCodes
+     * @return array<string, string>
+     */
+    private function thumbnailsForStyleCodes(array $styleCodes): array
+    {
+        if ($styleCodes === []) {
+            return [];
+        }
+
+        $map = [];
+
+        foreach (array_chunk($styleCodes, self::STYLE_CHUNK) as $chunk) {
+            $rows = PcProduct::active()
+                ->whereIn('style_code', $chunk)
+                ->where(function ($q) {
+                    $q->whereNotNull('image_front')->where('image_front', '!=', '')
+                        ->orWhere(function ($q2) {
+                            $q2->whereNotNull('image_model')->where('image_model', '!=', '');
+                        });
+                })
+                ->selectRaw('style_code, MIN(id) as id')
+                ->groupBy('style_code')
+                ->pluck('id');
+
+            if ($rows->isEmpty()) {
+                continue;
+            }
+
+            foreach (
+                PcProduct::query()
+                    ->whereIn('id', $rows)
+                    ->get(['style_code', 'image_front', 'image_model']) as $row
+            ) {
+                $url = $this->resolveOptionalImageUrl($row->image_front ?: $row->image_model);
+                if ($url) {
+                    $map[$row->style_code] = $url;
+                }
+            }
+        }
+
+        return $map;
+    }
+
+    private function categoryIcon(string $name): string
+    {
+        $slug = $this->categorySlug($name);
+
+        $map = [
+            'accessories' => 'bi-watch',
+            'aprons' => 'bi-person-workspace',
+            'bags' => 'bi-bag',
+            'chefswear-catering' => 'bi-cup-hot',
+            'children' => 'bi-emoji-smile',
+            'cleaning' => 'bi-droplet',
+            'college-uni' => 'bi-mortarboard',
+            'corporatewear' => 'bi-briefcase',
+            'fleece' => 'bi-clouds',
+            'gilets-bodywarmers' => 'bi-person',
+            'headwear' => 'bi-circle',
+            'hi-vis' => 'bi-brightness-high',
+            'hoods' => 'bi-person-bounding-box',
+            'hospitality' => 'bi-cup-straw',
+            'jackets' => 'bi-cloud-rain',
+            'knitwear' => 'bi-grid-3x3',
+            'lounge-sleepwear' => 'bi-moon-stars',
+            'performance-activewear' => 'bi-lightning-charge',
+            'polos' => 'bi-tag',
+            'promotional-accessories' => 'bi-gift',
+            'safetywear-ppe' => 'bi-shield-check',
+            'schoolwear' => 'bi-book',
+            'soft-shell' => 'bi-layers',
+            'sports' => 'bi-trophy',
+            'sweatshirts' => 'bi-heart',
+            't-shirts' => 'bi-square',
+            'towels-robes-slippers' => 'bi-water',
+            'track-field' => 'bi-stopwatch',
+            'trousers' => 'bi-distribute-vertical',
+            'workwear' => 'bi-tools',
+        ];
+
+        return $map[$slug] ?? 'bi-grid';
     }
 
     public function resolveCategoryBySlug(string $slug): ?array
