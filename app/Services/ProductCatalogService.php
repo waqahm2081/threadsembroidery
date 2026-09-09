@@ -32,6 +32,10 @@ class ProductCatalogService
         'Darts & Pool',
         'Dance',
         'Coveralls',
+        'Decoration Supplies',
+        'Just Hoods',
+        'Organic & Recycled',
+        'Outdoor Leisure'
     ];
 
     /** @var array<string, array{name:string,slug:string,count:int,style_codes:array<string,bool>}>|null */
