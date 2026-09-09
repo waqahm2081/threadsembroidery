@@ -4,7 +4,6 @@ namespace App\Http\Controllers;
 
 use App\Services\ProductCatalogService;
 use Illuminate\Http\JsonResponse;
-use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
 
@@ -14,14 +13,16 @@ class ShopController extends Controller
     {
     }
 
-    public function index(): RedirectResponse
+    public function index(): View
     {
         $categories = $this->catalog->getCategories();
-        $first = $categories[0] ?? null;
 
-        abort_unless($first, 404);
+        abort_unless($categories !== [], 404);
 
-        return redirect()->route('shop.category', $first['slug']);
+        return view('shop.index', [
+            'pageActive' => 'shop',
+            'categories' => $categories,
+        ]);
     }
 
     public function category(string $categorySlug): View

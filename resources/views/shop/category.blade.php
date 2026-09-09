@@ -24,6 +24,8 @@ shop-page
         <nav class="sh-breadcrumb" aria-label="Breadcrumb">
             <a href="{{ route('home') }}">Home</a>
             <span class="sh-sep"><i class="bi bi-chevron-right"></i></span>
+            <a href="{{ route('shop') }}">Shop</a>
+            <span class="sh-sep"><i class="bi bi-chevron-right"></i></span>
             <span>{{ $category['name'] }}</span>
         </nav>
     </div>
