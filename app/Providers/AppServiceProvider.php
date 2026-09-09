@@ -64,7 +64,7 @@ class AppServiceProvider extends ServiceProvider
             $shopCartCount = 0;
 
             try {
-                $shopCategories = app(ProductCatalogService::class)->getCategories();
+                $shopCategories = app(ProductCatalogService::class)->getVisibleCategories();
             } catch (\Throwable $e) {
                 report($e);
             }

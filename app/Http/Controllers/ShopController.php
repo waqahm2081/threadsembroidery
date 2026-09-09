@@ -15,7 +15,7 @@ class ShopController extends Controller
 
     public function index(): View
     {
-        $categories = $this->catalog->getCategories();
+        $categories = $this->catalog->getVisibleCategories();
 
         abort_unless($categories !== [], 404);
 

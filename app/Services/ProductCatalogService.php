@@ -12,6 +12,28 @@ class ProductCatalogService
 {
     private const STYLE_CHUNK = 100;
 
+    /**
+     * Category names hidden from shop nav / index only.
+     * Products remain available when they also belong to visible categories,
+     * and these category URLs still resolve if visited directly.
+     *
+     * @var list<string>
+     */
+    private const HIDDEN_CATEGORY_NAMES = [
+        'Fishing',
+        'Motorsport',
+        'Football',
+        'Sailing',
+        'Running',
+        'Racquet Sports',
+        'Health, Salon & Beauty',
+        'Equestrian',
+        'Golf',
+        'Darts & Pool',
+        'Dance',
+        'Coveralls',
+    ];
+
     /** @var array<string, array{name:string,slug:string,count:int,style_codes:array<string,bool>}>|null */
     private ?array $categoryIndex = null;
 
@@ -22,6 +44,24 @@ class ProductCatalogService
 
             return $category;
         }, $this->buildCategoryIndex()));
+    }
+
+    /**
+     * Categories shown in the header mega menu and main shop page.
+     *
+     * @return list<array{name:string,slug:string,count:int}>
+     */
+    public function getVisibleCategories(): array
+    {
+        $hiddenSlugs = array_fill_keys(
+            array_map(fn (string $name) => $this->categorySlug($name), self::HIDDEN_CATEGORY_NAMES),
+            true
+        );
+
+        return array_values(array_filter(
+            $this->getCategories(),
+            fn (array $category) => ! isset($hiddenSlugs[$category['slug'] ?? ''])
+        ));
     }
 
     public function resolveCategoryBySlug(string $slug): ?array
