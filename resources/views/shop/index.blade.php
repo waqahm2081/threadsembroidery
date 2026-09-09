@@ -8,7 +8,7 @@ shop-page
 
 @push('styles')
 <link rel="stylesheet" href="{{ asset('assets/css/shop-theme.css') }}?v=1.2">
-<link rel="stylesheet" href="{{ asset('assets/css/shop.css') }}?v=1.3">
+<link rel="stylesheet" href="{{ asset('assets/css/shop.css') }}?v=1.4">
 @endpush
 
 @section('content')

@@ -909,17 +909,17 @@
   position: relative;
   display: block;
   aspect-ratio: 1 / 1;
-  background:
-    linear-gradient(160deg, #f7f4f1 0%, #ebe7e2 100%);
+  background: #fff;
   overflow: hidden;
 }
 
 #shop-index .si-card-media img {
   width: 100%;
   height: 100%;
-  object-fit: contain;
+  object-fit: cover;
   object-position: center;
-  padding: 8%;
+  padding: 0;
+  display: block;
   transition: transform 0.4s var(--ease);
 }
 
