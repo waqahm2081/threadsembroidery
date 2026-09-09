@@ -35,7 +35,9 @@ class ProductCatalogService
         'Decoration Supplies',
         'Just Hoods',
         'Organic & Recycled',
-        'Outdoor Leisure'
+        'Outdoor Leisure',
+        'Security',
+        'Winter Sports',
     ];
 
     /** @var array<string, array{name:string,slug:string,count:int,style_codes:array<string,bool>}>|null */
