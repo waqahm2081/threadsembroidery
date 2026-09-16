@@ -71,9 +71,9 @@
       row.innerHTML = `
         <label class="pd-size-label" for="qty-${slug}"><span class="pd-size-chip">${sizeRow.size}</span></label>
         <div class="pd-qty-ctrl">
-          <button type="button" class="pd-qty-btn pd-qty-minus" aria-label="Decrease ${sizeRow.size}">âˆ’</button>
+          <button type="button" class="pd-qty-btn pd-qty-minus" aria-label="Decrease ${sizeRow.size}"><i class="bi bi-dash"></i></button>
           <input type="number" id="qty-${slug}" class="pd-qty-input" value="0" min="0" max="999" data-unit-price="${sizeRow.price_single}">
-          <button type="button" class="pd-qty-btn pd-qty-plus" aria-label="Increase ${sizeRow.size}">+</button>
+          <button type="button" class="pd-qty-btn pd-qty-plus" aria-label="Increase ${sizeRow.size}"><i class="bi bi-plus"></i></button>
         </div>`;
       grid.appendChild(row);
     });

@@ -125,9 +125,9 @@ product-page
                         <div class="pd-size-row-item" data-size="{{ $sizeRow['size'] }}">
                             <label class="pd-size-label" for="qty-{{ $sizeSlug }}"><span class="pd-size-chip">{{ $sizeRow['size'] }}</span></label>
                             <div class="pd-qty-ctrl">
-                                <button type="button" class="pd-qty-btn pd-qty-minus" aria-label="Decrease {{ $sizeRow['size'] }}">−</button>
+                                <button type="button" class="pd-qty-btn pd-qty-minus" aria-label="Decrease {{ $sizeRow['size'] }}"><i class="bi bi-dash"></i></button>
                                 <input type="number" id="qty-{{ $sizeSlug }}" class="pd-qty-input" value="0" min="0" max="999" data-unit-price="{{ $sizeRow['price_single'] }}">
-                                <button type="button" class="pd-qty-btn pd-qty-plus" aria-label="Increase {{ $sizeRow['size'] }}">+</button>
+                                <button type="button" class="pd-qty-btn pd-qty-plus" aria-label="Increase {{ $sizeRow['size'] }}"><i class="bi bi-plus"></i></button>
                             </div>
                         </div>
                     @endforeach
@@ -344,5 +344,5 @@ window.SHOP_ROUTES = {
 };
 </script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-<script src="{{ asset('assets/js/product-detail.js') }}?v=1.7"></script>
+<script src="{{ asset('assets/js/product-detail.js') }}?v=1.8"></script>
 @endpush
