@@ -6,7 +6,9 @@ use App\Http\Controllers\Admin\SchoolProductCategoryController as AdminSchoolCat
 use App\Http\Controllers\Admin\SchoolProductController as AdminSchoolProductController;
 use App\Http\Controllers\Admin\SchoolUniformOrderController as AdminSchoolUniformOrderController;
 use App\Http\Controllers\Admin\ShopOrderController as AdminShopOrderController;
+use App\Http\Controllers\Api\PublicUniformShopController;
 use App\Http\Controllers\Api\UniformShopController;
+use App\Http\Controllers\UniformShopPageController;
 use App\Http\Controllers\Admin\BrandingEnquiryController as AdminBrandingEnquiryController;
 use App\Http\Controllers\Admin\BundleController as AdminBundleController;
 use App\Http\Controllers\Admin\BundleColourController as AdminBundleColourController;
@@ -47,6 +49,16 @@ Route::get('/product', [PageController::class, 'product'])->name('product');
 Route::get('/configurator', fn () => redirect()->route('bundles'))->name('configurator');
 
 Route::get('/shop', [ShopController::class, 'index'])->name('shop');
+
+Route::get('/uniforms', [UniformShopPageController::class, 'index'])->name('uniforms');
+Route::get('/uniforms/{school:slug}', [UniformShopPageController::class, 'school'])->name('uniforms.school');
+
+Route::prefix('api/uniforms')->name('api.uniforms.')->group(function () {
+    Route::post('/schools/{school}/unlock', [PublicUniformShopController::class, 'unlock'])->name('unlock');
+    Route::get('/schools/{school}', [PublicUniformShopController::class, 'school'])->name('school');
+    Route::get('/products/{product}', [PublicUniformShopController::class, 'product'])->name('product');
+    Route::post('/checkout', [PublicUniformShopController::class, 'checkout'])->name('checkout');
+});
 
 // Product catalogue shop (pc_products) — separate cart/orders from bundles & uniforms
 Route::prefix('shop')->name('shop.')->group(function () {

@@ -24,6 +24,7 @@ return [
         ['label' => 'Bundles', 'route' => 'bundles', 'key' => 'bundles'],
         ['label' => 'Artwork Studio', 'route' => 'artwork-studio', 'key' => 'artwork-studio'],
         ['label' => 'Shop', 'route' => 'shop', 'key' => 'shop', 'mega' => true],
+        ['label' => 'Uniform Shop', 'route' => 'uniforms', 'key' => 'uniforms'],
         ['label' => 'Branding Enquiry', 'route' => 'branding-enquiry', 'key' => 'enquiry'],
         ['label' => 'Contact', 'route' => 'contact', 'key' => 'contact'],
     ],

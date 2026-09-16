@@ -70,6 +70,7 @@ class SchoolController extends Controller
             'accent_colour' => ['nullable', 'string', 'max:20'],
             'is_active' => ['nullable', 'boolean'],
             'sort_order' => ['nullable', 'integer', 'min:0'],
+            'pin' => ['nullable', 'digits:4'],
             'logo' => ['nullable', 'image', 'max:3072'],
             'remove_logo' => ['nullable', 'boolean'],
         ]);
@@ -87,6 +88,7 @@ class SchoolController extends Controller
             'accent_colour' => $data['accent_colour'] ?? '#e85820',
             'is_active' => (bool) ($data['is_active'] ?? true),
             'sort_order' => (int) ($data['sort_order'] ?? 0),
+            'pin' => isset($data['pin']) && $data['pin'] !== '' ? $data['pin'] : null,
         ];
 
         if ($request->boolean('remove_logo') && $school?->logo_path) {

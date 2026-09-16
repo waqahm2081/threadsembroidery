@@ -48,6 +48,13 @@
         <input class="ad-input" name="sort_order" type="number" min="0" value="{{ old('sort_order', $school->sort_order ?? 0) }}">
       </div>
 
+      <div class="ad-fg">
+        <label class="ad-label">Store PIN <span style="font-weight:500;color:var(--ad-muted)">(4 digits)</span></label>
+        <input class="ad-input @error('pin') is-invalid @enderror" name="pin" type="text" inputmode="numeric" pattern="[0-9]{4}" maxlength="4" value="{{ old('pin', $school->pin) }}" placeholder="Leave blank for 1111">
+        <p style="margin:.4rem 0 0;font-size:.8rem;color:var(--ad-muted)">Parents enter this PIN to view the school’s uniform range. If blank, <b>1111</b> is used.</p>
+        @error('pin')<p class="ad-error">{{ $message }}</p>@enderror
+      </div>
+
       <div class="ad-fg" style="grid-column:1/-1">
         <label class="ad-label">School Logo</label>
         @if($editing && $school->logo_url)

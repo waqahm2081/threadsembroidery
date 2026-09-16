@@ -45,6 +45,9 @@
 .portal-nav button:hover{background:var(--surface-2);color:var(--text)}
 .portal-nav button.active{background:var(--brand-soft);color:var(--brand-hi)}
 .portal-nav button i{font-size:1.1rem}
+.portal-nav a.portal-nav-link{display:flex;align-items:center;gap:.8rem;padding:.75rem .9rem;border-radius:10px;font-weight:600;color:var(--muted);text-align:left;width:100%;transition:.2s;text-decoration:none}
+.portal-nav a.portal-nav-link:hover{background:var(--surface-2);color:var(--text)}
+.portal-nav a.portal-nav-link i{font-size:1.1rem}
 .portal-main{padding:clamp(24px,3vw,44px);overflow-x:hidden}
 .portal-head{margin-bottom:1.8rem}
 .portal-head h1{font-size:clamp(1.6rem,3vw,2.2rem)}

@@ -285,7 +285,7 @@
           <div class="sub">${esc(sub)}</div>
           <div class="order-action-btns">
             <button type="button" class="btn btn--ghost btn--sm order-action-btn" data-view-uniform-order="${o.id}"><i class="bi bi-eye"></i> Details</button>
-            ${compact ? '' : `<button type="button" class="btn btn--sm order-action-btn" data-go="shop"><i class="bi bi-bag-heart"></i> Shop again</button>`}
+            ${compact ? '' : `<a class="btn btn--sm order-action-btn" href="/uniforms"><i class="bi bi-bag-heart"></i> Shop again</a>`}
           </div>
         </div>
         <span class="status ${statusClass(o.status_key)}">${esc(o.status)}</span>
@@ -318,7 +318,7 @@
       return `<div class="panel-card order-detail">
         <div class="flex justify-between items-center" style="margin-bottom:1rem;gap:1rem;flex-wrap:wrap">
           <button type="button" class="btn btn--ghost" data-go="uniformOrders"><i class="bi bi-arrow-left"></i> Back</button>
-          <button type="button" class="btn" data-go="shop"><i class="bi bi-bag-heart"></i> Uniform Shop</button>
+          <a class="btn" href="/uniforms"><i class="bi bi-bag-heart"></i> Uniform Shop</a>
         </div>
         <div class="portal-head" style="margin-bottom:1.2rem">
           <h1 style="font-size:1.6rem;margin:0">${esc(o.ref)}</h1>
@@ -342,7 +342,7 @@
       <div class="portal-head"><h1>Uniform Orders</h1><p class="muted">Track your school uniform orders.</p></div>
       <div class="panel-card">${uniformOrders().length
         ? uniformOrders().map(o => uniformOrderRow(o)).join('')
-        : '<p class="muted" style="margin:0">No uniform orders yet. <button type="button" class="link-arrow" data-go="shop" style="background:none;border:0;padding:0;cursor:pointer;font:inherit">Browse the Uniform Shop</button></p>'}</div>`;
+        : '<p class="muted" style="margin:0">No uniform orders yet. <a class="link-arrow" href="/uniforms">Browse the Uniform Shop</a></p>'}</div>`;
 
     views.uniformDetail = (orderId) => {
       const o = uniformOrders().find(x => String(x.id) === String(orderId));
@@ -806,9 +806,7 @@
       ));
 
       if (view === 'shop') {
-        if (typeof THREADS !== 'undefined' && THREADS.initUniformShop) {
-          THREADS.initUniformShop();
-        }
+        location.href = '/uniforms';
         return;
       }
 
@@ -938,13 +936,6 @@
 
     document.querySelectorAll('.portal-nav button[data-view]').forEach(b => b.onclick = () => {
       if (b.dataset.view === 'account') accountTab = 'profile';
-      if (b.dataset.view === 'shop') {
-        document.querySelectorAll('.portal-nav button').forEach(x => x.classList.toggle('active', x.dataset.view === 'shop'));
-        if (typeof THREADS !== 'undefined' && THREADS.initUniformShop) {
-          THREADS.initUniformShop();
-        }
-        return;
-      }
       if (b.dataset.view === 'uniformOrders') {
         refreshPortalData().then(() => render('uniformOrders'));
         return;

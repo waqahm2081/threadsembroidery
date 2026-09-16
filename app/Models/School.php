@@ -9,10 +9,12 @@ class School extends Model
 {
     protected $fillable = [
         'name', 'slug', 'logo_path', 'contact_email', 'contact_phone',
-        'address', 'description', 'accent_colour', 'is_active', 'sort_order',
+        'address', 'description', 'accent_colour', 'is_active', 'sort_order', 'pin',
     ];
 
     protected $casts = ['is_active' => 'boolean'];
+
+    protected $hidden = ['pin'];
 
     protected $appends = ['logo_url'];
 

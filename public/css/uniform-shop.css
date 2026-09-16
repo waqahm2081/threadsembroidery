@@ -1,0 +1,28 @@
+/* Public Uniform Shop page extras */
+.uniform-page .page-hero--compact{padding-bottom:clamp(28px,4vw,40px)}
+.uniform-page .page-hero--compact .lead{max-width:56ch}
+.uniform-page .su-school-card{text-decoration:none;color:inherit;cursor:pointer}
+.uniform-page .su-school-cta{pointer-events:none}
+
+.su-pin-gate{
+  max-width:440px;
+  margin:0 auto;
+  padding:2rem 1.6rem 1.8rem;
+  text-align:center;
+}
+.su-pin-icon{
+  width:64px;height:64px;border-radius:18px;margin:0 auto 1rem;
+  display:grid;place-items:center;font-size:1.7rem;
+  background:var(--brand-soft);color:var(--brand);
+}
+.su-pin-gate h3{margin:0 0 .55rem;font-family:var(--font-display);font-weight:800;font-size:1.45rem}
+.su-pin-gate > .muted{margin:0 0 1.3rem;font-size:.95rem}
+.su-pin-form{text-align:left}
+.su-pin-input{
+  letter-spacing:.45em;
+  font-size:1.4rem;
+  font-weight:700;
+  text-align:center;
+  font-variant-numeric:tabular-nums;
+}
+.su-pin-error{color:#ef5350;font-size:.86rem;min-height:1.2em;margin:.55rem 0 .9rem}

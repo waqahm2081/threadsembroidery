@@ -22,6 +22,8 @@
       <a href="{{ route('services') }}">Services</a>
       <a href="{{ route('bundles') }}">Bundle Deals</a>
       <a href="{{ route('artwork-studio') }}">Artwork Studio</a>
+      <a href="{{ route('shop') }}">Shop</a>
+      <a href="{{ route('uniforms') }}">Uniform Shop</a>
       <a href="{{ route('branding-enquiry') }}">Branding Enquiry</a>
       <a href="{{ route('contact') }}">Contact Us</a>
     </div>
