@@ -16,7 +16,7 @@ product-page
 
 @push('styles')
 <link rel="stylesheet" href="{{ asset('assets/css/shop-theme.css') }}?v=1.1">
-<link rel="stylesheet" href="{{ asset('assets/css/product-detail.css') }}?v=2.0">
+<link rel="stylesheet" href="{{ asset('assets/css/product-detail.css') }}?v=2.1">
 @endpush
 
 @section('content')
@@ -209,14 +209,14 @@ product-page
                 <span class="pd-customize-btn-glow"></span>
             </button>
 
-            <button type="button" class="pd-customize-btn pd-enquire-btn" id="pdEnquireBtn" hidden>
+            <button type="button" class="pd-customize-btn pd-enquire-btn is-hidden" id="pdEnquireBtn" hidden aria-hidden="true">
                 <span class="pd-customize-btn-inner">
                     <i class="bi bi-envelope-paper"></i>
                     Enquire for Bulk Quote
                 </span>
                 <span class="pd-customize-btn-glow"></span>
             </button>
-            <p class="pd-bulk-hint" id="pdBulkHint" hidden>
+            <p class="pd-bulk-hint is-hidden" id="pdBulkHint" hidden>
                 Quantities over 100 require a personal quote — submit an enquiry and we’ll get back to you.
             </p>
 
@@ -415,5 +415,5 @@ window.SHOP_ROUTES = {
 };
 </script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-<script src="{{ asset('assets/js/product-detail.js') }}?v=2.0"></script>
+<script src="{{ asset('assets/js/product-detail.js') }}?v=2.1"></script>
 @endpush

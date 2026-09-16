@@ -475,9 +475,21 @@
     const hint = document.getElementById('pdBulkHint');
     const isBulk = totalQty > BULK_QTY_THRESHOLD;
 
-    if (customizeBtn) customizeBtn.hidden = isBulk;
-    if (enquireBtn) enquireBtn.hidden = !isBulk;
-    if (hint) hint.hidden = !isBulk;
+    // Use class + !important CSS — display:block on .pd-customize-btn overrides [hidden]
+    if (customizeBtn) {
+      customizeBtn.classList.toggle('is-hidden', isBulk);
+      customizeBtn.hidden = isBulk;
+      customizeBtn.setAttribute('aria-hidden', isBulk ? 'true' : 'false');
+    }
+    if (enquireBtn) {
+      enquireBtn.classList.toggle('is-hidden', !isBulk);
+      enquireBtn.hidden = !isBulk;
+      enquireBtn.setAttribute('aria-hidden', isBulk ? 'false' : 'true');
+    }
+    if (hint) {
+      hint.classList.toggle('is-hidden', !isBulk);
+      hint.hidden = !isBulk;
+    }
   }
 
   function openEnquireModal() {

@@ -424,6 +424,10 @@
 #pd-detail .pd-qty-summary-divider { width: 1px; height: 24px; background: rgba(0,0,0,0.1); margin: 0 18px; }
 
 #pd-detail .pd-customize-btn { display: block; position: relative; width: 100%; border: none; cursor: pointer; text-decoration: none; border-radius: var(--r-pill); overflow: hidden; margin-bottom: 18px; padding: 0; background: transparent; }
+#pd-detail .pd-customize-btn.is-hidden,
+#pd-detail .pd-bulk-hint.is-hidden {
+  display: none !important;
+}
 #pd-detail .pd-customize-btn-inner { display: flex; align-items: center; justify-content: center; gap: 12px; width: 100%; padding: 18px 24px; background: var(--c-primary); border-radius: var(--r-pill); font-family: var(--font-body); font-weight: 700; font-size: 1.05rem; color: #fff; letter-spacing: 0.01em; position: relative; z-index: 1; transition: background 0.28s ease, transform 0.28s ease; }
 #pd-detail .pd-customize-btn-inner i { font-size: 1.1rem; }
 #pd-detail .pd-customize-btn-glow { position: absolute; inset: -3px; background: var(--c-primary); filter: blur(16px); opacity: 0; border-radius: var(--r-pill); transition: opacity 0.3s ease; }
