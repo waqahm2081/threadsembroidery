@@ -33,6 +33,7 @@ use App\Http\Controllers\ProductController;
 use App\Http\Controllers\ShopCartController;
 use App\Http\Controllers\ShopCheckoutController;
 use App\Http\Controllers\ShopController;
+use App\Http\Controllers\MediaProxyController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', [PageController::class, 'home'])->name('home');
@@ -70,6 +71,7 @@ Route::prefix('shop')->name('shop.')->group(function () {
     Route::get('/checkout', [ShopCheckoutController::class, 'show'])->name('checkout');
     Route::post('/checkout', [ShopCheckoutController::class, 'store'])->name('checkout.store');
     Route::get('/checkout/confirmation/{orderNumber}', [ShopCheckoutController::class, 'confirmation'])->name('checkout.confirmation');
+    Route::get('/media-proxy', MediaProxyController::class)->name('media-proxy');
 
     Route::get('/{categorySlug}/products', [ShopController::class, 'categoryProducts'])->name('category.products');
     Route::get('/{categorySlug}/{productSlug}/customizer', [ProductController::class, 'customizer'])->name('product.customizer');

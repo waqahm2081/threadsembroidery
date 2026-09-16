@@ -376,13 +376,28 @@
         garmentImg.referrerPolicy = 'no-referrer';
         garmentImg.alt = preview.title || 'Garment preview';
         garmentImg.onerror = function () {
-          // External catalog photos can fail; fall back to local placeholder
-          if (garmentImg.dataset.fallbackApplied) return;
+          if (garmentImg.dataset.fallbackApplied === '2') return;
+          if (garmentImg.dataset.fallbackApplied === '1') {
+            garmentImg.dataset.fallbackApplied = '2';
+            garmentImg.src = preview.product_image
+              || '/assets/images/customizer/tshirtcustom.png';
+            return;
+          }
           garmentImg.dataset.fallbackApplied = '1';
+          // Retry via same-origin proxy (fixes hotlink/CORS display failures)
+          try {
+            const u = new URL(garmentSrc, window.location.origin);
+            if (u.origin !== window.location.origin) {
+              garmentImg.src = '/shop/media-proxy?url=' + encodeURIComponent(u.href);
+              return;
+            }
+          } catch { /* fall through */ }
+          garmentImg.dataset.fallbackApplied = '2';
           garmentImg.src = preview.product_image
             || '/assets/images/customizer/tshirtcustom.png';
         };
         delete garmentImg.dataset.fallbackApplied;
+        garmentImg.removeAttribute('crossorigin');
         garmentImg.src = garmentSrc || preview.product_image || '/assets/images/customizer/tshirtcustom.png';
         garmentImg.style.filter = computeGarmentFilter(colourHex);
       }

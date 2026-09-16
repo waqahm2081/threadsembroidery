@@ -163,13 +163,58 @@ document.addEventListener('DOMContentLoaded', function () {
     const src = getGarmentImageForView(state.view);
     if (!src) return;
     if (garmentImg) {
-      // Required so canvas export (preview_image) is not tainted by cross-origin photos
-      garmentImg.crossOrigin = 'anonymous';
-      garmentImg.src = src;
+      // Do NOT set crossOrigin on the live preview image — remote catalog
+      // hosts (e.g. fullcollection) often lack CORS headers, which makes the
+      // browser blank the image after JS reassigns src. Export uses a proxy.
+      const hadCors = garmentImg.hasAttribute('crossorigin');
+      if (hadCors) garmentImg.removeAttribute('crossorigin');
+
+      let current = '';
+      try { current = new URL(garmentImg.src, window.location.origin).href; } catch { current = garmentImg.src; }
+      let next = src;
+      try { next = new URL(src, window.location.origin).href; } catch { /* keep src */ }
+
+      if (hadCors || current !== next || !garmentImg.complete || !garmentImg.naturalWidth) {
+        garmentImg.src = src;
+      }
     }
     const thumb = document.getElementById('pclProductThumb');
     if (thumb && state.view === 'front') thumb.src = garmentImages.front;
     applyColourToGarment();
+  }
+
+  function proxiedImageUrl(src) {
+    if (!src || typeof src !== 'string') return src;
+    if (src.startsWith('data:') || src.startsWith('blob:')) return src;
+    try {
+      const u = new URL(src, window.location.origin);
+      if (u.origin === window.location.origin) return src;
+      return '/shop/media-proxy?url=' + encodeURIComponent(u.href);
+    } catch {
+      return src;
+    }
+  }
+
+  function loadImageElement(src, useCors) {
+    return new Promise(resolve => {
+      if (!src) return resolve(null);
+      const img = new Image();
+      if (useCors) img.crossOrigin = 'anonymous';
+      img.onload = () => resolve(img);
+      img.onerror = () => resolve(null);
+      img.src = src;
+    });
+  }
+
+  async function loadGarmentForExport(src) {
+    // Prefer same-origin proxy so canvas export is never CORS-tainted
+    const proxied = proxiedImageUrl(src);
+    let img = await loadImageElement(proxied, true);
+    if (img) return img;
+    img = await loadImageElement(proxied, false);
+    if (img) return img;
+    // Last resort: direct URL (may taint canvas if remote)
+    return loadImageElement(src, false);
   }
 
   syncGarmentImagesFromColour();
@@ -1352,9 +1397,12 @@ document.addEventListener('DOMContentLoaded', function () {
     if (includeGarment) {
       ctx.fillStyle = '#f0f0f0';
       ctx.fillRect(0, 0, w, h);
-      const garment = wrap.querySelector('#pcmGarmentImg') || garmentImg;
-      if (garment && garment.complete && garment.naturalWidth) {
-        await drawImageToCanvas(ctx, garment, 0, 0, w, h);
+      const garmentSrc = getGarmentImageForView(state.view)
+        || (wrap.querySelector('#pcmGarmentImg') || garmentImg)?.src
+        || '';
+      const garment = await loadGarmentForExport(garmentSrc);
+      if (garment && garment.naturalWidth) {
+        ctx.drawImage(garment, 0, 0, w, h);
       }
     } else {
       ctx.clearRect(0, 0, w, h);
@@ -1489,7 +1537,10 @@ document.addEventListener('DOMContentLoaded', function () {
     const previewCanvas = document.getElementById('pcmPreviewCanvas');
     const scaleFactor = pa ? pa.previewScaleFactor(canvas, previewCanvas, 260) : 1;
     if (pcmGarmentImg) {
-      pcmGarmentImg.crossOrigin = 'anonymous';
+      // Keep modal preview CORS-free for display; export uses media-proxy
+      if (pcmGarmentImg.getAttribute('crossorigin')) {
+        pcmGarmentImg.removeAttribute('crossorigin');
+      }
       pcmGarmentImg.src = getGarmentImageForView(state.view);
       pcmGarmentImg.style.filter = garmentImg?.style.filter || 'none';
     }
