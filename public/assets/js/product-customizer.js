@@ -1243,6 +1243,20 @@ document.addEventListener('DOMContentLoaded', function () {
       return;
     }
 
+    if (!pcmConfirmAddBtn || pcmConfirmAddBtn.disabled || pcmConfirmAddBtn.classList.contains('pcm-saving')) {
+      return;
+    }
+
+    // Show loading immediately — canvas export can take a couple of seconds
+    const continueBtn = document.querySelector('.pcm-continue-btn');
+    pcmConfirmAddBtn.disabled = true;
+    pcmConfirmAddBtn.classList.add('pcm-saving');
+    pcmConfirmAddBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span> Preparing…';
+    if (continueBtn) continueBtn.disabled = true;
+
+    // Let the browser paint the spinner before heavy canvas export work
+    await new Promise(resolve => requestAnimationFrame(() => setTimeout(resolve, 0)));
+
     const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content;
     const unitPrice = state.basePrice;
     const decorationFee = getPlacementFee();
@@ -1272,23 +1286,21 @@ document.addEventListener('DOMContentLoaded', function () {
     formData.append('colour_name', state.colourName);
 
     try {
-      const previewBlob = await exportPreviewBlob();
-      if (previewBlob) {
-        formData.append('preview_image', previewBlob, 'preview.png');
+      try {
+        const previewBlob = await exportPreviewBlob();
+        if (previewBlob) {
+          formData.append('preview_image', previewBlob, 'preview.png');
+        }
+        const printBlob = await exportPrintArtworkBlob();
+        if (printBlob) {
+          formData.append('print_image', printBlob, 'print-artwork.png');
+        }
+      } catch {
+        // Preview/print export is optional; design JSON still saves
       }
-      const printBlob = await exportPrintArtworkBlob();
-      if (printBlob) {
-        formData.append('print_image', printBlob, 'print-artwork.png');
-      }
-    } catch {
-      // Preview/print export is optional; design JSON still saves
-    }
 
-    pcmConfirmAddBtn.disabled = true;
-    pcmConfirmAddBtn.classList.add('pcm-saving');
-    pcmConfirmAddBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span> Saving…';
+      pcmConfirmAddBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span> Saving…';
 
-    try {
       const res = await fetch(customizerData.customize_url, {
         method: 'POST',
         headers: {
@@ -1346,6 +1358,7 @@ document.addEventListener('DOMContentLoaded', function () {
       pcmConfirmAddBtn.disabled = false;
       pcmConfirmAddBtn.classList.remove('pcm-saving');
       pcmConfirmAddBtn.innerHTML = '<i class="bi bi-cart-plus"></i> Confirm &amp; Add to Cart';
+      if (continueBtn) continueBtn.disabled = false;
     }
   }
 
