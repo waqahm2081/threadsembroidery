@@ -344,5 +344,5 @@ window.SHOP_ROUTES = {
 };
 </script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-<script src="{{ asset('assets/js/product-detail.js') }}?v=1.8"></script>
+<script src="{{ asset('assets/js/product-detail.js') }}?v=1.9"></script>
 @endpush

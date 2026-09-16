@@ -1,7 +1,7 @@
 ﻿/* ============================================================
-   PRODUCT DETAIL PAGE  â€”  product-detail.js
-   Thumbnail gallery Â· colour swatches Â· qty +/- Â· price calc Â·
-   description tabs Â· review modal (star picker + validation)
+   PRODUCT DETAIL PAGE - product-detail.js
+   Thumbnail gallery, colour swatches, qty +/-, price calc,
+   description tabs, review modal (star picker + validation)
    ============================================================ */
 
 (function () {
@@ -19,7 +19,8 @@
   function formatMoney(amount) {
     const whole = Math.floor(amount);
     const dec = String(Math.round((amount - whole) * 100)).padStart(2, '0');
-    return `Â£${whole}<small style="font-size:0.8em">.${dec}</small>`;
+    // Use unicode escape so the pound sign cannot be corrupted by file encoding
+    return `\u00A3${whole}<small style="font-size:0.8em">.${dec}</small>`;
   }
 
   const VAT_NOTE = ' <small class="pd-vat-note">+ VAT</small>';
@@ -82,7 +83,7 @@
     recalcTotal();
   }
 
-  /* â”€â”€ 1. Thumbnail gallery â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+  /* --- 1. Thumbnail gallery -------------------------------- */
   const mainImg = document.getElementById('pdMainImage');
   const thumbs  = document.querySelectorAll('#pd-detail .pd-thumb');
 
@@ -98,7 +99,7 @@
   });
 
 
-  /* â”€â”€ 2. Colour swatches â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+  /* --- 2. Colour swatches ---------------------------------- */
   const swatches    = document.querySelectorAll('#pd-detail .pd-swatch');
   const colourLabel = document.getElementById('pdColourName');
 
@@ -115,7 +116,7 @@
   });
 
 
-  /* â”€â”€ 3. Qty +/âˆ’ buttons â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+  /* --- 3. Qty +/- buttons ---------------------------------- */
   function initQtyButtons() {
     document.querySelectorAll('#pd-detail .pd-size-row-item').forEach(row => {
       const minus = row.querySelector('.pd-qty-minus');
@@ -135,7 +136,7 @@
   }
 
 
-  /* â”€â”€ 4. Live price calc â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+  /* --- 4. Live price calc ---------------------------------- */
   const totalUnitsEl = document.getElementById('pdTotalUnits');
   const estTotalEl   = document.getElementById('pdEstTotal');
 
@@ -193,7 +194,7 @@
   }
 
 
-  /* â”€â”€ 5. Description / Features tabs â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+  /* --- 5. Description / Features tabs ---------------------- */
   document.querySelectorAll('#pd-desc .pd-tab').forEach(tab => {
     tab.addEventListener('click', function () {
       document.querySelectorAll('#pd-desc .pd-tab').forEach(t => t.classList.remove('active'));
@@ -205,7 +206,7 @@
   });
 
 
-  /* â”€â”€ 6. Review modal â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+  /* --- 6. Review modal ------------------------------------- */
   const starBtns   = document.querySelectorAll('.pd-rev-star-btn');
   const starLabel  = document.getElementById('pdRevStarLabel');
   const ratingInput = document.getElementById('pdRevRating');
@@ -291,7 +292,7 @@
 
       // Simulate submit
       submitBtn.disabled  = true;
-      submitBtn.innerHTML = '<i class="bi bi-hourglass-split"></i> Submittingâ€¦';
+      submitBtn.innerHTML = '<i class="bi bi-hourglass-split"></i> Submitting...';
 
       setTimeout(() => {
         // Inject new review card at the top of the grid
