@@ -534,6 +534,10 @@
   margin-bottom: 14px;
   font-size: 0.84rem;
 }
+.pd-enq-error.is-hidden,
+.pd-enq-error[hidden] {
+  display: none !important;
+}
 .pd-enq-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;

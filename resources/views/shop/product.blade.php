@@ -16,7 +16,7 @@ product-page
 
 @push('styles')
 <link rel="stylesheet" href="{{ asset('assets/css/shop-theme.css') }}?v=1.1">
-<link rel="stylesheet" href="{{ asset('assets/css/product-detail.css') }}?v=2.1">
+<link rel="stylesheet" href="{{ asset('assets/css/product-detail.css') }}?v=2.2">
 @endpush
 
 @section('content')
@@ -345,7 +345,7 @@ product-page
                 <div class="pd-enq-body">
                     <div class="pd-enq-summary" id="pdEnquireSummary"></div>
 
-                    <div class="pd-enq-error" id="pdEnquireError" hidden>
+                    <div class="pd-enq-error is-hidden" id="pdEnquireError" hidden>
                         <i class="bi bi-exclamation-circle"></i>
                         <span id="pdEnquireErrorMsg"></span>
                     </div>
@@ -415,5 +415,5 @@ window.SHOP_ROUTES = {
 };
 </script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-<script src="{{ asset('assets/js/product-detail.js') }}?v=2.1"></script>
+<script src="{{ asset('assets/js/product-detail.js') }}?v=2.2"></script>
 @endpush

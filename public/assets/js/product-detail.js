@@ -516,7 +516,10 @@
     }
 
     const err = document.getElementById('pdEnquireError');
-    if (err) err.hidden = true;
+    if (err) {
+      err.hidden = true;
+      err.classList.add('is-hidden');
+    }
 
     const modal = document.getElementById('pdBulkEnquireModal');
     if (modal) {
@@ -545,7 +548,10 @@
     const box = document.getElementById('pdEnquireError');
     const text = document.getElementById('pdEnquireErrorMsg');
     if (text) text.textContent = msg;
-    if (box) box.hidden = false;
+    if (box) {
+      box.hidden = false;
+      box.classList.remove('is-hidden');
+    }
   }
 
   async function submitBulkEnquiry(e) {
