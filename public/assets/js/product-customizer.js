@@ -1144,9 +1144,53 @@ document.addEventListener('DOMContentLoaded', function () {
     pcmConfirmAddBtn.addEventListener('click', saveToCart);
   }
 
+  /**
+   * Safari throws DOMException "The string did not match the expected pattern"
+   * when assigning an empty/invalid URL to HTMLAnchorElement.href. Prefer
+   * relative paths and never let a bad URL undo a successful save.
+   */
+  function isSafeNavUrl(url) {
+    if (typeof url !== 'string') return false;
+    const trimmed = url.trim();
+    if (!trimmed) return false;
+    return /^(https?:\/\/|\/)/i.test(trimmed);
+  }
+
+  function safeSetAnchorHref(el, url, fallback) {
+    if (!el) return;
+    const candidates = [url, fallback, el.getAttribute('href')].filter(isSafeNavUrl);
+    for (const candidate of candidates) {
+      try {
+        el.setAttribute('href', candidate);
+        return;
+      } catch {
+        // try next candidate
+      }
+    }
+  }
+
+  async function parseJsonResponse(res) {
+    const text = await res.text();
+    if (!text) return {};
+    try {
+      return JSON.parse(text);
+    } catch {
+      throw new Error(
+        res.ok
+          ? 'Unexpected server response. Please refresh and try again.'
+          : 'Could not save your design. Please refresh and try again.'
+      );
+    }
+  }
+
   async function saveToCart() {
     if (!customizerData.cart_item_id || !customizerData.customize_url) {
       alert('No cart item found. Please go back to the product page and try again.');
+      return;
+    }
+
+    if (!isSafeNavUrl(customizerData.customize_url)) {
+      alert('Invalid save URL. Please go back to the product page and try again.');
       return;
     }
 
@@ -1199,21 +1243,20 @@ document.addEventListener('DOMContentLoaded', function () {
       const res = await fetch(customizerData.customize_url, {
         method: 'POST',
         headers: {
-          'X-CSRF-TOKEN': csrfToken,
+          'X-CSRF-TOKEN': csrfToken || '',
           'Accept': 'application/json',
         },
         body: formData,
+        credentials: 'same-origin',
       });
 
-      const data = await res.json();
+      const data = await parseJsonResponse(res);
 
       if (!res.ok) {
         throw new Error(data.message || 'Failed to save design');
       }
 
-      if (pcmCheckoutNowBtn) pcmCheckoutNowBtn.href = data.checkout_url;
-      if (pcmViewCartBtn) pcmViewCartBtn.href = data.cart_url;
-
+      // Success UI first — never let href assignment fail the whole save flow
       if (pcmEditingActions) pcmEditingActions.style.display = 'none';
       if (pcmSuccessActions) pcmSuccessActions.style.display = 'flex';
 
@@ -1225,8 +1268,31 @@ document.addEventListener('DOMContentLoaded', function () {
       if (modalSub) {
         modalSub.textContent = 'Your custom design has been saved successfully.';
       }
+
+      safeSetAnchorHref(
+        pcmCheckoutNowBtn,
+        data.checkout_url,
+        customizerData.checkout_url || '/shop/checkout'
+      );
+      safeSetAnchorHref(
+        pcmViewCartBtn,
+        data.cart_url,
+        customizerData.cart_url || '/shop/cart'
+      );
+
+      const badge = document.getElementById('navCartBadge');
+      if (badge && data.cart_count > 0) {
+        badge.textContent = data.cart_count;
+        badge.style.display = '';
+      }
     } catch (err) {
-      alert(err.message || 'Could not save your design. Please try again.');
+      const msg = (err && err.message) ? String(err.message) : '';
+      // Safari DOMException for bad URLs — do not surface raw browser text
+      if (/did not match the expected pattern/i.test(msg) || err?.name === 'DOMException') {
+        alert('Could not finish adding to cart. Please refresh and try again, or open Cart from the menu.');
+      } else {
+        alert(msg || 'Could not save your design. Please try again.');
+      }
     } finally {
       pcmConfirmAddBtn.disabled = false;
       pcmConfirmAddBtn.classList.remove('pcm-saving');

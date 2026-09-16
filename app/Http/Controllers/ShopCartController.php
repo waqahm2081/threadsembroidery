@@ -212,8 +212,9 @@ class ShopCartController extends Controller
         return response()->json([
             'message' => 'Design saved and added to cart.',
             'cart_count' => $this->cartService->itemCount(),
-            'cart_url' => route('shop.cart'),
-            'checkout_url' => route('shop.checkout'),
+            // Relative paths avoid Safari DOMException when APP_URL host mismatches the page
+            'cart_url' => route('shop.cart', [], false),
+            'checkout_url' => route('shop.checkout', [], false),
         ]);
     }
 
@@ -237,11 +238,16 @@ class ShopCartController extends Controller
                 continue;
             }
 
-            if (! preg_match('/^data:image\/(\w+);base64,/', $layer['src'], $matches)) {
+            // Accept jpeg/png/gif/webp and svg+xml data URLs
+            if (! preg_match('/^data:image\/([a-z0-9.+-]+);base64,/i', $layer['src'], $matches)) {
                 continue;
             }
 
-            $extension = $matches[1] === 'svg+xml' ? 'svg' : $matches[1];
+            $mime = strtolower($matches[1]);
+            $extension = $mime === 'svg+xml' ? 'svg' : preg_replace('/[^a-z0-9]/', '', $mime);
+            if ($extension === '' || $extension === null) {
+                $extension = 'png';
+            }
             $data = base64_decode(substr($layer['src'], strpos($layer['src'], ',') + 1));
 
             if ($data === false) {

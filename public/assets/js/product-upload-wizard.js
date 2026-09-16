@@ -376,7 +376,13 @@
         body: formData,
       });
 
-      const data = await res.json();
+      const raw = await res.text();
+      let data = {};
+      try {
+        data = raw ? JSON.parse(raw) : {};
+      } catch {
+        throw new Error('Unexpected server response. Please refresh and try again.');
+      }
       if (!res.ok) throw new Error(data.message || 'Failed to save design');
 
       const badge = document.getElementById('navCartBadge');
@@ -386,9 +392,22 @@
       }
 
       modal?.hide();
-      window.location.href = data.cart_url || (window.SHOP_ROUTES && window.SHOP_ROUTES.cart_url) || '/shop/cart';
+      const cartUrl = data.cart_url
+        || (window.SHOP_ROUTES && window.SHOP_ROUTES.cart_url)
+        || '/shop/cart';
+      // Safari throws on invalid location.href; keep a safe relative fallback
+      if (typeof cartUrl === 'string' && /^(https?:\/\/|\/)/i.test(cartUrl.trim())) {
+        window.location.assign(cartUrl.trim());
+      } else {
+        window.location.assign('/shop/cart');
+      }
     } catch (err) {
-      alert(err.message || 'Could not save your design. Please try again.');
+      const msg = (err && err.message) ? String(err.message) : '';
+      if (/did not match the expected pattern/i.test(msg) || err?.name === 'DOMException') {
+        alert('Could not open the cart. Your design may still have been saved — check Cart from the menu.');
+      } else {
+        alert(msg || 'Could not save your design. Please try again.');
+      }
       if (btn) {
         btn.classList.remove('loading');
         btn.textContent = originalText;
