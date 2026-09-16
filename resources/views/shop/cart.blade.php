@@ -183,5 +183,5 @@ window.SHOP_ROUTES = {
 };
 </script>
 <script src="{{ asset('assets/js/design-print-area.js') }}?v=1.2"></script>
-<script src="{{ asset('assets/js/cart-checkout.js') }}?v=1.9"></script>
+<script src="{{ asset('assets/js/cart-checkout.js') }}?v=2.0"></script>
 @endpush

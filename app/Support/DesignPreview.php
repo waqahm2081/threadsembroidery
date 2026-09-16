@@ -3,8 +3,8 @@
 namespace App\Support;
 
 /**
- * Resolves usable image preview paths for customized shop cart/order items.
- * Never treats design JSON metadata files as preview images.
+ * Resolves full product+design mockup preview paths for customized shop items.
+ * Never treats design JSON, print plates, or raw artwork-layer files as mockups.
  */
 class DesignPreview
 {
@@ -22,6 +22,33 @@ class DesignPreview
     }
 
     /**
+     * True only for composited mockup files (preview-*.png), not artwork/print/json.
+     */
+    public static function isMockupPath(?string $path): bool
+    {
+        if (! self::isImagePath($path)) {
+            return false;
+        }
+
+        $base = strtolower(basename($path));
+
+        // Explicit mockup exports from the customizer
+        if (str_starts_with($base, 'preview-')) {
+            return true;
+        }
+
+        // Reject known non-mockup design assets
+        if (str_starts_with($base, 'artwork-')
+            || str_starts_with($base, 'print-')
+            || str_starts_with($base, 'design-')
+            || str_ends_with($base, '.json')) {
+            return false;
+        }
+
+        return false;
+    }
+
+    /**
      * @param  array<int, mixed>|null  $assetPaths
      * @param  array<string, mixed>|null  $designData
      */
@@ -33,7 +60,7 @@ class DesignPreview
         $candidates = [];
 
         foreach ($assetPaths ?? [] as $path) {
-            if (is_string($path) && str_contains(basename($path), 'preview-')) {
+            if (is_string($path)) {
                 $candidates[] = $path;
             }
         }
@@ -42,22 +69,8 @@ class DesignPreview
             $candidates[] = $designFilePath;
         }
 
-        if (! empty($designData['print_file_path']) && is_string($designData['print_file_path'])) {
-            $candidates[] = $designData['print_file_path'];
-        }
-
-        if (! empty($designData['artwork']['asset_path']) && is_string($designData['artwork']['asset_path'])) {
-            $candidates[] = $designData['artwork']['asset_path'];
-        }
-
-        foreach ($assetPaths ?? [] as $path) {
-            if (is_string($path) && self::isImagePath($path)) {
-                $candidates[] = $path;
-            }
-        }
-
         foreach ($candidates as $candidate) {
-            if (self::isImagePath($candidate)) {
+            if (self::isMockupPath($candidate)) {
                 return $candidate;
             }
         }

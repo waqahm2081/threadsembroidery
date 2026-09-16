@@ -20,7 +20,7 @@
   }
 
   function formatMoney(amount) {
-    return '£' + Number(amount).toFixed(2);
+    return `\u00A3${Number(amount).toFixed(2)}`;
   }
 
   function updateCartSummary(totals) {
@@ -227,8 +227,13 @@
     }
 
     function resolveGarmentImage(preview, data, view) {
-      const front = preview.customizer_image || data.customizer_image || '';
-      const back = preview.customizer_image_back || data.customizer_image_back || front;
+      const front = preview.customizer_image
+        || data.customizer_image
+        || preview.product_image
+        || '';
+      const back = preview.customizer_image_back
+        || data.customizer_image_back
+        || front;
       return view === 'back' ? back : front;
     }
 
@@ -324,44 +329,27 @@
       return el;
     }
 
-    function isUsablePreviewUrl(url) {
+    function isFullMockupUrl(url) {
       if (!url || typeof url !== 'string') return false;
       const trimmed = url.trim();
-      if (!trimmed) return false;
-      // Never treat design JSON metadata as an image
-      if (/\.json(\?|#|$)/i.test(trimmed)) return false;
-      return true;
+      if (!trimmed || /\.json(\?|#|$)/i.test(trimmed)) return false;
+      // Only composited customizer exports — never raw artwork/print plates
+      return /preview-/i.test(trimmed);
     }
 
-    function showSavedPreview(preview, data) {
+    function showSavedMockup(url) {
+      if (!artworkEl || !isFullMockupUrl(url)) return false;
+
       if (previewCanvas) previewCanvas.style.display = 'none';
-      if (!artworkEl) return false;
-
-      const previewUrl = isUsablePreviewUrl(preview.preview_url)
-        ? preview.preview_url
-        : (data.artwork?.asset_path && isUsablePreviewUrl(preview.storage_base + '/' + data.artwork.asset_path)
-          ? preview.storage_base + '/' + data.artwork.asset_path
-          : null);
-
       artworkEl.style.display = 'flex';
       artworkEl.innerHTML = '';
 
-      if (previewUrl) {
-        const img = document.createElement('img');
-        img.src = previewUrl;
-        img.alt = 'Saved design preview';
-        img.draggable = false;
-        img.onerror = () => {
-          // Broken/non-image URL — fall back to live garment + layers mockup
-          artworkEl.style.display = 'none';
-          artworkEl.innerHTML = '';
-          renderLiveMockup(preview, data);
-        };
-        artworkEl.appendChild(img);
-        return true;
-      }
-
-      return false;
+      const img = document.createElement('img');
+      img.src = url;
+      img.alt = 'Saved design preview';
+      img.draggable = false;
+      artworkEl.appendChild(img);
+      return true;
     }
 
     function renderLiveMockup(preview, data) {
@@ -380,11 +368,22 @@
         ? pa.scaleFromReference(data.canvas_width || 620, previewCanvas, 280)
         : 1;
       const layers = (data.layers || [])
-        .filter(l => l.view === view)
+        .filter(l => (l.view || 'front') === view)
         .filter(l => !pa || !printBounds || pa.intersects(l, printBounds));
 
       if (garmentImg) {
-        garmentImg.src = resolveGarmentImage(preview, data, view);
+        const garmentSrc = resolveGarmentImage(preview, data, view);
+        garmentImg.referrerPolicy = 'no-referrer';
+        garmentImg.alt = preview.title || 'Garment preview';
+        garmentImg.onerror = function () {
+          // External catalog photos can fail; fall back to local placeholder
+          if (garmentImg.dataset.fallbackApplied) return;
+          garmentImg.dataset.fallbackApplied = '1';
+          garmentImg.src = preview.product_image
+            || '/assets/images/customizer/tshirtcustom.png';
+        };
+        delete garmentImg.dataset.fallbackApplied;
+        garmentImg.src = garmentSrc || preview.product_image || '/assets/images/customizer/tshirtcustom.png';
         garmentImg.style.filter = computeGarmentFilter(colourHex);
       }
 
@@ -402,7 +401,6 @@
     function openDesignPreview(preview) {
       const data = preview.design_data || {};
       const colourName = preview.colour_name || data.colour?.name || '';
-      const colourHex = preview.colour_hex || data.colour?.hex || '#ffffff';
       const placement = data.decoration_placement_label || '';
 
       if (titleEl) {
@@ -413,24 +411,25 @@
         subtitleEl.textContent = parts.length ? parts.join(' · ') : 'Custom design preview';
       }
 
-      const usedSaved = showSavedPreview(preview, data);
+      // Prefer full product+design composite. Only use a saved image if it is a
+      // true mockup export (preview-*). Never show raw uploaded artwork alone.
       let layerCount = (data.layers || []).length;
-
+      const usedSaved = showSavedMockup(preview.preview_url);
       if (!usedSaved) {
         layerCount = renderLiveMockup(preview, data) || layerCount;
       }
 
       if (detailsEl) {
         const sizeLabel = preview.size_breakdown?.length
-          ? preview.size_breakdown.map(r => `${r.size} × ${r.qty}`).join(', ')
-          : (data.size || preview.size || '—');
+          ? preview.size_breakdown.map(r => `${r.size} \u00D7 ${r.qty}`).join(', ')
+          : (data.size || preview.size || '\u2014');
         detailsEl.innerHTML = [
-          detailRow('Garment', data.garment || preview.title || '—'),
-          detailRow('Colour', colourName || '—'),
-          detailRow('Position', placement || '—'),
+          detailRow('Garment', data.garment || preview.title || '\u2014'),
+          detailRow('Colour', colourName || '\u2014'),
+          detailRow('Position', placement || '\u2014'),
           detailRow('Sizes', sizeLabel),
-          detailRow('Quantity', String(preview.quantity || data.qty || '—')),
-          detailRow('Design Elements', String(layerCount || '—')),
+          detailRow('Quantity', String(preview.quantity || data.qty || '\u2014')),
+          detailRow('Design Elements', String(layerCount || '\u2014')),
         ].join('');
       }
     }

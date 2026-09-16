@@ -40,6 +40,7 @@ class ShopCartController extends Controller
                         ?? ($item->design_data['customizer_image'] ?? asset('assets/images/customizer/tshirtcustom.png')),
                     'customizer_image_back' => $item->design_data['customizer_image_back']
                         ?? asset('assets/images/customizer/tshirtcustom-back.png'),
+                    'product_image' => $item->product_image ?? null,
                     'size_breakdown' => $item->size_breakdown,
                     'quantity' => $item->quantity,
                     'design_data' => $item->design_data,
