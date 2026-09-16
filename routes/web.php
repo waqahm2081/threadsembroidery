@@ -15,6 +15,7 @@ use App\Http\Controllers\Admin\BundleColourController as AdminBundleColourContro
 use App\Http\Controllers\Admin\DashboardController as AdminDashboardController;
 use App\Http\Controllers\Admin\OrderController as AdminOrderController;
 use App\Http\Controllers\Admin\PlacementOptionController as AdminPlacementOptionController;
+use App\Http\Controllers\Admin\ProductBulkEnquiryController as AdminProductBulkEnquiryController;
 use App\Http\Controllers\Admin\ProductCustomizerController as AdminProductCustomizerController;
 use App\Http\Controllers\Admin\ProductQuoteController as AdminProductQuoteController;
 use App\Http\Controllers\Admin\ProfileController as AdminProfileController;
@@ -30,6 +31,7 @@ use App\Http\Controllers\CheckoutPageController;
 use App\Http\Controllers\PageController;
 use App\Http\Controllers\PortalController;
 use App\Http\Controllers\ProductController;
+use App\Http\Controllers\ProductBulkEnquiryController;
 use App\Http\Controllers\ShopCartController;
 use App\Http\Controllers\ShopCheckoutController;
 use App\Http\Controllers\ShopController;
@@ -136,6 +138,10 @@ Route::prefix('admin')->name('admin.')->group(function () {
         Route::get('/enquiries/{enquiry}', [AdminBrandingEnquiryController::class, 'show'])->name('enquiries.show');
         Route::put('/enquiries/{enquiry}', [AdminBrandingEnquiryController::class, 'update'])->name('enquiries.update');
 
+        Route::get('/bulk-enquiries', [AdminProductBulkEnquiryController::class, 'index'])->name('bulk-enquiries.index');
+        Route::get('/bulk-enquiries/{bulkEnquiry}', [AdminProductBulkEnquiryController::class, 'show'])->name('bulk-enquiries.show');
+        Route::put('/bulk-enquiries/{bulkEnquiry}', [AdminProductBulkEnquiryController::class, 'update'])->name('bulk-enquiries.update');
+
         Route::get('/product-customizer', AdminProductCustomizerController::class)->name('customizer');
         Route::get('/product-quotes', [AdminProductQuoteController::class, 'index'])->name('product-quotes.index');
         Route::post('/product-quotes', [AdminProductQuoteController::class, 'store'])->name('product-quotes.store');
@@ -166,6 +172,7 @@ Route::prefix('api')->group(function () {
     Route::get('/stripe/config', [ApiStripePaymentController::class, 'config'])->name('api.stripe.config');
     Route::post('/stripe/payment-intent', [ApiStripePaymentController::class, 'createIntent'])->name('api.stripe.intent');
     Route::post('/branding-enquiries', [BrandingEnquiryController::class, 'store'])->name('api.branding-enquiries.store');
+    Route::post('/product-bulk-enquiries', [ProductBulkEnquiryController::class, 'store'])->name('api.product-bulk-enquiries.store');
 });
 
 // Design-folder JS uses *.php paths — keep those working too

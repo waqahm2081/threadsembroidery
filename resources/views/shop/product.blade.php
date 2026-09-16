@@ -16,7 +16,7 @@ product-page
 
 @push('styles')
 <link rel="stylesheet" href="{{ asset('assets/css/shop-theme.css') }}?v=1.1">
-<link rel="stylesheet" href="{{ asset('assets/css/product-detail.css') }}">
+<link rel="stylesheet" href="{{ asset('assets/css/product-detail.css') }}?v=2.0">
 @endpush
 
 @section('content')
@@ -209,6 +209,17 @@ product-page
                 <span class="pd-customize-btn-glow"></span>
             </button>
 
+            <button type="button" class="pd-customize-btn pd-enquire-btn" id="pdEnquireBtn" hidden>
+                <span class="pd-customize-btn-inner">
+                    <i class="bi bi-envelope-paper"></i>
+                    Enquire for Bulk Quote
+                </span>
+                <span class="pd-customize-btn-glow"></span>
+            </button>
+            <p class="pd-bulk-hint" id="pdBulkHint" hidden>
+                Quantities over 100 require a personal quote — submit an enquiry and we’ll get back to you.
+            </p>
+
             <div class="pd-trust-row">
                 <span class="pd-trust-item"><i class="bi bi-truck"></i> Free UK Delivery</span>
                 <span class="pd-trust-item"><i class="bi bi-pencil-square"></i> Free Artwork</span>
@@ -314,6 +325,65 @@ product-page
 
 @include('shop.partials.reviews', ['productTitle' => $product['title']])
 
+{{-- Bulk enquiry modal (qty > 100) --}}
+<div class="pd-enq-modal" id="pdBulkEnquireModal" hidden aria-hidden="true">
+    <div class="pd-enq-backdrop" id="pdEnqBackdrop"></div>
+    <div class="pd-enq-dialog" role="dialog" aria-labelledby="pdBulkEnquireModalLabel" aria-modal="true">
+        <div class="pd-enq-content">
+            <div class="pd-enq-header">
+                <div>
+                    <h5 class="pd-enq-title" id="pdBulkEnquireModalLabel">
+                        <i class="bi bi-envelope-paper"></i> Bulk Quote Enquiry
+                    </h5>
+                    <p class="pd-enq-sub">Orders over 100 units — tell us your details and we’ll prepare a quote.</p>
+                </div>
+                <button type="button" class="pd-enq-close" id="pdEnqClose" aria-label="Close">
+                    <i class="bi bi-x-lg"></i>
+                </button>
+            </div>
+            <form id="pdBulkEnquireForm" novalidate>
+                <div class="pd-enq-body">
+                    <div class="pd-enq-summary" id="pdEnquireSummary"></div>
+
+                    <div class="pd-enq-error" id="pdEnquireError" hidden>
+                        <i class="bi bi-exclamation-circle"></i>
+                        <span id="pdEnquireErrorMsg"></span>
+                    </div>
+
+                    <div class="pd-enq-grid">
+                        <div class="pd-enq-field">
+                            <label for="pdEnqName">Full name <span>*</span></label>
+                            <input type="text" id="pdEnqName" name="full_name" required maxlength="190" autocomplete="name">
+                        </div>
+                        <div class="pd-enq-field">
+                            <label for="pdEnqEmail">Email <span>*</span></label>
+                            <input type="email" id="pdEnqEmail" name="email" required maxlength="190" autocomplete="email">
+                        </div>
+                        <div class="pd-enq-field">
+                            <label for="pdEnqPhone">Phone</label>
+                            <input type="tel" id="pdEnqPhone" name="phone" maxlength="60" autocomplete="tel">
+                        </div>
+                        <div class="pd-enq-field">
+                            <label for="pdEnqCompany">Company</label>
+                            <input type="text" id="pdEnqCompany" name="company_name" maxlength="190" autocomplete="organization">
+                        </div>
+                        <div class="pd-enq-field pd-enq-field--full">
+                            <label for="pdEnqMessage">Message / requirements</label>
+                            <textarea id="pdEnqMessage" name="message" rows="4" maxlength="5000" placeholder="Artwork notes, deadline, branding preferences…"></textarea>
+                        </div>
+                    </div>
+                </div>
+                <div class="pd-enq-footer">
+                    <button type="button" class="pd-enq-cancel" id="pdEnqCancel">Cancel</button>
+                    <button type="submit" class="pd-enq-submit" id="pdEnquireSubmit">
+                        <i class="bi bi-send"></i> Submit Enquiry
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
 @endsection
 
 @push('scripts')
@@ -341,8 +411,9 @@ window.SHOP_ROUTES = {
   cart_store: @json(route('shop.cart.store')),
   cart_url: @json(route('shop.cart')),
   checkout_url: @json(route('shop.checkout')),
+  bulk_enquiry: @json(route('api.product-bulk-enquiries.store')),
 };
 </script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-<script src="{{ asset('assets/js/product-detail.js') }}?v=1.9"></script>
+<script src="{{ asset('assets/js/product-detail.js') }}?v=2.0"></script>
 @endpush

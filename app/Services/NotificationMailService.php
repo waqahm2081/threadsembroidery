@@ -3,9 +3,11 @@
 namespace App\Services;
 
 use App\Mail\BundleOrderMail;
+use App\Mail\ProductBulkEnquiryMail;
 use App\Mail\UniformOrderMail;
 use App\Mail\UserRegisteredMail;
 use App\Models\Order;
+use App\Models\ProductBulkEnquiry;
 use App\Models\SchoolUniformOrder;
 use App\Models\User;
 use Illuminate\Support\Facades\Log;
@@ -64,6 +66,20 @@ class NotificationMailService
                 continue;
             }
             $this->safeSend(fn () => Mail::to($email)->send(new UniformOrderMail($order, true)));
+        }
+    }
+
+    public function sendProductBulkEnquiry(ProductBulkEnquiry $enquiry): void
+    {
+        if ($enquiry->email) {
+            $this->safeSend(fn () => Mail::to($enquiry->email)->send(new ProductBulkEnquiryMail($enquiry, false)));
+        }
+
+        foreach ($this->adminEmails() as $email) {
+            if ($enquiry->email && strcasecmp($email, $enquiry->email) === 0) {
+                continue;
+            }
+            $this->safeSend(fn () => Mail::to($email)->send(new ProductBulkEnquiryMail($enquiry, true)));
         }
     }
 

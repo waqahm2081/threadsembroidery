@@ -168,6 +168,9 @@
         ? formatMoney(amount) + VAT_NOTE
         : formatMoney(0);
     }
+    if (typeof syncCtaForQuantity === 'function') {
+      syncCtaForQuantity();
+    }
   }
 
   function getSelectedDecorationMethods() {
@@ -463,6 +466,163 @@
   }
 
 
+  const BULK_QTY_THRESHOLD = 100;
+
+  function syncCtaForQuantity() {
+    const { totalQty } = collectCartPayload();
+    const customizeBtn = document.getElementById('pdCustomizeBtn');
+    const enquireBtn = document.getElementById('pdEnquireBtn');
+    const hint = document.getElementById('pdBulkHint');
+    const isBulk = totalQty > BULK_QTY_THRESHOLD;
+
+    if (customizeBtn) customizeBtn.hidden = isBulk;
+    if (enquireBtn) enquireBtn.hidden = !isBulk;
+    if (hint) hint.hidden = !isBulk;
+  }
+
+  function openEnquireModal() {
+    const { sizeBreakdown, totalQty } = collectCartPayload();
+    if (totalQty <= BULK_QTY_THRESHOLD) {
+      alert('Increase quantity above 100 to request a bulk quote.');
+      return;
+    }
+
+    const colour = getActiveColour();
+    const methods = getSelectedDecorationMethods();
+    const summary = document.getElementById('pdEnquireSummary');
+    const sizeLabel = sizeBreakdown.map(r => `${r.size} \u00D7 ${r.qty}`).join(', ');
+    const methodLabel = methods.map(m => m === 'embroidery' ? 'Embroidery' : 'Print').join(', ') || '—';
+
+    if (summary) {
+      summary.innerHTML = [
+        `<div><strong>Product:</strong> ${escapeHtml(productData.product_title || '')}</div>`,
+        `<div><strong>Colour:</strong> ${escapeHtml(colour?.name || '—')}</div>`,
+        `<div><strong>Sizes:</strong> ${escapeHtml(sizeLabel)}</div>`,
+        `<div><strong>Total qty:</strong> ${totalQty}</div>`,
+        `<div><strong>Decoration:</strong> ${escapeHtml(methodLabel)}</div>`,
+      ].join('');
+    }
+
+    const err = document.getElementById('pdEnquireError');
+    if (err) err.hidden = true;
+
+    const modal = document.getElementById('pdBulkEnquireModal');
+    if (modal) {
+      modal.hidden = false;
+      modal.setAttribute('aria-hidden', 'false');
+      document.body.style.overflow = 'hidden';
+    }
+  }
+
+  function closeEnquireModal() {
+    const modal = document.getElementById('pdBulkEnquireModal');
+    if (modal) {
+      modal.hidden = true;
+      modal.setAttribute('aria-hidden', 'true');
+    }
+    document.body.style.overflow = '';
+  }
+
+  function escapeHtml(str) {
+    const d = document.createElement('div');
+    d.textContent = String(str ?? '');
+    return d.innerHTML;
+  }
+
+  function showEnquireError(msg) {
+    const box = document.getElementById('pdEnquireError');
+    const text = document.getElementById('pdEnquireErrorMsg');
+    if (text) text.textContent = msg;
+    if (box) box.hidden = false;
+  }
+
+  async function submitBulkEnquiry(e) {
+    e.preventDefault();
+    const { sizeBreakdown, totalQty } = collectCartPayload();
+    if (totalQty <= BULK_QTY_THRESHOLD) {
+      showEnquireError('Total quantity must be above 100.');
+      return;
+    }
+
+    const name = document.getElementById('pdEnqName')?.value.trim();
+    const email = document.getElementById('pdEnqEmail')?.value.trim();
+    const phone = document.getElementById('pdEnqPhone')?.value.trim();
+    const company = document.getElementById('pdEnqCompany')?.value.trim();
+    const message = document.getElementById('pdEnqMessage')?.value.trim();
+    const colour = getActiveColour();
+    const methods = getSelectedDecorationMethods();
+    const avgPrice = sizeBreakdown.reduce((sum, r) => sum + r.unit_price * r.qty, 0) / totalQty;
+    const displayMarkup = productData.display_decoration_included
+      || productData.pricing?.display_included_decoration
+      || 0;
+    const unitWithDecor = avgPrice + displayMarkup;
+    const logoSetup = methods.includes('embroidery') && !!document.getElementById('pdLogoSetup')?.checked;
+    const estSubtotal = (unitWithDecor * totalQty) + (logoSetup ? (LOGO_SETUP_FEE || 0) : 0);
+
+    if (!name) { showEnquireError('Please enter your full name.'); return; }
+    if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      showEnquireError('Please enter a valid email address.');
+      return;
+    }
+
+    const submitBtn = document.getElementById('pdEnquireSubmit');
+    const original = submitBtn?.innerHTML;
+    if (submitBtn) {
+      submitBtn.disabled = true;
+      submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span> Sending…';
+    }
+
+    try {
+      const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content;
+      const shopRoutes = window.SHOP_ROUTES || {};
+      const res = await fetch(shopRoutes.bulk_enquiry || '/api/product-bulk-enquiries', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRF-TOKEN': csrfToken || '',
+          'Accept': 'application/json',
+        },
+        credentials: 'same-origin',
+        body: JSON.stringify({
+          full_name: name,
+          email,
+          phone: phone || null,
+          company_name: company || null,
+          message: message || null,
+          product_title: productData.product_title,
+          product_style_code: productData.style_code,
+          category_slug: productData.category_slug,
+          product_slug: productData.product_slug,
+          colour_name: colour?.name || null,
+          colour_code: colour?.code || null,
+          colour_hex: colour?.hex || null,
+          size_breakdown: sizeBreakdown,
+          quantity: totalQty,
+          decoration_methods: methods,
+          logo_setup: logoSetup,
+          estimated_unit_price: unitWithDecor,
+          estimated_subtotal: estSubtotal,
+        }),
+      });
+
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        throw new Error(data.message || 'Could not submit enquiry.');
+      }
+
+      closeEnquireModal();
+      document.getElementById('pdBulkEnquireForm')?.reset();
+      alert(data.message || (`Enquiry submitted. Reference: ${data.reference || ''}`));
+    } catch (err) {
+      showEnquireError(err.message || 'Could not submit enquiry. Please try again.');
+    } finally {
+      if (submitBtn) {
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = original || '<i class="bi bi-send"></i> Submit Enquiry';
+      }
+    }
+  }
+
   /* ── Init ─────────────────────────────────────────────────── */
   function init() {
     initQtyButtons();
@@ -486,6 +646,19 @@
         startCustomize(customizeBtn);
       });
     }
+
+    const enquireBtn = document.getElementById('pdEnquireBtn');
+    if (enquireBtn) {
+      enquireBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        openEnquireModal();
+      });
+    }
+
+    document.getElementById('pdEnqClose')?.addEventListener('click', closeEnquireModal);
+    document.getElementById('pdEnqCancel')?.addEventListener('click', closeEnquireModal);
+    document.getElementById('pdEnqBackdrop')?.addEventListener('click', closeEnquireModal);
+    document.getElementById('pdBulkEnquireForm')?.addEventListener('submit', submitBulkEnquiry);
   }
 
   if (document.readyState === 'loading') {
