@@ -324,12 +324,24 @@
       return el;
     }
 
+    function isUsablePreviewUrl(url) {
+      if (!url || typeof url !== 'string') return false;
+      const trimmed = url.trim();
+      if (!trimmed) return false;
+      // Never treat design JSON metadata as an image
+      if (/\.json(\?|#|$)/i.test(trimmed)) return false;
+      return true;
+    }
+
     function showSavedPreview(preview, data) {
       if (previewCanvas) previewCanvas.style.display = 'none';
       if (!artworkEl) return false;
 
-      const previewUrl = preview.preview_url
-        || (data.artwork?.asset_path ? preview.storage_base + '/' + data.artwork.asset_path : null);
+      const previewUrl = isUsablePreviewUrl(preview.preview_url)
+        ? preview.preview_url
+        : (data.artwork?.asset_path && isUsablePreviewUrl(preview.storage_base + '/' + data.artwork.asset_path)
+          ? preview.storage_base + '/' + data.artwork.asset_path
+          : null);
 
       artworkEl.style.display = 'flex';
       artworkEl.innerHTML = '';
@@ -339,6 +351,12 @@
         img.src = previewUrl;
         img.alt = 'Saved design preview';
         img.draggable = false;
+        img.onerror = () => {
+          // Broken/non-image URL — fall back to live garment + layers mockup
+          artworkEl.style.display = 'none';
+          artworkEl.innerHTML = '';
+          renderLiveMockup(preview, data);
+        };
         artworkEl.appendChild(img);
         return true;
       }
@@ -346,11 +364,45 @@
       return false;
     }
 
+    function renderLiveMockup(preview, data) {
+      const colourHex = preview.colour_hex || data.colour?.hex || '#ffffff';
+      const view = data.view || 'front';
+
+      if (artworkEl) {
+        artworkEl.style.display = 'none';
+        artworkEl.innerHTML = '';
+      }
+      if (previewCanvas) previewCanvas.style.display = '';
+
+      const pa = window.TEDesignPrintArea;
+      const printBounds = pa ? pa.resolveBounds(data.print_area) : null;
+      const scaleFactor = pa
+        ? pa.scaleFromReference(data.canvas_width || 620, previewCanvas, 280)
+        : 1;
+      const layers = (data.layers || [])
+        .filter(l => l.view === view)
+        .filter(l => !pa || !printBounds || pa.intersects(l, printBounds));
+
+      if (garmentImg) {
+        garmentImg.src = resolveGarmentImage(preview, data, view);
+        garmentImg.style.filter = computeGarmentFilter(colourHex);
+      }
+
+      if (layersEl) {
+        layersEl.innerHTML = '';
+        if (pa && printBounds) pa.applyClip(layersEl, printBounds);
+        layers.forEach(layer => {
+          layersEl.appendChild(buildLayerElement(layer, preview.storage_base, scaleFactor));
+        });
+      }
+
+      return layers.length;
+    }
+
     function openDesignPreview(preview) {
       const data = preview.design_data || {};
       const colourName = preview.colour_name || data.colour?.name || '';
       const colourHex = preview.colour_hex || data.colour?.hex || '#ffffff';
-      const view = data.view || 'front';
       const placement = data.decoration_placement_label || '';
 
       if (titleEl) {
@@ -365,34 +417,7 @@
       let layerCount = (data.layers || []).length;
 
       if (!usedSaved) {
-        if (artworkEl) {
-          artworkEl.style.display = 'none';
-          artworkEl.innerHTML = '';
-        }
-        if (previewCanvas) previewCanvas.style.display = '';
-
-        const pa = window.TEDesignPrintArea;
-        const printBounds = pa ? pa.resolveBounds(data.print_area) : null;
-        const scaleFactor = pa
-          ? pa.scaleFromReference(data.canvas_width || 620, previewCanvas, 280)
-          : 1;
-        const layers = (data.layers || [])
-          .filter(l => l.view === view)
-          .filter(l => !pa || !printBounds || pa.intersects(l, printBounds));
-        layerCount = layers.length;
-
-        if (garmentImg) {
-          garmentImg.src = resolveGarmentImage(preview, data, view);
-          garmentImg.style.filter = computeGarmentFilter(colourHex);
-        }
-
-        if (layersEl) {
-          layersEl.innerHTML = '';
-          if (pa && printBounds) pa.applyClip(layersEl, printBounds);
-          layers.forEach(layer => {
-            layersEl.appendChild(buildLayerElement(layer, preview.storage_base, scaleFactor));
-          });
-        }
+        layerCount = renderLiveMockup(preview, data) || layerCount;
       }
 
       if (detailsEl) {

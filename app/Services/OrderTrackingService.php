@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Models\Order;
 use App\Models\OrderItem;
+use App\Support\DesignPreview;
 use Illuminate\Support\Str;
 
 class OrderTrackingService
@@ -241,9 +242,11 @@ class OrderTrackingService
             'quantity' => $item->quantity,
             'design_data' => $data,
             'storage_base' => asset('storage'),
-            'preview_url' => $item->design_file_path
-                ? asset('storage/'.$item->design_file_path)
-                : null,
+            'preview_url' => DesignPreview::resolveUrl(
+                $item->design_file_path,
+                $item->design_assets ?? null,
+                $data
+            ),
         ];
     }
 }

@@ -6,6 +6,7 @@ use App\Models\ShopCartItem;
 use App\Services\ProductCatalogService;
 use App\Services\ShopCartService;
 use App\Services\ShopPricingService;
+use App\Support\DesignPreview;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
@@ -43,9 +44,11 @@ class ShopCartController extends Controller
                     'quantity' => $item->quantity,
                     'design_data' => $item->design_data,
                     'storage_base' => asset('storage'),
-                    'preview_url' => $item->design_file_path
-                        ? asset('storage/'.$item->design_file_path)
-                        : null,
+                    'preview_url' => DesignPreview::resolveUrl(
+                        $item->design_file_path,
+                        $item->design_assets,
+                        $item->design_data
+                    ),
                 ],
             ])
             ->all();
@@ -193,11 +196,19 @@ class ShopCartController extends Controller
 
         $designJsonPath = $designDir.'/design-'.Str::uuid().'.json';
         Storage::disk('public')->put($designJsonPath, json_encode($designData, JSON_PRETTY_PRINT));
+        $designData['design_json_path'] = $designJsonPath;
+
+        // Never store the JSON metadata file as the preview image path
+        $imagePreviewPath = DesignPreview::resolvePath(
+            $previewPath ?? $printPath,
+            $assetPaths,
+            $designData
+        );
 
         $item->update([
             'design_data' => $designData,
             // Mockup preview for UI; print_file_path (in design_data) used for production download
-            'design_file_path' => $previewPath ?? $printPath ?? $designJsonPath,
+            'design_file_path' => $imagePreviewPath,
             'design_assets' => $assetPaths,
             'unit_price' => $validated['unit_price'],
             'decoration_fee' => $decorationFee,

@@ -162,7 +162,11 @@ document.addEventListener('DOMContentLoaded', function () {
   function updateGarmentImageSrc() {
     const src = getGarmentImageForView(state.view);
     if (!src) return;
-    if (garmentImg) garmentImg.src = src;
+    if (garmentImg) {
+      // Required so canvas export (preview_image) is not tainted by cross-origin photos
+      garmentImg.crossOrigin = 'anonymous';
+      garmentImg.src = src;
+    }
     const thumb = document.getElementById('pclProductThumb');
     if (thumb && state.view === 'front') thumb.src = garmentImages.front;
     applyColourToGarment();
@@ -1485,6 +1489,7 @@ document.addEventListener('DOMContentLoaded', function () {
     const previewCanvas = document.getElementById('pcmPreviewCanvas');
     const scaleFactor = pa ? pa.previewScaleFactor(canvas, previewCanvas, 260) : 1;
     if (pcmGarmentImg) {
+      pcmGarmentImg.crossOrigin = 'anonymous';
       pcmGarmentImg.src = getGarmentImageForView(state.view);
       pcmGarmentImg.style.filter = garmentImg?.style.filter || 'none';
     }

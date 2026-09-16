@@ -22,11 +22,11 @@
               $sizeLabel = $item->size_breakdown
                 ? collect($item->size_breakdown)->map(fn ($r) => ($r['size'] ?? '').' × '.($r['qty'] ?? 0))->implode(', ')
                 : ($item->size ?: '—');
-              $previewPath = collect($item->design_assets ?? [])
-                ->first(fn ($p) => is_string($p) && str_contains(basename($p), 'preview-'))
-                ?: ($item->design_file_path && ! str_contains(basename((string) $item->design_file_path), 'print-')
-                    ? $item->design_file_path
-                    : null);
+              $previewPath = \App\Support\DesignPreview::resolvePath(
+                  $item->design_file_path,
+                  $item->design_assets,
+                  $item->design_data
+              );
               $previewUrl = $previewPath ? asset('storage/'.$previewPath) : null;
               $hasPrintFile = collect($item->design_assets ?? [])
                 ->contains(fn ($p) => is_string($p) && str_contains(basename($p), 'print-'))

@@ -394,5 +394,5 @@ window.__CUSTOMIZER_DATA__ = @json($customizerData);
 </script>
 <script src="{{ asset('assets/js/design-print-area.js') }}?v=1.3"></script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-<script src="{{ asset('assets/js/product-customizer.js?v=2.4') }}"></script>
+<script src="{{ asset('assets/js/product-customizer.js?v=2.5') }}"></script>
 @endpush

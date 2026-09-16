@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Services\CartService;
 use App\Services\PricingService;
 use App\Services\ProductCatalogService;
+use App\Support\DesignPreview;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
@@ -42,9 +43,11 @@ class CartController extends Controller
                     'quantity' => $item->quantity,
                     'design_data' => $item->design_data,
                     'storage_base' => asset('storage'),
-                    'preview_url' => $item->design_file_path
-                        ? asset('storage/'.$item->design_file_path)
-                        : null,
+                    'preview_url' => DesignPreview::resolveUrl(
+                        $item->design_file_path,
+                        $item->design_assets ?? null,
+                        $item->design_data
+                    ),
                 ],
             ])
             ->all();
@@ -162,10 +165,17 @@ class CartController extends Controller
 
         $designJsonPath = $designDir.'/design-'.Str::uuid().'.json';
         Storage::disk('public')->put($designJsonPath, json_encode($designData, JSON_PRETTY_PRINT));
+        $designData['design_json_path'] = $designJsonPath;
+
+        $imagePreviewPath = DesignPreview::resolvePath(
+            $previewPath,
+            $assetPaths,
+            $designData
+        );
 
         $item->update([
             'design_data' => $designData,
-            'design_file_path' => $previewPath ?? $designJsonPath,
+            'design_file_path' => $imagePreviewPath,
             'design_assets' => $assetPaths,
             'unit_price' => $validated['unit_price'],
             'decoration_fee' => $decorationFee,
