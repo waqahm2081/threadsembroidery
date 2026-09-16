@@ -20,6 +20,16 @@
 @endsection
 
 @push('scripts')
+@php
+  $uniformUser = auth()->check()
+    ? [
+        'name' => auth()->user()->name,
+        'email' => auth()->user()->email,
+        'phone' => auth()->user()->phone ?? '',
+        'company_name' => auth()->user()->company_name ?? '',
+      ]
+    : null;
+@endphp
 <script>
 window.UNIFORM_SHOP = {
   school: @json($school->toFrontend()),
@@ -29,12 +39,7 @@ window.UNIFORM_SHOP = {
   catalogueUrl: @json(route('api.uniforms.school', $school)),
   productUrlBase: @json(url('/api/uniforms/products')),
   checkoutUrl: @json(route('api.uniforms.checkout')),
-  user: @json(auth()->check() ? [
-    'name' => auth()->user()->name,
-    'email' => auth()->user()->email,
-    'phone' => auth()->user()->phone ?? '',
-    'company_name' => auth()->user()->company_name ?? '',
-  ] : null),
+  user: @json($uniformUser),
 };
 </script>
 <script>
