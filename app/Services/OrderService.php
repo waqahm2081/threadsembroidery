@@ -33,7 +33,7 @@ class OrderService
             $order = Order::create([
                 'order_number' => $this->uniqueOrderNumber(),
                 'user_id' => Auth::id(),
-                'status' => 'pending',
+                'status' => 'paid',
                 'name' => $data['name'],
                 'email' => $data['email'],
                 'phone' => $data['phone'] ?? null,

@@ -3,12 +3,14 @@
 namespace App\Services;
 
 use App\Mail\BundleOrderMail;
+use App\Mail\OrderStatusUpdateMail;
 use App\Mail\ProductBulkEnquiryMail;
 use App\Mail\UniformOrderMail;
 use App\Mail\UserRegisteredMail;
 use App\Models\Order;
 use App\Models\ProductBulkEnquiry;
 use App\Models\SchoolUniformOrder;
+use App\Models\ShopOrder;
 use App\Models\User;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
@@ -81,6 +83,54 @@ class NotificationMailService
             }
             $this->safeSend(fn () => Mail::to($email)->send(new ProductBulkEnquiryMail($enquiry, true)));
         }
+    }
+
+    public function sendBundleOrderStatusUpdate(Order $order): void
+    {
+        if (! $order->email) {
+            return;
+        }
+
+        $this->safeSend(fn () => Mail::to($order->email)->send(new OrderStatusUpdateMail(
+            orderTypeLabel: 'Bundle',
+            orderNumber: (string) $order->order_number,
+            customerName: (string) $order->name,
+            status: (string) $order->status,
+            trackingNumber: $order->tracking_number,
+            actionUrl: route('portal'),
+        )));
+    }
+
+    public function sendShopOrderStatusUpdate(ShopOrder $order): void
+    {
+        if (! $order->email) {
+            return;
+        }
+
+        $this->safeSend(fn () => Mail::to($order->email)->send(new OrderStatusUpdateMail(
+            orderTypeLabel: 'Shop',
+            orderNumber: (string) $order->order_number,
+            customerName: (string) $order->name,
+            status: (string) $order->status,
+            trackingNumber: $order->tracking_number,
+            actionUrl: route('portal'),
+        )));
+    }
+
+    public function sendUniformOrderStatusUpdate(SchoolUniformOrder $order): void
+    {
+        if (! $order->customer_email) {
+            return;
+        }
+
+        $this->safeSend(fn () => Mail::to($order->customer_email)->send(new OrderStatusUpdateMail(
+            orderTypeLabel: 'Uniform',
+            orderNumber: (string) $order->order_number,
+            customerName: (string) $order->customer_name,
+            status: (string) $order->status,
+            trackingNumber: $order->tracking_number,
+            actionUrl: route('portal'),
+        )));
     }
 
     private function safeSend(callable $callback): void

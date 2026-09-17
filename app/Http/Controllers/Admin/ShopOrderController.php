@@ -5,6 +5,8 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\ShopOrder;
 use App\Models\ShopOrderItem;
+use App\Services\NotificationMailService;
+use App\Support\OrderFulfillmentStatus;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
@@ -14,18 +16,11 @@ use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class ShopOrderController extends Controller
 {
-    public const STATUSES = [
-        'pending',
-        'processing',
-        'shipped',
-        'delivered',
-        'cancelled',
-    ];
-
     public function index(Request $request): View
     {
         $q = trim((string) $request->get('q', ''));
         $status = $request->get('status');
+        $statuses = OrderFulfillmentStatus::values();
 
         $orders = ShopOrder::query()
             ->with('user')
@@ -39,7 +34,7 @@ class ShopOrderController extends Controller
                         ->orWhere('phone', 'like', "%{$q}%");
                 });
             })
-            ->when(in_array($status, self::STATUSES, true), fn ($query) => $query->where('status', $status))
+            ->when(in_array($status, $statuses, true), fn ($query) => $query->where('status', $status))
             ->latest()
             ->paginate(25)
             ->withQueryString();
@@ -51,7 +46,7 @@ class ShopOrderController extends Controller
             'orders' => $orders,
             'q' => $q,
             'status' => $status,
-            'statuses' => self::STATUSES,
+            'statuses' => OrderFulfillmentStatus::labels(),
         ]);
     }
 
@@ -64,20 +59,33 @@ class ShopOrderController extends Controller
             'subtitle' => 'Placed '.optional($shopOrder->created_at)->format('d M Y H:i'),
             'nav' => 'shop-orders',
             'order' => $shopOrder,
-            'statuses' => self::STATUSES,
+            'statuses' => OrderFulfillmentStatus::labels(),
         ]);
     }
 
-    public function updateStatus(Request $request, ShopOrder $shopOrder): RedirectResponse
+    public function updateStatus(Request $request, ShopOrder $shopOrder, NotificationMailService $mail): RedirectResponse
     {
         $validated = $request->validate([
-            'status' => ['required', Rule::in(self::STATUSES)],
+            'status' => ['required', Rule::in(OrderFulfillmentStatus::values())],
+            'tracking_number' => [
+                Rule::requiredIf(fn () => $request->input('status') === OrderFulfillmentStatus::DISPATCHED),
+                'nullable',
+                'string',
+                'max:120',
+            ],
         ]);
 
         $shopOrder->status = $validated['status'];
+        $tracking = trim((string) ($validated['tracking_number'] ?? ''));
+        $shopOrder->tracking_number = $tracking !== '' ? $tracking : null;
         $shopOrder->save();
 
-        return back()->with('success', 'Order status updated to '.$validated['status'].'.');
+        $mail->sendShopOrderStatusUpdate($shopOrder);
+
+        return back()->with(
+            'success',
+            'Order status updated to '.OrderFulfillmentStatus::label($shopOrder->status).'. Customer notified by email.'
+        );
     }
 
     public function downloadDesign(Request $request, ShopOrder $shopOrder, ShopOrderItem $item): StreamedResponse|RedirectResponse

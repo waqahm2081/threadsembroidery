@@ -10,10 +10,10 @@ use Illuminate\Support\Str;
 class OrderTrackingService
 {
     public const TIMELINE_STEPS = [
-        'Order Placed',
-        'Artwork Approved',
+        'Paid',
+        'Being Prepared',
         'In Production',
-        'Quality Check',
+        'Ready to Pack',
         'Dispatched',
         'Delivered',
     ];
@@ -21,7 +21,7 @@ class OrderTrackingService
     public function seedInitialEvent(Order $order): void
     {
         $order->trackingEvents()->create([
-            'event' => 'Order Placed',
+            'event' => 'Paid',
             'occurred_at' => $order->created_at,
             'sort_order' => 0,
         ]);
@@ -67,7 +67,7 @@ class OrderTrackingService
 
         return [
             'desc' => $this->orderDescription($order),
-            'status' => $order->filterStatus(),
+            'status' => \App\Support\OrderFulfillmentStatus::label($order->status),
             'eta' => $this->etaLabel($order),
             'steps' => $steps,
         ];
@@ -97,7 +97,7 @@ class OrderTrackingService
 
         return [
             'desc' => $this->orderDescription($order),
-            'status' => $order->filterStatus(),
+            'status' => \App\Support\OrderFulfillmentStatus::label($order->status),
             'eta' => $this->etaLabel($order),
             'steps' => $steps,
         ];
@@ -106,9 +106,11 @@ class OrderTrackingService
     protected function activeIndexForStatus(string $status): int
     {
         return match ($status) {
-            'pending' => 1,
-            'processing' => 2,
-            'shipped' => 4,
+            'paid', 'pending' => 0,
+            'being_prepared' => 1,
+            'in_production', 'processing' => 2,
+            'ready_to_pack' => 3,
+            'dispatched', 'shipped' => 4,
             'delivered' => 5,
             default => 0,
         };
@@ -211,7 +213,7 @@ class OrderTrackingService
             'order_number' => $order->order_number,
             'date' => $order->created_at->format('d M Y'),
             'date_full' => $order->created_at->format('d M Y, H:i'),
-            'status' => $order->filterStatus(),
+            'status' => \App\Support\OrderFulfillmentStatus::label($order->status),
             'status_label' => $order->displayStatus(),
             'items' => $items->values()->all(),
             'total_qty' => $order->items->sum('quantity'),

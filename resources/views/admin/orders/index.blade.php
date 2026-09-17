@@ -6,8 +6,8 @@
     <input class="ad-input" type="search" name="q" value="{{ $q }}" placeholder="Order number, email, name…">
     <select class="ad-input" name="status">
       <option value="">All statuses</option>
-      @foreach($statuses as $s)
-        <option value="{{ $s }}" @selected($status === $s)>{{ ucfirst($s) }}</option>
+      @foreach($statuses as $value => $label)
+        <option value="{{ $value }}" @selected($status === $value)>{{ $label }}</option>
       @endforeach
     </select>
     <button class="ad-btn ghost" type="submit"><i class="bi bi-search"></i> Filter</button>
@@ -36,7 +36,7 @@
               <span class="muted">{{ $order->email }}</span>
             </td>
             <td>£{{ number_format($order->total, 2) }}</td>
-            <td><span class="ad-pill {{ $order->status }}">{{ ucfirst($order->status) }}</span></td>
+            <td><span class="ad-pill {{ $order->status }}">{{ \App\Support\OrderFulfillmentStatus::label($order->status) }}</span></td>
             <td>{{ optional($order->created_at)->format('d M Y') }}</td>
             <td><a class="ad-btn ghost sm" href="{{ route('admin.orders.show', $order) }}">View</a></td>
           </tr>

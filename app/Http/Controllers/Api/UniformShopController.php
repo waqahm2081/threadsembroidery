@@ -160,7 +160,7 @@ class UniformShopController extends Controller
                 'order_number' => SchoolUniformOrder::generateNumber(),
                 'user_id' => Auth::id(),
                 'school_id' => $schoolId,
-                'status' => 'pending',
+                'status' => 'paid',
                 'payment_status' => 'paid',
                 'payment_method' => 'card',
                 'stripe_payment_intent_id' => $validated['payment_intent_id'],

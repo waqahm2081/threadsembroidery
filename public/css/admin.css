@@ -272,9 +272,9 @@ a.ad-page-btn:hover{border-color:var(--ad-brand);color:var(--ad-brand-hi)}
 .ad-pill,.ad-badge{
   display:inline-flex;align-items:center;padding:.22rem .55rem;border-radius:999px;font-size:.72rem;font-weight:700;
 }
-.ad-pill.pending,.ad-pill.submitted,.ad-pill.review,.ad-badge.yellow{background:rgba(240,180,41,.15);color:var(--ad-warn)}
-.ad-pill.processing,.ad-pill.in_progress,.ad-badge.blue{background:rgba(31,95,208,.18);color:var(--ad-info)}
-.ad-pill.shipped,.ad-pill.quoted{background:rgba(31,95,208,.18);color:var(--ad-info)}
+.ad-pill.pending,.ad-pill.paid,.ad-pill.submitted,.ad-pill.review,.ad-badge.yellow{background:rgba(240,180,41,.15);color:var(--ad-warn)}
+.ad-pill.processing,.ad-pill.being_prepared,.ad-pill.in_progress,.ad-badge.blue{background:rgba(31,95,208,.18);color:var(--ad-info)}
+.ad-pill.in_production,.ad-pill.ready_to_pack,.ad-pill.shipped,.ad-pill.dispatched,.ad-pill.quoted{background:rgba(31,95,208,.18);color:var(--ad-info)}
 .ad-pill.delivered,.ad-pill.completed,.ad-badge.green{background:rgba(56,201,138,.15);color:var(--ad-ok)}
 .ad-pill.cancelled,.ad-badge.red{background:rgba(224,84,84,.14);color:#ff8d8d}
 .ad-pill.admin{background:var(--ad-brand-soft);color:var(--ad-brand-hi)}

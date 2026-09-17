@@ -17,6 +17,7 @@ class Order extends Model
         'billing_postcode', 'billing_country',
         'notes', 'subtotal', 'vat_amount', 'delivery_fee', 'total',
         'payment_status', 'payment_method', 'stripe_payment_intent_id', 'paid_at',
+        'tracking_number',
     ];
 
     protected $casts = [

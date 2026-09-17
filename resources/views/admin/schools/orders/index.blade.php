@@ -1,6 +1,4 @@
 @extends('admin.layouts.app')
-@section('title', 'Uniform Orders')
-@php $nav = 'school-uniform-orders'; @endphp
 
 @section('content')
 <div class="ad-toolbar">
@@ -13,8 +11,8 @@
     </select>
     <select class="ad-input" name="status" onchange="this.form.submit()">
       <option value="">All Statuses</option>
-      @foreach($statuses as $st)
-        <option value="{{ $st }}" {{ request('status') === $st ? 'selected' : '' }}>{{ ucfirst($st) }}</option>
+      @foreach($statuses as $value => $label)
+        <option value="{{ $value }}" {{ request('status') === $value ? 'selected' : '' }}>{{ $label }}</option>
       @endforeach
     </select>
     <input class="ad-input" name="q" value="{{ request('q') }}" placeholder="Search orders…">
@@ -48,8 +46,8 @@
         <td>{{ $order->items_count }}</td>
         <td><b>£{{ number_format($order->total, 2) }}</b></td>
         <td>
-          <span class="ad-badge {{ match($order->status){ 'delivered'=>'green','cancelled'=>'red','shipped','processing'=>'blue',default=>'yellow' } }}">
-            {{ ucfirst($order->status) }}
+          <span class="ad-badge {{ \App\Support\OrderFulfillmentStatus::badgeClass($order->status) }}">
+            {{ \App\Support\OrderFulfillmentStatus::label($order->status) }}
           </span>
         </td>
         <td>{{ $order->created_at->format('d M Y') }}</td>
@@ -63,7 +61,7 @@
     </tbody>
   </table>
   @if($orders->hasPages())
-  <div class="ad-pagination">{{ $orders->links() }}</div>
+  <div class="ad-pagination">{{ $orders->links('vendor.pagination.admin') }}</div>
   @endif
 </div>
 @endsection

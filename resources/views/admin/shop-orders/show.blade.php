@@ -163,24 +163,35 @@
         <div>
           <dt class="ad-muted" style="font-size:.78rem">Status</dt>
           <dd>
-            <span class="ad-badge {{ match($order->status){ 'delivered'=>'green','cancelled'=>'red','shipped','processing'=>'blue',default=>'yellow' } }}">
-              {{ ucfirst($order->status) }}
+            <span class="ad-badge {{ \App\Support\OrderFulfillmentStatus::badgeClass($order->status) }}">
+              {{ \App\Support\OrderFulfillmentStatus::label($order->status) }}
             </span>
           </dd>
+        </div>
+        <div>
+          <dt class="ad-muted" style="font-size:.78rem">Tracking</dt>
+          <dd>{{ $order->tracking_number ?: '—' }}</dd>
         </div>
       </dl>
     </div>
 
     <div class="ad-card" style="margin-top:1.2rem">
       <h3 class="ad-card-title">Update Status</h3>
-      <form method="POST" action="{{ route('admin.shop-orders.status', $order) }}">
+      <form method="POST" action="{{ route('admin.shop-orders.status', $order) }}" class="js-order-status-form">
         @csrf @method('PATCH')
-        <select class="ad-input" name="status">
-          @foreach($statuses as $st)
-            <option value="{{ $st }}" @selected($order->status === $st)>{{ ucfirst($st) }}</option>
+        <label class="ad-label" for="shopOrderStatus">Status</label>
+        <select class="ad-input js-order-status" id="shopOrderStatus" name="status">
+          @foreach($statuses as $value => $label)
+            <option value="{{ $value }}" @selected($order->status === $value)>{{ $label }}</option>
           @endforeach
         </select>
-        <button class="ad-btn primary" style="margin-top:.6rem;width:100%">Update Status</button>
+        <div class="js-tracking-wrap" style="margin-top:.75rem;{{ $order->status === 'dispatched' ? '' : 'display:none' }}">
+          <label class="ad-label" for="shopTrackingNumber">Tracking number</label>
+          <input class="ad-input" id="shopTrackingNumber" name="tracking_number" value="{{ old('tracking_number', $order->tracking_number) }}" placeholder="Carrier tracking / reference">
+          @error('tracking_number')<p class="ad-error">{{ $message }}</p>@enderror
+        </div>
+        <p class="ad-field-hint" style="margin-top:.55rem">Saving will email the customer with this status update.</p>
+        <button class="ad-btn primary" style="margin-top:.6rem;width:100%">Save &amp; notify customer</button>
       </form>
     </div>
 
@@ -267,4 +278,24 @@
   .ad-shop-design-preview{width:100%}
 }
 </style>
+@endpush
+
+@push('scripts')
+<script>
+(function(){
+  document.querySelectorAll('.js-order-status-form').forEach((form) => {
+    const select = form.querySelector('.js-order-status');
+    const wrap = form.querySelector('.js-tracking-wrap');
+    const input = form.querySelector('[name="tracking_number"]');
+    if (!select || !wrap) return;
+    const sync = () => {
+      const show = select.value === 'dispatched';
+      wrap.style.display = show ? '' : 'none';
+      if (input) input.required = show;
+    };
+    select.addEventListener('change', sync);
+    sync();
+  });
+})();
+</script>
 @endpush

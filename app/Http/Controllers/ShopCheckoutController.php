@@ -78,7 +78,7 @@ class ShopCheckoutController extends Controller
             $order = ShopOrder::create([
                 'order_number' => 'PS-'.strtoupper(Str::random(8)),
                 'user_id' => auth()->id(),
-                'status' => 'pending',
+                'status' => 'paid',
                 'payment_status' => 'paid',
                 'payment_method' => 'card',
                 'stripe_payment_intent_id' => $validated['payment_intent_id'],

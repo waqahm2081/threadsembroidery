@@ -5,8 +5,8 @@
   <form class="ad-filters" method="GET">
     <select class="ad-input" name="status" onchange="this.form.submit()">
       <option value="">All Statuses</option>
-      @foreach($statuses as $st)
-        <option value="{{ $st }}" @selected($status === $st)>{{ ucfirst($st) }}</option>
+      @foreach($statuses as $value => $label)
+        <option value="{{ $value }}" @selected($status === $value)>{{ $label }}</option>
       @endforeach
     </select>
     <input class="ad-input" name="q" value="{{ $q }}" placeholder="Search order #, name, email…">
@@ -38,8 +38,8 @@
         <td>{{ $order->items_count }}</td>
         <td><b>£{{ number_format($order->total, 2) }}</b></td>
         <td>
-          <span class="ad-badge {{ match($order->status){ 'delivered'=>'green','cancelled'=>'red','shipped','processing'=>'blue',default=>'yellow' } }}">
-            {{ ucfirst($order->status) }}
+          <span class="ad-badge {{ \App\Support\OrderFulfillmentStatus::badgeClass($order->status) }}">
+            {{ \App\Support\OrderFulfillmentStatus::label($order->status) }}
           </span>
         </td>
         <td>{{ optional($order->created_at)->format('d M Y') }}</td>

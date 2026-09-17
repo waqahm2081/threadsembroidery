@@ -20,6 +20,7 @@ class SchoolUniformOrder extends Model
         'billing_city', 'billing_postcode', 'billing_country',
         'subtotal', 'vat_amount', 'delivery_fee', 'total', 'notes',
         'payment_status', 'payment_method', 'stripe_payment_intent_id', 'paid_at',
+        'tracking_number',
     ];
 
     protected $casts = [
@@ -43,13 +44,6 @@ class SchoolUniformOrder extends Model
 
     public function statusLabel(): string
     {
-        return match ($this->status) {
-            'pending' => 'Pending',
-            'processing' => 'Processing',
-            'shipped' => 'Shipped',
-            'delivered' => 'Delivered',
-            'cancelled' => 'Cancelled',
-            default => ucfirst($this->status),
-        };
+        return \App\Support\OrderFulfillmentStatus::label($this->status);
     }
 }
