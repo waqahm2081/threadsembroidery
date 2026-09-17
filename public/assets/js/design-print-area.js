@@ -74,7 +74,8 @@
       label: 'Sleeve',
       view: 'sleeve',
       allowedViews: ['sleeve'],
-      printArea: { x: 38, y: 22, w: 28, h: 36, centered: true },
+      // Side-shot: sleeve sits on the right of the garment silhouette
+      printArea: { x: 62, y: 28, w: 20, h: 30, centered: true },
     },
     apron_left: {
       label: 'Left Side',

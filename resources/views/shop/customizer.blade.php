@@ -310,17 +310,27 @@ pc-body
                     <div class="pcm-placement-options" id="pcPlacementOptions"
                          data-multi-select="{{ !empty($decoration['multi_select']) ? '1' : '0' }}">
                         @foreach(($decoration['placements'] ?? []) as $placement)
+                        @php
+                            $requiresImage = !empty($placement['requires_sleeve_image'])
+                                ? 'sleeve'
+                                : (!empty($placement['requires_back_image']) ? 'back' : '');
+                            $unavailableMsg = match ($requiresImage) {
+                                'sleeve' => 'Sleeve position printing not available',
+                                'back' => 'Back position printing not available',
+                                default => 'This position printing not available',
+                            };
+                        @endphp
                         <button type="button" class="pcm-placement-option"
                                 data-placement="{{ $placement['key'] }}"
                                 data-methods="{{ implode(',', $placement['methods'] ?? []) }}"
-                                data-requires-sleeve="{{ !empty($placement['requires_sleeve_image']) ? '1' : '0' }}"
+                                data-requires-image="{{ $requiresImage }}"
                                 data-fee="{{ number_format((float) $placement['fee'], 2, '.', '') }}">
                             <span class="pcm-placement-check" aria-hidden="true"><i class="bi bi-check-lg"></i></span>
                             <span class="pcm-placement-icon"><i class="bi bi-{{ $placement['icon'] ?? 'bounding-box' }}"></i></span>
                             <span class="pcm-placement-copy">
                                 <span class="pcm-placement-label">{{ $placement['label'] }}</span>
                                 <span class="pcm-placement-desc">{{ $placement['desc'] }}</span>
-                                <span class="pcm-placement-unavailable" hidden>Sleeve position printing not available</span>
+                                <span class="pcm-placement-unavailable" hidden>{{ $unavailableMsg }}</span>
                                 <span class="pcm-placement-price">£{{ number_format((float) $placement['fee'], 2) }} + VAT</span>
                             </span>
                         </button>
@@ -418,7 +428,7 @@ pc-body
 @endphp
 window.__CUSTOMIZER_DATA__ = @json($customizerData);
 </script>
-<script src="{{ asset('assets/js/design-print-area.js') }}?v=1.4"></script>
+<script src="{{ asset('assets/js/design-print-area.js') }}?v=1.5"></script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-<script src="{{ asset('assets/js/product-customizer.js?v=2.8') }}"></script>
+<script src="{{ asset('assets/js/product-customizer.js?v=2.9') }}"></script>
 @endpush

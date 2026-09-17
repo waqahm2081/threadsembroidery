@@ -313,7 +313,8 @@ class ProductCatalogService
                 $backRaw = $row->image_back ?: null;
                 $sideRaw = $row->image_side ?: null;
                 $frontUrl = $this->resolveOptionalImageUrl($frontRaw);
-                $backUrl = $this->resolveOptionalImageUrl($backRaw) ?: $frontUrl;
+                $actualBackUrl = $this->resolveOptionalImageUrl($backRaw);
+                $backUrl = $actualBackUrl ?: $frontUrl;
                 $sideUrl = $this->resolveOptionalImageUrl($sideRaw);
 
                 $colours[$code] = [
@@ -331,15 +332,25 @@ class ProductCatalogService
                     'image_front' => $frontUrl,
                     'image_back' => $backUrl,
                     'image_side' => $sideUrl,
+                    'has_back_image' => (bool) $actualBackUrl,
                     'has_sleeve_image' => (bool) $sideUrl,
                     'has_plain_photo' => (bool) $frontUrl,
                     'sizes' => [],
                 ];
-            } elseif (empty($colours[$code]['image_side']) && ! empty($row->image_side)) {
-                $sideUrl = $this->resolveOptionalImageUrl($row->image_side);
-                if ($sideUrl) {
-                    $colours[$code]['image_side'] = $sideUrl;
-                    $colours[$code]['has_sleeve_image'] = true;
+            } else {
+                if (empty($colours[$code]['has_back_image']) && ! empty($row->image_back)) {
+                    $actualBackUrl = $this->resolveOptionalImageUrl($row->image_back);
+                    if ($actualBackUrl) {
+                        $colours[$code]['image_back'] = $actualBackUrl;
+                        $colours[$code]['has_back_image'] = true;
+                    }
+                }
+                if (empty($colours[$code]['image_side']) && ! empty($row->image_side)) {
+                    $sideUrl = $this->resolveOptionalImageUrl($row->image_side);
+                    if ($sideUrl) {
+                        $colours[$code]['image_side'] = $sideUrl;
+                        $colours[$code]['has_sleeve_image'] = true;
+                    }
                 }
             }
 

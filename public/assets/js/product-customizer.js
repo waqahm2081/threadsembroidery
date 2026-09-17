@@ -167,7 +167,19 @@ document.addEventListener('DOMContentLoaded', function () {
 
   function hasSleeveImage() {
     const colour = getColourRecord(state.colourCode);
-    return !!(colour?.has_sleeve_image || colour?.image_side || garmentImages.sleeve);
+    return !!(colour?.has_sleeve_image || colour?.image_side);
+  }
+
+  function hasBackImage() {
+    const colour = getColourRecord(state.colourCode);
+    // Must be a real catalogue back shot — image_back may fall back to front for display
+    return !!colour?.has_back_image;
+  }
+
+  function placementImageAvailable(requires) {
+    if (requires === 'sleeve') return hasSleeveImage();
+    if (requires === 'back') return hasBackImage();
+    return true;
   }
 
   function updateGarmentImageSrc() {
@@ -373,9 +385,14 @@ document.addEventListener('DOMContentLoaded', function () {
       syncGarmentImagesFromColour();
       updateGarmentImageSrc();
 
-      // Drop sleeve if this colourway has no sleeve image
-      if (state.placements.includes('sleeve') && !hasSleeveImage()) {
-        applyPlacements(state.placements.filter(k => k !== 'sleeve'));
+      // Drop placements that need an image this colourway does not have
+      const blocked = [];
+      if (state.placements.includes('sleeve') && !hasSleeveImage()) blocked.push('sleeve');
+      if (state.placements.some(k => k === 'back' || k === 'back_print' || k === 'back_embroidery') && !hasBackImage()) {
+        blocked.push('back', 'back_print', 'back_embroidery');
+      }
+      if (blocked.length) {
+        applyPlacements(state.placements.filter(k => !blocked.includes(k)));
       } else if (state.placements.length) {
         applyViewToggleRestrictions();
       }
@@ -509,8 +526,8 @@ document.addEventListener('DOMContentLoaded', function () {
     }
     if (state.placement === 'sleeve') {
       return type === 'text'
-        ? { x: 36, y: 30, w: 28, h: 12 }
-        : { x: 38, y: 28, w: 24, h: 28 };
+        ? { x: 52, y: 34, w: 18, h: 10 }
+        : { x: 54, y: 30, w: 16, h: 22 };
     }
     if (state.placement === 'rucksack_top_print' || state.placement === 'rucksack_top_embroidery') {
       return type === 'text'
@@ -548,12 +565,15 @@ document.addEventListener('DOMContentLoaded', function () {
       : [];
   }
 
-  function updateSleeveAvailability() {
-    const sleeveOk = hasSleeveImage();
+  function updatePlacementImageAvailability() {
     getPlacementButtons().forEach(btn => {
-      if (btn.dataset.requiresSleeve !== '1') return;
+      const requires = (btn.dataset.requiresImage || '').trim();
+      if (!requires) return;
+
+      const available = placementImageAvailable(requires);
       const unavailable = btn.querySelector('.pcm-placement-unavailable');
-      if (sleeveOk) {
+
+      if (available) {
         btn.classList.remove('is-unavailable');
         btn.disabled = false;
         btn.removeAttribute('aria-disabled');
@@ -590,7 +610,7 @@ document.addEventListener('DOMContentLoaded', function () {
       visible = buttons;
     }
 
-    updateSleeveAvailability();
+    updatePlacementImageAvailability();
     refreshPlacementFeesDisplay();
     return visible.filter(btn => !btn.hidden);
   }
@@ -723,10 +743,11 @@ document.addEventListener('DOMContentLoaded', function () {
     const unique = [...new Set((keys || []).filter(Boolean))];
     if (!unique.length) return;
 
-    // Remove sleeve if image disappeared
+    // Remove placements that need missing catalogue images
     const filtered = unique.filter(k => {
-      if (k !== 'sleeve') return true;
-      return hasSleeveImage();
+      if (k === 'sleeve') return hasSleeveImage();
+      if (k === 'back' || k === 'back_print' || k === 'back_embroidery') return hasBackImage();
+      return true;
     });
     if (!filtered.length) return;
 

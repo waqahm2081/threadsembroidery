@@ -240,6 +240,7 @@ class ShopDecorationRulesService
                 'icon' => 'person',
                 'methods' => ['print', 'embroidery'],
                 'fee' => $fees['back'] ?? 6.00,
+                'requires_back_image' => true,
             ],
             'sleeve' => [
                 'key' => 'sleeve',
@@ -273,6 +274,7 @@ class ShopDecorationRulesService
                 'icon' => 'printer',
                 'methods' => ['print'],
                 'fee' => $fees['back_print'] ?? 6.00,
+                'requires_back_image' => true,
             ],
             'back_embroidery' => [
                 'key' => 'back_embroidery',
@@ -281,6 +283,7 @@ class ShopDecorationRulesService
                 'icon' => 'magic',
                 'methods' => ['embroidery'],
                 'fee' => $fees['back_embroidery'] ?? 8.00,
+                'requires_back_image' => true,
             ],
             'apron_left' => [
                 'key' => 'apron_left',
