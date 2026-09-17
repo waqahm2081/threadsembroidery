@@ -163,15 +163,44 @@ img{max-width:100%;display:block}
   gap:1.15rem;
 }
 .ad-form-grid--stacked .ad-fg{min-width:0}
+.ad-form-grid--school{
+  grid-template-columns:minmax(0,1fr) minmax(0,1fr);
+  gap:1.2rem 1.35rem;
+  align-items:start;
+}
+.ad-form-grid--school .ad-fg{min-width:0}
 .ad-school-form{max-width:none;width:100%}
-.ad-school-form .ad-form-actions{margin-top:1.4rem}
+.ad-school-form .ad-form-actions{margin-top:1.5rem;padding-top:1.1rem;border-top:1px solid var(--ad-line)}
 .ad-field-hint{margin:.45rem 0 0;font-size:.8rem;color:var(--ad-muted);line-height:1.45}
+.ad-colour-swatch{
+  width:48px;height:42px;border-radius:8px;border:1px solid var(--ad-line);
+  padding:2px;background:none;cursor:pointer;flex-shrink:0;
+}
+.ad-check-row{
+  display:flex;align-items:center;gap:.55rem;cursor:pointer;
+  font-size:.9rem;color:var(--ad-text);font-weight:600;min-height:42px;
+}
+.ad-check-row--lg{min-height:auto;margin-bottom:.35rem}
+.ad-fg--check{display:flex;flex-direction:column;justify-content:flex-start}
 .ad-vat-box{
-  padding:1.1rem 1.15rem;
+  padding:1.15rem 1.25rem;
   border:1px solid var(--ad-line);
   border-radius:12px;
   background:var(--ad-surface-2, var(--ad-bg-2));
 }
+.ad-vat-box-grid{
+  display:grid;
+  grid-template-columns:minmax(0,1.4fr) minmax(160px,.8fr);
+  gap:1rem 1.35rem;
+  align-items:start;
+}
+.ad-logo-preview{
+  margin-bottom:.85rem;display:flex;align-items:center;gap:1rem;flex-wrap:wrap;
+}
+.ad-logo-preview img{
+  height:64px;object-fit:contain;border-radius:8px;background:var(--ad-surface-2, var(--ad-bg-2));padding:6px;
+}
+.ad-school-links{margin-top:1.4rem;display:flex;gap:.8rem;flex-wrap:wrap}
 .ad-form-actions{display:flex;justify-content:flex-end;gap:.6rem;margin-top:1rem;flex-wrap:wrap}
 .ad-inline-row{display:flex;gap:.55rem;align-items:center}
 .ad-inline-row .ad-input{flex:1}
@@ -342,7 +371,7 @@ img{max-width:100%;display:block}
   .ad-side{width:min(280px,86vw);transform:translateX(-105%);transition:transform .25s;z-index:80;box-shadow:20px 0 60px rgba(0,0,0,.45)}
   .ad-side.open{transform:none}
   .ad-mobtop{display:flex;align-items:center;justify-content:space-between;padding:.85rem 1rem;border-bottom:1px solid var(--ad-line)}
-  .ad-field-row,.ad-form-grid,.ad-split{grid-template-columns:1fr}
+  .ad-field-row,.ad-form-grid,.ad-split,.ad-vat-box-grid{grid-template-columns:1fr}
   .ad-dl > div{grid-template-columns:1fr}
   .ad-content,.ad-top{padding-left:1rem;padding-right:1rem}
   body{font-size:.9rem}
