@@ -9,6 +9,7 @@ use App\Models\SchoolUniformOrder;
 use App\Models\SchoolUniformOrderItem;
 use App\Services\NotificationMailService;
 use App\Services\StripePaymentService;
+use App\Support\UniformPricing;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -145,9 +146,12 @@ class UniformShopController extends Controller
             }
         }
 
-        $vat = round($subtotal * 0.20, 2);
-        $delivery = $subtotal >= 50 ? 0 : 4.99;
-        $total = $subtotal + $vat + $delivery;
+        $school = $schoolId ? School::query()->find($schoolId) : null;
+        $totals = UniformPricing::total((float) $subtotal, $school);
+        $vat = $totals['vat'];
+        $delivery = $totals['delivery'];
+        $total = $totals['total'];
+        $subtotal = $totals['subtotal'];
 
         $this->stripe->assertPaid($validated['payment_intent_id'], (float) $total);
 

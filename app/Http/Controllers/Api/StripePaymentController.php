@@ -3,9 +3,12 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Models\School;
+use App\Models\SchoolProductVariant;
 use App\Services\CartService;
 use App\Services\ShopCartService;
 use App\Services\StripePaymentService;
+use App\Support\UniformPricing;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\ValidationException;
@@ -114,20 +117,23 @@ class StripePaymentController extends Controller
         }
 
         $subtotal = 0.0;
+        $school = null;
         foreach ($items as $row) {
-            $variant = \App\Models\SchoolProductVariant::query()->findOrFail((int) $row['variant_id']);
+            $variant = SchoolProductVariant::query()->with('product.school')->findOrFail((int) $row['variant_id']);
             $subtotal += ((float) $variant->price) * (int) $row['quantity'];
+            if (! $school && $variant->product?->school) {
+                $school = $variant->product->school;
+            }
         }
         $subtotal = round($subtotal, 2);
-        $vat = round($subtotal * 0.20, 2);
-        $delivery = $subtotal >= 50 ? 0.0 : 4.99;
-        $total = round($subtotal + $vat + $delivery, 2);
+        $totals = UniformPricing::total($subtotal, $school);
 
         return [
-            $total,
+            $totals['total'],
             [
                 'context' => 'uniform',
                 'user_id' => (string) (auth()->id() ?? ''),
+                'school_id' => (string) ($school?->id ?? ''),
             ],
         ];
     }

@@ -55,6 +55,20 @@
         @error('pin')<p class="ad-error">{{ $message }}</p>@enderror
       </div>
 
+      <div class="ad-fg" style="grid-column:1/-1;padding:1rem;border:1px solid var(--ad-line);border-radius:12px;background:var(--ad-surface-2)">
+        <label class="ad-label" style="display:flex;align-items:center;gap:.5rem;cursor:pointer;margin-bottom:.75rem">
+          <input type="hidden" name="vat_enabled" value="0">
+          <input type="checkbox" name="vat_enabled" id="schoolVatEnabled" value="1" {{ old('vat_enabled', $school->vat_enabled ?? false) ? 'checked' : '' }}>
+          Charge VAT for this school
+        </label>
+        <p style="margin:0 0 .75rem;font-size:.8rem;color:var(--ad-muted)">Off by default — most schools do not charge VAT. Turn on only when VAT should be added at checkout.</p>
+        <div id="schoolVatPercentWrap" style="{{ old('vat_enabled', $school->vat_enabled ?? false) ? '' : 'opacity:.5;pointer-events:none' }}">
+          <label class="ad-label">VAT percentage (%)</label>
+          <input class="ad-input @error('vat_percent') is-invalid @enderror" name="vat_percent" type="number" min="0" max="100" step="0.01" value="{{ old('vat_percent', $school->vat_percent ?? 20) }}" style="max-width:160px">
+          @error('vat_percent')<p class="ad-error">{{ $message }}</p>@enderror
+        </div>
+      </div>
+
       <div class="ad-fg" style="grid-column:1/-1">
         <label class="ad-label">School Logo</label>
         @if($editing && $school->logo_url)
@@ -99,6 +113,17 @@ document.querySelector('input[name="accent_colour"]')?.addEventListener('input',
   const txt = this.nextElementSibling;
   if(txt) txt.value = this.value;
 });
+(function(){
+  const toggle = document.getElementById('schoolVatEnabled');
+  const wrap = document.getElementById('schoolVatPercentWrap');
+  if (!toggle || !wrap) return;
+  const sync = () => {
+    wrap.style.opacity = toggle.checked ? '' : '.5';
+    wrap.style.pointerEvents = toggle.checked ? '' : 'none';
+  };
+  toggle.addEventListener('change', sync);
+  sync();
+})();
 </script>
 @endpush
 @endsection

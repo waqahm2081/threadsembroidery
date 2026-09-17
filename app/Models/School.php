@@ -10,9 +10,14 @@ class School extends Model
     protected $fillable = [
         'name', 'slug', 'logo_path', 'contact_email', 'contact_phone',
         'address', 'description', 'accent_colour', 'is_active', 'sort_order', 'pin',
+        'vat_enabled', 'vat_percent',
     ];
 
-    protected $casts = ['is_active' => 'boolean'];
+    protected $casts = [
+        'is_active' => 'boolean',
+        'vat_enabled' => 'boolean',
+        'vat_percent' => 'float',
+    ];
 
     protected $hidden = ['pin'];
 
@@ -58,6 +63,8 @@ class School extends Model
             'description' => $this->description,
             'accent_colour' => $this->accent_colour ?: '#e85820',
             'contact_email' => $this->contact_email,
+            'vat_enabled' => (bool) $this->vat_enabled,
+            'vat_percent' => (float) ($this->vat_percent ?? 20),
         ];
     }
 }

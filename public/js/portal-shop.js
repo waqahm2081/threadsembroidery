@@ -40,6 +40,30 @@
     return _cart.reduce((s, i) => s + i.qty, 0);
   }
 
+  function activeSchool() {
+    return _school || {};
+  }
+
+  function cartTotals() {
+    const subtotal = cartTotal();
+    const school = activeSchool();
+    const vatEnabled = !!school.vat_enabled;
+    const vatPercent = Number(school.vat_percent);
+    const rate = vatEnabled ? ((Number.isFinite(vatPercent) ? vatPercent : 20) / 100) : 0;
+    const vat = Math.round(subtotal * rate * 100) / 100;
+    const delivery = subtotal >= 50 ? 0 : 4.99;
+    const total = Math.round((subtotal + vat + delivery) * 100) / 100;
+    return { subtotal, vat, delivery, total, vatEnabled, vatPercent: Number.isFinite(vatPercent) ? vatPercent : 20 };
+  }
+
+  function vatSummaryLine(totals) {
+    if (!totals.vatEnabled) {
+      return `<div class="su-summary-line"><span>VAT</span><span>Not charged</span></div>`;
+    }
+    const pct = Number(totals.vatPercent).toFixed(Number.isInteger(totals.vatPercent) ? 0 : 2);
+    return `<div class="su-summary-line"><span>VAT (${pct}%)</span><span>${money(totals.vat)}</span></div>`;
+  }
+
   function addToCart(variantId, productId, productName, size, price, qty) {
     const existing = _cart.find((i) => i.variantId === variantId);
     if (existing) existing.qty += qty;
@@ -275,10 +299,8 @@
       </div>`;
     }
 
-    const subtotal = cartTotal();
-    const vat = subtotal * 0.20;
-    const delivery = subtotal >= 50 ? 0 : 4.99;
-    const total = subtotal + vat + delivery;
+    const totals = cartTotals();
+    const { subtotal, delivery, total } = totals;
 
     return `${shopHeader('Your Cart', _school ? 'school' : 'schools', _school ? _school.name : 'Back', _school ? { id: _school.id } : null)}
     <div class="su-cart-layout">
@@ -298,7 +320,7 @@
       <div class="su-cart-summary panel-card">
         <h4>Order Summary</h4>
         <div class="su-summary-line"><span>Subtotal</span><span>${money(subtotal)}</span></div>
-        <div class="su-summary-line"><span>VAT (20%)</span><span>${money(vat)}</span></div>
+        ${vatSummaryLine(totals)}
         <div class="su-summary-line"><span>Delivery</span><span>${delivery === 0 ? '<span style="color:var(--ok)">Free</span>' : money(delivery)}</span></div>
         ${delivery > 0 ? `<p class="su-free-del-note muted">Free delivery on orders over £50</p>` : ''}
         <div class="su-summary-total"><span>Total</span><b>${money(total)}</b></div>
@@ -309,10 +331,8 @@
 
   function viewCheckout() {
     const user = window.THREADS_PORTAL?.user || {};
-    const subtotal = cartTotal();
-    const vat = subtotal * 0.20;
-    const delivery = subtotal >= 50 ? 0 : 4.99;
-    const total = subtotal + vat + delivery;
+    const totals = cartTotals();
+    const { subtotal, delivery, total } = totals;
 
     return `${shopHeader('Checkout', 'cart', 'Back to Cart')}
     <div class="su-checkout-layout">
@@ -383,7 +403,7 @@
           </div>`).join('')}
         <hr style="border-color:var(--line);margin:.8rem 0">
         <div class="su-summary-line"><span>Subtotal</span><span>${money(subtotal)}</span></div>
-        <div class="su-summary-line"><span>VAT (20%)</span><span>${money(vat)}</span></div>
+        ${vatSummaryLine(totals)}
         <div class="su-summary-line"><span>Delivery</span><span>${delivery === 0 ? '<span style="color:var(--ok)">Free</span>' : money(delivery)}</span></div>
         <div class="su-summary-total"><span>Total</span><b>${money(total)}</b></div>
         <button type="button" class="btn btn--block" id="suPlaceOrder"><i class="bi bi-lock-fill"></i> Pay &amp; Place Order</button>
