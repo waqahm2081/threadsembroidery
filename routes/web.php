@@ -154,7 +154,6 @@ Route::prefix('admin')->name('admin.')->group(function () {
         Route::prefix('products-shop')->name('products-shop.')->group(function () {
             Route::redirect('/', '/admin/products-shop/products');
             Route::get('/categories', [AdminShopCategoryController::class, 'index'])->name('categories.index');
-            Route::get('/categories/{shopCategory}/edit', [AdminShopCategoryController::class, 'edit'])->name('categories.edit');
             Route::put('/categories/{shopCategory}', [AdminShopCategoryController::class, 'update'])->name('categories.update');
             Route::get('/products', [AdminShopProductController::class, 'index'])->name('products.index');
             Route::get('/products/{styleCode}/edit', [AdminShopProductController::class, 'edit'])->name('products.edit');

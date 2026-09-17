@@ -59,10 +59,7 @@
               <tr>
                 <th>SKU</th>
                 <th>Size</th>
-                <th>Stock</th>
-                <th>Price single (£)</th>
-                <th>Price pack (£)</th>
-                <th>Price carton (£)</th>
+                <th>Price (£)</th>
               </tr>
             </thead>
             <tbody>
@@ -70,22 +67,11 @@
                 <tr>
                   <td><code>{{ $row->sku }}</code></td>
                   <td><b>{{ $row->size }}</b></td>
-                  <td>{{ number_format((int) $row->stock_fts) }}</td>
-                  <td>
+                  <td style="max-width:160px">
                     <input class="ad-input" type="number" min="0" step="0.01"
                            name="prices[{{ $row->id }}][price_single]"
                            value="{{ old('prices.'.$row->id.'.price_single', number_format((float) $row->price_single, 2, '.', '')) }}"
                            required>
-                  </td>
-                  <td>
-                    <input class="ad-input" type="number" min="0" step="0.01"
-                           name="prices[{{ $row->id }}][price_pack]"
-                           value="{{ old('prices.'.$row->id.'.price_pack', $row->price_pack !== null ? number_format((float) $row->price_pack, 2, '.', '') : '') }}">
-                  </td>
-                  <td>
-                    <input class="ad-input" type="number" min="0" step="0.01"
-                           name="prices[{{ $row->id }}][price_carton]"
-                           value="{{ old('prices.'.$row->id.'.price_carton', $row->price_carton !== null ? number_format((float) $row->price_carton, 2, '.', '') : '') }}">
                   </td>
                 </tr>
               @endforeach
@@ -120,7 +106,7 @@
   border:1px solid var(--ad-line);background:#fff;
 }
 .ad-ps-thumb img{width:100%;height:100%;object-fit:contain}
-.ad-ps-price-table .ad-input{padding:.55rem .65rem;min-width:110px}
+.ad-ps-price-table .ad-input{padding:.55rem .65rem;min-width:110px;max-width:160px}
 </style>
 @endpush
 @endsection

@@ -45,20 +45,6 @@ class ShopCategoryController extends Controller
         ]);
     }
 
-    public function edit(ShopCategorySetting $shopCategory): View
-    {
-        $catalog = collect($this->catalog->getCategories())
-            ->firstWhere('slug', $shopCategory->slug);
-
-        return view('admin.products-shop.categories.edit', [
-            'title' => $shopCategory->name,
-            'subtitle' => 'Category VAT settings',
-            'nav' => 'products-shop-categories',
-            'category' => $shopCategory,
-            'productCount' => (int) ($catalog['count'] ?? 0),
-        ]);
-    }
-
     public function update(Request $request, ShopCategorySetting $shopCategory): RedirectResponse
     {
         $validated = $request->validate([
@@ -74,7 +60,7 @@ class ShopCategoryController extends Controller
         ]);
 
         return redirect()
-            ->route('admin.products-shop.categories.edit', $shopCategory)
+            ->route('admin.products-shop.categories.index')
             ->with('success', 'Category VAT settings saved.');
     }
 

@@ -36,7 +36,17 @@
               @endif
             </td>
             <td>{{ $category->vat_enabled ? rtrim(rtrim(number_format($category->vat_percent, 2), '0'), '.').'%' : '—' }}</td>
-            <td><a class="ad-btn ghost sm" href="{{ route('admin.products-shop.categories.edit', $category) }}">Edit VAT</a></td>
+            <td>
+              <button
+                type="button"
+                class="ad-btn ghost sm js-vat-edit"
+                data-id="{{ $category->id }}"
+                data-name="{{ $category->name }}"
+                data-enabled="{{ $category->vat_enabled ? '1' : '0' }}"
+                data-percent="{{ rtrim(rtrim(number_format((float) $category->vat_percent, 2, '.', ''), '0'), '.') ?: '0' }}"
+                data-action="{{ route('admin.products-shop.categories.update', $category) }}"
+              >Edit VAT</button>
+            </td>
           </tr>
         @empty
           <tr><td colspan="6" class="muted">No categories found. Import PenCarrie products first.</td></tr>
@@ -44,6 +54,88 @@
       </tbody>
     </table>
   </div>
-  <div class="ad-pager">{{ $categories->links() }}</div>
+  @if($categories->hasPages())
+    <div class="ad-pagination">{{ $categories->links('vendor.pagination.admin') }}</div>
+  @endif
 </section>
+
+<div class="ad-modal-scrim" id="vatModal" aria-hidden="true">
+  <div class="ad-modal" role="dialog" aria-modal="true" aria-labelledby="vatModalTitle">
+    <div class="ad-modal-head">
+      <div>
+        <h3 id="vatModalTitle">Edit VAT</h3>
+        <p id="vatModalSubtitle">Category VAT settings</p>
+      </div>
+      <button type="button" class="ad-modal-close" id="vatModalClose" aria-label="Close">&times;</button>
+    </div>
+    <form method="POST" id="vatModalForm">
+      @csrf
+      @method('PUT')
+      <div class="ad-vat-box">
+        <div class="ad-vat-box-grid">
+          <div>
+            <label class="ad-check-row ad-check-row--lg">
+              <input type="hidden" name="vat_enabled" value="0">
+              <input type="checkbox" name="vat_enabled" id="vatModalEnabled" value="1">
+              <span>Charge VAT for this category</span>
+            </label>
+            <p class="ad-field-hint">If any cart item is from a VAT-enabled category, the highest enabled rate among those items is applied to the whole cart.</p>
+          </div>
+          <div id="vatModalPercentWrap">
+            <label class="ad-label">VAT percentage (%)</label>
+            <input class="ad-input" name="vat_percent" id="vatModalPercent" type="number" min="0" max="100" step="0.01" value="20">
+          </div>
+        </div>
+      </div>
+      <div class="ad-form-actions">
+        <button type="button" class="ad-btn ghost" id="vatModalCancel">Cancel</button>
+        <button type="submit" class="ad-btn primary">Save VAT</button>
+      </div>
+    </form>
+  </div>
+</div>
 @endsection
+
+@push('scripts')
+<script>
+(function(){
+  const modal = document.getElementById('vatModal');
+  const form = document.getElementById('vatModalForm');
+  const title = document.getElementById('vatModalSubtitle');
+  const enabled = document.getElementById('vatModalEnabled');
+  const percent = document.getElementById('vatModalPercent');
+  const percentWrap = document.getElementById('vatModalPercentWrap');
+  if (!modal || !form || !enabled || !percent || !percentWrap) return;
+
+  const syncPercent = () => {
+    percentWrap.style.opacity = enabled.checked ? '' : '.5';
+    percentWrap.style.pointerEvents = enabled.checked ? '' : 'none';
+  };
+
+  const open = (btn) => {
+    form.action = btn.dataset.action;
+    title.textContent = btn.dataset.name || 'Category VAT settings';
+    enabled.checked = btn.dataset.enabled === '1';
+    percent.value = btn.dataset.percent || '20';
+    syncPercent();
+    modal.classList.add('open');
+    modal.setAttribute('aria-hidden', 'false');
+  };
+
+  const close = () => {
+    modal.classList.remove('open');
+    modal.setAttribute('aria-hidden', 'true');
+  };
+
+  document.querySelectorAll('.js-vat-edit').forEach((btn) => {
+    btn.addEventListener('click', () => open(btn));
+  });
+  document.getElementById('vatModalClose')?.addEventListener('click', close);
+  document.getElementById('vatModalCancel')?.addEventListener('click', close);
+  modal.addEventListener('click', (e) => { if (e.target === modal) close(); });
+  document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && modal.classList.contains('open')) close(); });
+  enabled.addEventListener('change', syncPercent);
+  syncPercent();
+})();
+</script>
+@endpush

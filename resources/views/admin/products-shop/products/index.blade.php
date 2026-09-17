@@ -64,6 +64,8 @@
       </tbody>
     </table>
   </div>
-  <div class="ad-pager">{{ $products->links() }}</div>
+  @if($products->hasPages())
+    <div class="ad-pagination">{{ $products->links('vendor.pagination.admin') }}</div>
+  @endif
 </section>
 @endsection

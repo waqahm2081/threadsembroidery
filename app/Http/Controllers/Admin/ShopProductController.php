@@ -146,8 +146,6 @@ class ShopProductController extends Controller
         $validated = $request->validate([
             'prices' => ['required', 'array'],
             'prices.*.price_single' => ['required', 'numeric', 'min:0'],
-            'prices.*.price_pack' => ['nullable', 'numeric', 'min:0'],
-            'prices.*.price_carton' => ['nullable', 'numeric', 'min:0'],
         ]);
 
         $ids = array_map('intval', array_keys($validated['prices']));
@@ -165,12 +163,6 @@ class ShopProductController extends Controller
 
             PcProduct::query()->where('id', $id)->update([
                 'price_single' => (float) $priceRow['price_single'],
-                'price_pack' => isset($priceRow['price_pack']) && $priceRow['price_pack'] !== ''
-                    ? (float) $priceRow['price_pack']
-                    : null,
-                'price_carton' => isset($priceRow['price_carton']) && $priceRow['price_carton'] !== ''
-                    ? (float) $priceRow['price_carton']
-                    : null,
             ]);
         }
 
