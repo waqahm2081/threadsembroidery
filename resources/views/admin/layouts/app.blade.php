@@ -28,17 +28,21 @@
     <nav class="ad-nav">
       <a href="{{ route('admin.dashboard') }}" class="{{ $nav === 'dashboard' ? 'active' : '' }}"><i class="bi bi-grid-1x2"></i> Dashboard</a>
       <a href="{{ route('admin.users.index') }}" class="{{ $nav === 'users' ? 'active' : '' }}"><i class="bi bi-people"></i> Users</a>
-      <a href="{{ route('admin.bundles.index') }}" class="{{ $nav === 'bundles' ? 'active' : '' }}"><i class="bi bi-boxes"></i> Bundles</a>
-      <a href="{{ route('admin.size-guides.index') }}" class="{{ $nav === 'size-charts' ? 'active' : '' }}"><i class="bi bi-rulers"></i> Size Charts</a>
-      <a href="{{ route('admin.orders.index') }}" class="{{ $nav === 'orders' ? 'active' : '' }}"><i class="bi bi-box-seam"></i> Orders</a>
-      <a href="{{ route('admin.shop-orders.index') }}" class="{{ $nav === 'shop-orders' ? 'active' : '' }}"><i class="bi bi-bag-check"></i> Shop Orders</a>
       <a href="{{ route('admin.enquiries.index') }}" class="{{ $nav === 'enquiries' ? 'active' : '' }}"><i class="bi bi-chat-left-text"></i> Branding Enquiries</a>
-      <a href="{{ route('admin.bulk-enquiries.index') }}" class="{{ $nav === 'bulk-enquiries' ? 'active' : '' }}"><i class="bi bi-envelope-plus"></i> Bulk Enquiries</a>
       <a href="{{ route('admin.customizer') }}" class="{{ $nav === 'customizer' ? 'active' : '' }}"><i class="bi bi-sliders"></i> Product Customizer</a>
       <a href="{{ route('admin.product-quotes.index') }}" class="{{ $nav === 'product-quotes' ? 'active' : '' }}"><i class="bi bi-file-earmark-text"></i> Product Quotes</a>
+
+      <div class="ad-nav-divider">Bundles</div>
+      <a href="{{ route('admin.bundles.index') }}" class="{{ $nav === 'bundles' ? 'active' : '' }}"><i class="bi bi-boxes"></i> Manage Bundles</a>
+      <a href="{{ route('admin.size-guides.index') }}" class="{{ $nav === 'size-charts' ? 'active' : '' }}"><i class="bi bi-rulers"></i> Size Charts</a>
+      <a href="{{ route('admin.orders.index') }}" class="{{ $nav === 'orders' ? 'active' : '' }}"><i class="bi bi-box-seam"></i> Bundle Orders</a>
+
       <div class="ad-nav-divider">Products Shop</div>
       <a href="{{ route('admin.products-shop.products.index') }}" class="{{ $nav === 'products-shop-products' ? 'active' : '' }}"><i class="bi bi-bag"></i> Products</a>
       <a href="{{ route('admin.products-shop.categories.index') }}" class="{{ $nav === 'products-shop-categories' ? 'active' : '' }}"><i class="bi bi-tags"></i> Categories</a>
+      <a href="{{ route('admin.bulk-enquiries.index') }}" class="{{ $nav === 'bulk-enquiries' ? 'active' : '' }}"><i class="bi bi-envelope-plus"></i> Bulk Enquiries</a>
+      <a href="{{ route('admin.shop-orders.index') }}" class="{{ $nav === 'shop-orders' ? 'active' : '' }}"><i class="bi bi-bag-check"></i> Shop Orders</a>
+
       <div class="ad-nav-divider">Uniform Shop</div>
       <a href="{{ route('admin.schools.index') }}" class="{{ $nav === 'schools' ? 'active' : '' }}"><i class="bi bi-building"></i> Schools</a>
       <a href="{{ route('admin.school-categories.index') }}" class="{{ $nav === 'school-categories' ? 'active' : '' }}"><i class="bi bi-tags"></i> Categories</a>
