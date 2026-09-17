@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\BrandingEnquiry;
 use App\Models\BrandingEnquiryFile;
+use App\Services\NotificationMailService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -11,6 +12,10 @@ use Illuminate\Support\Facades\DB;
 
 class BrandingEnquiryController extends Controller
 {
+    public function __construct(private NotificationMailService $mailNotifications)
+    {
+    }
+
     public function store(Request $request): JsonResponse
     {
         $validated = $request->validate([
@@ -62,6 +67,8 @@ class BrandingEnquiryController extends Controller
 
             return $enquiry->load('files');
         });
+
+        $this->mailNotifications->sendBrandingEnquiry($enquiry);
 
         return response()->json([
             'ok' => true,

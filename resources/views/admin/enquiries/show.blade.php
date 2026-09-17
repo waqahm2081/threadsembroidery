@@ -62,8 +62,10 @@
       <div class="ad-field">
         <label class="ad-label" for="admin_notes">Admin notes</label>
         <textarea class="ad-input" id="admin_notes" name="admin_notes" rows="6">{{ old('admin_notes', $enquiry->admin_notes) }}</textarea>
+        <p class="ad-field-hint">Internal only — not emailed to the customer.</p>
       </div>
-      <button class="ad-btn" type="submit">Save enquiry</button>
+      <p class="ad-field-hint" style="margin-bottom:.75rem">Changing status (or the quote amount when status is Quoted) emails the customer.</p>
+      <button class="ad-btn" type="submit">Save &amp; notify customer</button>
     </form>
   </section>
 </div>

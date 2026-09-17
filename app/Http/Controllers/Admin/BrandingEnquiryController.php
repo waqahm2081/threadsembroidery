@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\BrandingEnquiry;
+use App\Services\NotificationMailService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
@@ -64,7 +65,7 @@ class BrandingEnquiryController extends Controller
         ]);
     }
 
-    public function update(Request $request, BrandingEnquiry $enquiry): RedirectResponse
+    public function update(Request $request, BrandingEnquiry $enquiry, NotificationMailService $mail): RedirectResponse
     {
         $validated = $request->validate([
             'status' => ['required', Rule::in(self::STATUSES)],
@@ -72,11 +73,27 @@ class BrandingEnquiryController extends Controller
             'quoted_amount' => ['nullable', 'numeric', 'min:0'],
         ]);
 
+        $previousStatus = $enquiry->status;
+        $previousQuote = $enquiry->quoted_amount;
+
         $enquiry->status = $validated['status'];
         $enquiry->admin_notes = $validated['admin_notes'] ?? null;
         $enquiry->quoted_amount = $validated['quoted_amount'] ?? null;
         $enquiry->save();
 
-        return back()->with('success', 'Enquiry updated successfully.');
+        $statusChanged = $previousStatus !== $enquiry->status;
+        $quoteChanged = (float) ($previousQuote ?? 0) !== (float) ($enquiry->quoted_amount ?? 0)
+            && $enquiry->status === 'quoted';
+
+        if ($statusChanged || $quoteChanged) {
+            $mail->sendBrandingEnquiryStatusUpdate($enquiry);
+        }
+
+        return back()->with(
+            'success',
+            ($statusChanged || $quoteChanged)
+                ? 'Enquiry updated. Customer notified by email.'
+                : 'Enquiry updated successfully.'
+        );
     }
 }

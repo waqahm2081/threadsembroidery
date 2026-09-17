@@ -2,11 +2,14 @@
 
 namespace App\Services;
 
+use App\Mail\BrandingEnquiryMail;
+use App\Mail\BrandingEnquiryStatusUpdateMail;
 use App\Mail\BundleOrderMail;
 use App\Mail\OrderStatusUpdateMail;
 use App\Mail\ProductBulkEnquiryMail;
 use App\Mail\UniformOrderMail;
 use App\Mail\UserRegisteredMail;
+use App\Models\BrandingEnquiry;
 use App\Models\Order;
 use App\Models\ProductBulkEnquiry;
 use App\Models\SchoolUniformOrder;
@@ -83,6 +86,31 @@ class NotificationMailService
             }
             $this->safeSend(fn () => Mail::to($email)->send(new ProductBulkEnquiryMail($enquiry, true)));
         }
+    }
+
+    public function sendBrandingEnquiry(BrandingEnquiry $enquiry): void
+    {
+        $enquiry->loadMissing('files');
+
+        if ($enquiry->email) {
+            $this->safeSend(fn () => Mail::to($enquiry->email)->send(new BrandingEnquiryMail($enquiry, false)));
+        }
+
+        foreach ($this->adminEmails() as $email) {
+            if ($enquiry->email && strcasecmp($email, $enquiry->email) === 0) {
+                continue;
+            }
+            $this->safeSend(fn () => Mail::to($email)->send(new BrandingEnquiryMail($enquiry, true)));
+        }
+    }
+
+    public function sendBrandingEnquiryStatusUpdate(BrandingEnquiry $enquiry): void
+    {
+        if (! $enquiry->email) {
+            return;
+        }
+
+        $this->safeSend(fn () => Mail::to($enquiry->email)->send(new BrandingEnquiryStatusUpdateMail($enquiry)));
     }
 
     public function sendBundleOrderStatusUpdate(Order $order): void
