@@ -160,16 +160,17 @@ class ShopDecorationRulesService
             return 'hi_vis';
         }
 
-        // Bodywarmers & coats — allow front print even on fleece fabric (rule 5B)
+        // Fleece category → embroidery only (no print), including fleece jackets / gilets
+        $cat = strtolower($categoryName);
+        if (str_contains($cat, 'fleece') || self::matches($hay, ['fleece'])) {
+            return 'fleece';
+        }
+
+        // Bodywarmers & coats — allow front print (non-fleece)
         if (self::matches($hay, [
             'bodywarmer', 'body warmer', 'gilet', 'coat', 'jacket', 'parka', 'softshell',
         ])) {
             return 'bodywarmer_coat';
-        }
-
-        // Fleece category / type only (not bodywarmers) → embroidery only
-        if (self::matches($hay, ['fleece'])) {
-            return 'fleece';
         }
 
         if (self::matches($hay, ['hoodie', 'sweatshirt', 'sweat shirt', 'midlayer', 'mid layer', 'zip hoodie'])) {
@@ -185,7 +186,6 @@ class ShopDecorationRulesService
         }
 
         // Soft match on category name alone for tops
-        $cat = strtolower($categoryName);
         if (str_contains($cat, 't-shirt') || str_contains($cat, 'tshirt')) {
             return 'tshirt';
         }
