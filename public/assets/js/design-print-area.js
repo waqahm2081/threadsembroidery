@@ -75,7 +75,7 @@
       view: 'sleeve',
       allowedViews: ['sleeve'],
       // Side-shot: sleeve sits mid-silhouette (not far left empty space, not past the back)
-      printArea: { x: 50, y: 28, w: 18, h: 28, centered: true },
+      printArea: { x: 50, y: 16, w: 18, h: 24, centered: true },
     },
     apron_left: {
       label: 'Left Side',
