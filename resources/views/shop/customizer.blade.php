@@ -428,7 +428,7 @@ pc-body
 @endphp
 window.__CUSTOMIZER_DATA__ = @json($customizerData);
 </script>
-<script src="{{ asset('assets/js/design-print-area.js') }}?v=1.5"></script>
+<script src="{{ asset('assets/js/design-print-area.js') }}?v=1.6"></script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-<script src="{{ asset('assets/js/product-customizer.js?v=2.9') }}"></script>
+<script src="{{ asset('assets/js/product-customizer.js?v=2.10') }}"></script>
 @endpush

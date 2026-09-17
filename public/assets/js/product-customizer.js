@@ -526,8 +526,8 @@ document.addEventListener('DOMContentLoaded', function () {
     }
     if (state.placement === 'sleeve') {
       return type === 'text'
-        ? { x: 52, y: 34, w: 18, h: 10 }
-        : { x: 54, y: 30, w: 16, h: 22 };
+        ? { x: 42, y: 34, w: 16, h: 10 }
+        : { x: 43, y: 30, w: 14, h: 20 };
     }
     if (state.placement === 'rucksack_top_print' || state.placement === 'rucksack_top_embroidery') {
       return type === 'text'
