@@ -1,6 +1,19 @@
 @extends('admin.layouts.app')
 
 @section('content')
+<div class="ad-toolbar" style="margin-bottom:1rem">
+  <div></div>
+  <div style="display:flex;gap:.55rem;flex-wrap:wrap">
+    <button type="button" class="ad-btn ghost" id="bulkDiscountOpen">
+      <i class="bi bi-percent"></i> Bulk quantity discounts
+      @if($bulkDiscounts->isNotEmpty())
+        <span class="ad-pill quoted" style="margin-left:.25rem">{{ $bulkDiscounts->count() }}</span>
+      @endif
+    </button>
+    <a href="{{ route('admin.products-shop.products.index') }}" class="ad-btn ghost">Back</a>
+  </div>
+</div>
+
 <div class="ad-card ad-school-form">
   <div class="ad-form-grid ad-form-grid--school" style="margin-bottom:1.4rem">
     <div class="ad-fg">
@@ -27,6 +40,7 @@
 
   <p class="ad-field-hint" style="margin-bottom:1.2rem">
     Images and colourways are supplied by PenCarrie and cannot be edited here. You can update prices for each size variation.
+    Bulk discounts apply to total quantity across all sizes/colours for this style.
   </p>
 
   <form method="POST" action="{{ route('admin.products-shop.products.update', $product->style_code) }}">
@@ -88,6 +102,53 @@
   </form>
 </div>
 
+<div class="ad-modal-scrim" id="bulkDiscountModal" aria-hidden="true">
+  <div class="ad-modal" role="dialog" aria-modal="true" aria-labelledby="bulkDiscountTitle" style="width:min(720px,100%)">
+    <div class="ad-modal-head">
+      <div>
+        <h3 id="bulkDiscountTitle">Bulk quantity discounts</h3>
+        <p>Percentage off garment unit price. Total quantity across all sizes counts. Ranges must not overlap.</p>
+      </div>
+      <button type="button" class="ad-modal-close" id="bulkDiscountClose" aria-label="Close">&times;</button>
+    </div>
+
+    <form method="POST" action="{{ route('admin.products-shop.products.bulk-discounts', $product->style_code) }}" id="bulkDiscountForm">
+      @csrf
+      @method('PUT')
+
+      <div class="ad-bulk-tiers-head">
+        <span>From qty</span>
+        <span>Up to qty</span>
+        <span>Discount %</span>
+        <span></span>
+      </div>
+      <div id="bulkDiscountRows">
+        @forelse($bulkDiscounts as $i => $tier)
+          <div class="ad-bulk-tier-row">
+            <input class="ad-input" type="number" min="1" step="1" name="tiers[{{ $i }}][qty_from]" value="{{ $tier->qty_from }}" required placeholder="From">
+            <input class="ad-input" type="number" min="1" step="1" name="tiers[{{ $i }}][qty_to]" value="{{ $tier->qty_to }}" required placeholder="Up to">
+            <input class="ad-input" type="number" min="0" max="100" step="0.01" name="tiers[{{ $i }}][discount_percent]" value="{{ number_format((float) $tier->discount_percent, 2, '.', '') }}" required placeholder="%">
+            <button type="button" class="ad-btn ghost sm js-bulk-remove" aria-label="Remove row"><i class="bi bi-trash"></i></button>
+          </div>
+        @empty
+        @endforelse
+      </div>
+
+      <div style="margin-top:.85rem;display:flex;gap:.55rem;flex-wrap:wrap">
+        <button type="button" class="ad-btn ghost sm" id="bulkDiscountAdd"><i class="bi bi-plus"></i> Add range</button>
+      </div>
+
+      <p class="ad-field-hint" style="margin-top:.85rem">Leave empty and save to clear all bulk discounts for this product.</p>
+
+      <div class="ad-form-actions">
+        <button type="button" class="ad-btn ghost" id="bulkDiscountCancel">Cancel</button>
+        <button type="submit" class="ad-btn primary">Save discounts</button>
+      </div>
+    </form>
+  </div>
+</div>
+@endsection
+
 @push('styles')
 <style>
 .ad-ps-colour{
@@ -107,6 +168,66 @@
 }
 .ad-ps-thumb img{width:100%;height:100%;object-fit:contain}
 .ad-ps-price-table .ad-input{padding:.55rem .65rem;min-width:110px;max-width:160px}
+.ad-bulk-tiers-head,.ad-bulk-tier-row{
+  display:grid;grid-template-columns:1fr 1fr 1fr auto;gap:.55rem;align-items:center;
+}
+.ad-bulk-tiers-head{
+  font-size:.72rem;letter-spacing:.06em;text-transform:uppercase;color:var(--ad-muted);
+  font-weight:700;margin-bottom:.45rem;
+}
+.ad-bulk-tier-row{margin-bottom:.45rem}
 </style>
 @endpush
-@endsection
+
+@push('scripts')
+<script>
+(function(){
+  const modal = document.getElementById('bulkDiscountModal');
+  const rows = document.getElementById('bulkDiscountRows');
+  if (!modal || !rows) return;
+
+  let rowIndex = rows.querySelectorAll('.ad-bulk-tier-row').length;
+
+  const open = () => {
+    modal.classList.add('open');
+    modal.setAttribute('aria-hidden', 'false');
+  };
+  const close = () => {
+    modal.classList.remove('open');
+    modal.setAttribute('aria-hidden', 'true');
+  };
+
+  const addRow = (from = '', to = '', percent = '') => {
+    const i = rowIndex++;
+    const el = document.createElement('div');
+    el.className = 'ad-bulk-tier-row';
+    el.innerHTML = `
+      <input class="ad-input" type="number" min="1" step="1" name="tiers[${i}][qty_from]" value="${from}" required placeholder="From">
+      <input class="ad-input" type="number" min="1" step="1" name="tiers[${i}][qty_to]" value="${to}" required placeholder="Up to">
+      <input class="ad-input" type="number" min="0" max="100" step="0.01" name="tiers[${i}][discount_percent]" value="${percent}" required placeholder="%">
+      <button type="button" class="ad-btn ghost sm js-bulk-remove" aria-label="Remove row"><i class="bi bi-trash"></i></button>`;
+    rows.appendChild(el);
+  };
+
+  document.getElementById('bulkDiscountOpen')?.addEventListener('click', open);
+  document.getElementById('bulkDiscountClose')?.addEventListener('click', close);
+  document.getElementById('bulkDiscountCancel')?.addEventListener('click', close);
+  modal.addEventListener('click', (e) => { if (e.target === modal) close(); });
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && modal.classList.contains('open')) close();
+  });
+
+  document.getElementById('bulkDiscountAdd')?.addEventListener('click', () => addRow());
+
+  rows.addEventListener('click', (e) => {
+    const btn = e.target.closest('.js-bulk-remove');
+    if (!btn) return;
+    btn.closest('.ad-bulk-tier-row')?.remove();
+  });
+
+  @if($errors->has('tiers') || $errors->has('tiers.*'))
+    open();
+  @endif
+})();
+</script>
+@endpush

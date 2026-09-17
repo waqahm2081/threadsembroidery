@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\PcProduct;
 use App\Models\ShopCategorySetting;
 use App\Services\ProductCatalogService;
+use App\Services\ShopBulkDiscountService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -13,8 +14,10 @@ use Illuminate\View\View;
 
 class ShopProductController extends Controller
 {
-    public function __construct(private ProductCatalogService $catalog)
-    {
+    public function __construct(
+        private ProductCatalogService $catalog,
+        private ShopBulkDiscountService $bulkDiscounts,
+    ) {
     }
 
     public function index(Request $request): View
@@ -146,7 +149,29 @@ class ShopProductController extends Controller
             'product' => $first,
             'colours' => array_values($colours),
             'categories' => $this->catalogCategoriesFor($first->categories),
+            'bulkDiscounts' => $this->bulkDiscounts->tiersForStyle($styleCode),
         ]);
+    }
+
+    public function updateBulkDiscounts(Request $request, string $styleCode): RedirectResponse
+    {
+        abort_unless(
+            PcProduct::query()->where('style_code', $styleCode)->exists(),
+            404
+        );
+
+        $validated = $request->validate([
+            'tiers' => ['nullable', 'array'],
+            'tiers.*.qty_from' => ['required', 'integer', 'min:1'],
+            'tiers.*.qty_to' => ['required', 'integer', 'min:1'],
+            'tiers.*.discount_percent' => ['required', 'numeric', 'min:0', 'max:100'],
+        ]);
+
+        $this->bulkDiscounts->syncTiers($styleCode, $validated['tiers'] ?? []);
+
+        return redirect()
+            ->route('admin.products-shop.products.edit', $styleCode)
+            ->with('success', 'Bulk quantity discounts saved.');
     }
 
     public function update(Request $request, string $styleCode): RedirectResponse

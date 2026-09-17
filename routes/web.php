@@ -159,6 +159,7 @@ Route::prefix('admin')->name('admin.')->group(function () {
             Route::get('/products', [AdminShopProductController::class, 'index'])->name('products.index');
             Route::get('/products/{styleCode}/edit', [AdminShopProductController::class, 'edit'])->name('products.edit');
             Route::put('/products/{styleCode}', [AdminShopProductController::class, 'update'])->name('products.update');
+            Route::put('/products/{styleCode}/bulk-discounts', [AdminShopProductController::class, 'updateBulkDiscounts'])->name('products.bulk-discounts');
         });
 
         // Uniform Shop admin

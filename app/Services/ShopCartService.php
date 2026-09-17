@@ -73,6 +73,9 @@ class ShopCartService
             'is_customized' => false,
             'design_data' => [
                 'decoration_methods' => array_values(array_unique($data['decoration_methods'] ?? [])),
+                'bulk_discount_percent' => isset($data['bulk_discount_percent'])
+                    ? (float) $data['bulk_discount_percent']
+                    : null,
             ],
         ]);
     }

@@ -2,8 +2,10 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\PcProduct;
 use App\Models\ShopCartItem;
 use App\Services\ProductCatalogService;
+use App\Services\ShopBulkDiscountService;
 use App\Services\ShopCartService;
 use App\Services\ShopPricingService;
 use App\Support\DesignPreview;
@@ -18,6 +20,7 @@ class ShopCartController extends Controller
     public function __construct(
         private ShopCartService $cartService,
         private ProductCatalogService $catalog,
+        private ShopBulkDiscountService $bulkDiscounts,
     ) {
     }
 
@@ -112,6 +115,47 @@ class ShopCartController extends Controller
             'decoration_methods' => ['nullable', 'array'],
             'decoration_methods.*' => ['string', 'in:print,embroidery'],
         ]);
+
+        $breakdown = $validated['size_breakdown'] ?? [];
+        $totalQty = (int) $validated['quantity'];
+        $discountPercent = $this->bulkDiscounts->percentForQty($validated['style_code'], $totalQty);
+
+        if ($breakdown !== []) {
+            $priced = [];
+            $weighted = 0.0;
+
+            foreach ($breakdown as $row) {
+                $base = $this->resolveVariantUnitPrice(
+                    $validated['style_code'],
+                    $validated['colour_code'] ?? null,
+                    $row['size'] ?? null,
+                    (float) ($row['unit_price'] ?? 0)
+                );
+                $unit = $this->bulkDiscounts->applyPercent($base, $discountPercent);
+                $qty = (int) $row['qty'];
+                $priced[] = [
+                    'size' => $row['size'],
+                    'qty' => $qty,
+                    'unit_price' => $unit,
+                ];
+                $weighted += $unit * $qty;
+            }
+
+            $validated['size_breakdown'] = $priced;
+            $validated['unit_price'] = $totalQty > 0 ? round($weighted / $totalQty, 2) : 0.0;
+        } else {
+            $base = $this->resolveVariantUnitPrice(
+                $validated['style_code'],
+                $validated['colour_code'] ?? null,
+                $validated['size'] ?? null,
+                (float) $validated['unit_price']
+            );
+            $validated['unit_price'] = $this->bulkDiscounts->applyPercent($base, $discountPercent);
+        }
+
+        if ($discountPercent > 0) {
+            $validated['bulk_discount_percent'] = $discountPercent;
+        }
 
         $item = $this->cartService->addItem($validated);
 
@@ -295,5 +339,33 @@ class ShopCartController extends Controller
             'vat' => $cart->vatAmount(),
             'total' => $cart->total(),
         ]);
+    }
+
+    private function resolveVariantUnitPrice(
+        string $styleCode,
+        ?string $colourCode,
+        ?string $size,
+        float $fallback
+    ): float {
+        $query = PcProduct::query()->active()->where('style_code', $styleCode);
+
+        if ($colourCode) {
+            $query->where('colourway_code', $colourCode);
+        }
+        if ($size) {
+            $query->where('size', $size);
+        }
+
+        $price = $query->value('price_single');
+
+        if ($price === null && $colourCode) {
+            $price = PcProduct::query()
+                ->active()
+                ->where('style_code', $styleCode)
+                ->when($size, fn ($q) => $q->where('size', $size))
+                ->value('price_single');
+        }
+
+        return $price !== null ? (float) $price : round($fallback, 2);
     }
 }

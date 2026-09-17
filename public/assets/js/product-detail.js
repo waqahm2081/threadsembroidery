@@ -146,11 +146,13 @@
     const displayMarkup = productData.display_decoration_included
       || productData.pricing?.display_included_decoration
       || 0;
+    const discountPercent = getBulkDiscountPercent(getTotalQtyPreview());
 
     document.querySelectorAll('#pd-detail .pd-qty-input').forEach(inp => {
       const v = parseInt(inp.value, 10);
       const baseUnit = parseFloat(inp.dataset.unitPrice || productData.min_price || 0);
-      const unit = baseUnit + displayMarkup;
+      const discounted = applyBulkDiscount(baseUnit, discountPercent);
+      const unit = discounted + displayMarkup;
       if (!isNaN(v) && v > 0) {
         total += v;
         amount += v * unit;
@@ -168,9 +170,43 @@
         ? formatMoney(amount) + VAT_NOTE
         : formatMoney(0);
     }
+    highlightBulkTier(total);
     if (typeof syncCtaForQuantity === 'function') {
       syncCtaForQuantity();
     }
+  }
+
+  function getTotalQtyPreview() {
+    let total = 0;
+    document.querySelectorAll('#pd-detail .pd-qty-input').forEach(inp => {
+      const v = parseInt(inp.value, 10);
+      if (!isNaN(v) && v > 0) total += v;
+    });
+    return total;
+  }
+
+  function getBulkDiscountPercent(qty) {
+    const tiers = productData.bulk_discounts || [];
+    for (let i = 0; i < tiers.length; i++) {
+      const t = tiers[i];
+      if (qty >= Number(t.qty_from) && qty <= Number(t.qty_to)) {
+        return Number(t.discount_percent) || 0;
+      }
+    }
+    return 0;
+  }
+
+  function applyBulkDiscount(unitPrice, percent) {
+    if (!percent || percent <= 0) return unitPrice;
+    return Math.round(unitPrice * (1 - percent / 100) * 100) / 100;
+  }
+
+  function highlightBulkTier(qty) {
+    document.querySelectorAll('#pdBulkPricing .pd-bulk-row[data-from]').forEach(row => {
+      const from = Number(row.dataset.from);
+      const to = Number(row.dataset.to);
+      row.classList.toggle('is-active', qty >= from && qty <= to);
+    });
   }
 
   function getSelectedDecorationMethods() {
@@ -384,6 +420,11 @@
           unit_price: parseFloat(input?.dataset.unitPrice || productData.min_price || 0),
         });
       }
+    });
+
+    const discountPercent = getBulkDiscountPercent(totalQty);
+    sizeBreakdown.forEach(row => {
+      row.unit_price = applyBulkDiscount(row.unit_price, discountPercent);
     });
 
     return { sizeBreakdown, totalQty, primarySize };

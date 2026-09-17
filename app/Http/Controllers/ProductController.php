@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Services\ProductCatalogService;
+use App\Services\ShopBulkDiscountService;
 use App\Services\ShopCartService;
 use Illuminate\View\View;
 
@@ -11,6 +12,7 @@ class ProductController extends Controller
     public function __construct(
         private ProductCatalogService $catalog,
         private ShopCartService $cartService,
+        private ShopBulkDiscountService $bulkDiscounts,
     ) {
     }
 
@@ -28,6 +30,7 @@ class ProductController extends Controller
         $related = $this->catalog->getRelatedProducts($category['name'], $product['style_code']);
 
         $decoration = \App\Services\ShopDecorationRulesService::forProduct($product, $category['name']);
+        $bulkDiscounts = $this->bulkDiscounts->tiersPayload($product['style_code']);
 
         return view('shop.product', [
             'pageActive' => 'shop',
@@ -35,6 +38,7 @@ class ProductController extends Controller
             'product' => $product,
             'related' => $related,
             'decoration' => $decoration,
+            'bulkDiscounts' => $bulkDiscounts,
         ]);
     }
 

@@ -169,6 +169,76 @@
 }
 
 #pd-detail .pd-price-row { display: flex; align-items: baseline; gap: 6px; flex-wrap: wrap; margin-bottom: 18px; }
+
+#pd-detail .pd-bulk-pricing{
+  margin: 0 0 18px;
+  border: 1px solid rgba(0,0,0,.08);
+  border-radius: 12px;
+  overflow: hidden;
+  background: #fff;
+}
+#pd-detail .pd-bulk-row{
+  display: grid;
+  grid-template-columns: minmax(72px,auto) minmax(88px,auto) 1fr;
+  gap: 10px 14px;
+  align-items: center;
+  padding: 11px 14px;
+  border-bottom: 1px solid rgba(0,0,0,.07);
+  transition: background .15s ease;
+}
+#pd-detail .pd-bulk-row:last-of-type{ border-bottom: 0; }
+#pd-detail .pd-bulk-row.is-active{ background: rgba(232,88,32,.06); }
+#pd-detail .pd-bulk-price{
+  font-weight: 700;
+  font-size: 1.05rem;
+  color: #1a7a3c;
+  font-variant-numeric: tabular-nums;
+}
+#pd-detail .pd-bulk-badge{
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: .22rem .55rem;
+  border-radius: 999px;
+  background: #e85820;
+  color: #fff;
+  font-size: .68rem;
+  font-weight: 800;
+  letter-spacing: .03em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+#pd-detail .pd-bulk-badge--muted{
+  background: rgba(0,0,0,.08);
+  color: #666;
+}
+#pd-detail .pd-bulk-qty{
+  text-align: right;
+  color: #333;
+  font-size: .92rem;
+  font-weight: 600;
+}
+#pd-detail .pd-bulk-note{
+  margin: 0;
+  padding: 10px 14px 12px;
+  font-size: .78rem;
+  color: #888;
+  line-height: 1.45;
+  border-top: 1px solid rgba(0,0,0,.07);
+  background: #fafafa;
+}
+@media (max-width: 520px){
+  #pd-detail .pd-bulk-row{
+    grid-template-columns: 1fr auto;
+    grid-template-areas:
+      "price badge"
+      "qty qty";
+  }
+  #pd-detail .pd-bulk-price{ grid-area: price; }
+  #pd-detail .pd-bulk-badge{ grid-area: badge; justify-self: end; }
+  #pd-detail .pd-bulk-qty{ grid-area: qty; text-align: left; }
+}
+
 #pd-detail .pd-price-from { font-family: var(--font-body); font-size: 0.75rem; color: #999; text-transform: uppercase; letter-spacing: 0.06em; }
 #pd-detail .pd-price { font-family: var(--font-head); font-weight: 800; font-size: 2rem; color: #0d0d0d; letter-spacing: -0.03em; line-height: 1; }
 #pd-detail .pd-price small { font-size: 1.1rem; font-weight: 600; }
