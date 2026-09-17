@@ -85,13 +85,17 @@ product-page
                 @php
                     $baseGarment = (float) $product['min_price'];
                     $displayDeco = (float) ($decoration['display_decoration_fee'] ?? \App\Services\ShopPricingService::displayIncludedDecorationFee());
+                    $lowestFrom = (int) collect($bulkDiscounts)->min('qty_from');
+                    $showBaseRow = $lowestFrom > 1;
                 @endphp
                 <div class="pd-bulk-pricing" id="pdBulkPricing">
+                    @if($showBaseRow)
                     <div class="pd-bulk-row pd-bulk-row--base">
                         <span class="pd-bulk-price">£{{ number_format($baseGarment + $displayDeco, 2) }}</span>
                         <span class="pd-bulk-badge pd-bulk-badge--muted">Base</span>
                         <span class="pd-bulk-qty">1+ items</span>
                     </div>
+                    @endif
                     @foreach($bulkDiscounts as $tier)
                         @php
                             $tierGarment = round($baseGarment * (1 - ((float) $tier['discount_percent'] / 100)), 2);

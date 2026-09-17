@@ -4,10 +4,10 @@
 <div class="ad-toolbar" style="margin-bottom:1rem">
   <div></div>
   <div style="display:flex;gap:.55rem;flex-wrap:wrap">
-    <button type="button" class="ad-btn ghost" id="bulkDiscountOpen">
+    <button type="button" class="ad-btn primary" id="bulkDiscountOpen">
       <i class="bi bi-percent"></i> Bulk quantity discounts
       @if($bulkDiscounts->isNotEmpty())
-        <span class="ad-pill quoted" style="margin-left:.25rem">{{ $bulkDiscounts->count() }}</span>
+        <span class="ad-pill" style="margin-left:.25rem;background:rgba(255,255,255,.2);color:#fff">{{ $bulkDiscounts->count() }}</span>
       @endif
     </button>
     <a href="{{ route('admin.products-shop.products.index') }}" class="ad-btn ghost">Back</a>
