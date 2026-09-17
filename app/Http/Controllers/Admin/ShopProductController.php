@@ -131,6 +131,14 @@ class ShopProductController extends Controller
             $colours[$code]['sizes'][] = $row;
         }
 
+        foreach ($colours as &$colour) {
+            $colour['sizes'] = $this->catalog->sortBySize(
+                $colour['sizes'],
+                fn ($row) => $row->size ?? ''
+            );
+        }
+        unset($colour);
+
         return view('admin.products-shop.products.edit', [
             'title' => $first->title,
             'subtitle' => 'Style '.$first->style_code.' · prices only (images & colours are read-only)',

@@ -218,6 +218,6 @@ window.SHOP_ROUTES = {
   checkout_url: @json(route('shop.checkout')),
 };
 </script>
-<script src="{{ asset('js/stripe-checkout.js') }}?v=1.0"></script>
-<script src="{{ asset('assets/js/cart-checkout.js') }}?v=1.9"></script>
+<script src="{{ asset('js/stripe-checkout.js') }}?v=1.1"></script>
+<script src="{{ asset('assets/js/cart-checkout.js') }}?v=2.0"></script>
 @endpush

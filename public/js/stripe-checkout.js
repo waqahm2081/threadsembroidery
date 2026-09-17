@@ -13,6 +13,17 @@
     invalid: { color: '#ff6b6b', iconColor: '#ff6b6b' },
   };
 
+  const STYLE_LIGHT = {
+    base: {
+      color: '#1a1a1a',
+      fontFamily: 'system-ui, -apple-system, Segoe UI, Roboto, sans-serif',
+      fontSize: '16px',
+      iconColor: '#555555',
+      '::placeholder': { color: 'rgba(0,0,0,0.4)' },
+    },
+    invalid: { color: '#c0392b', iconColor: '#c0392b' },
+  };
+
   async function loadStripeJs() {
     if (window.Stripe) return window.Stripe;
     await new Promise((resolve, reject) => {
@@ -33,7 +44,7 @@
   }
 
   /**
-   * @param {{ mountSelector:string, errorSelector?:string }} opts
+   * @param {{ mountSelector:string, errorSelector?:string, theme?:'dark'|'light', style?:object }} opts
    */
   async function initCardElement(opts) {
     const mountEl = ensureMount(opts.mountSelector);
@@ -51,7 +62,9 @@
     await loadStripeJs();
     const stripe = window.Stripe(cfg.publishableKey);
     const elements = stripe.elements({ appearance: { theme: 'stripe' } });
-    const card = elements.create('card', { style: STYLE, hidePostalCode: false });
+    const style = opts.style
+      || (opts.theme === 'light' ? STYLE_LIGHT : STYLE);
+    const card = elements.create('card', { style, hidePostalCode: false });
     card.mount(mountEl);
 
     const errorEl = opts.errorSelector ? document.querySelector(opts.errorSelector) : null;

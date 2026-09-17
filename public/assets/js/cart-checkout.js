@@ -102,6 +102,7 @@
         stripeCtx = await window.TEStripeCheckout.initCardElement({
           mountSelector: '#stripeCardElement',
           errorSelector: '#stripeCardErrors',
+          theme: 'light',
         });
       } catch (err) {
         const errEl = document.getElementById('stripeCardErrors');

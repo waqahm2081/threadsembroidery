@@ -346,6 +346,11 @@ class ProductCatalogService
             ];
         }
 
+        foreach ($colours as &$colour) {
+            $colour['sizes'] = $this->sortBySize($colour['sizes'], fn (array $s) => $s['size'] ?? '');
+        }
+        unset($colour);
+
         $colourList = array_values($colours);
         $minPrice = $rows->min('price_single');
         $attributes = $this->parseAttributes($first->attributes);
@@ -793,6 +798,97 @@ class ProductCatalogService
         }
 
         return strtolower($rgb);
+    }
+
+    /**
+     * Sort garment sizes small → large (XS…5XL, then numeric waist/chest, then alpha).
+     *
+     * @template T
+     * @param  list<T>  $items
+     * @param  callable(T): ?string  $getSize
+     * @return list<T>
+     */
+    public function sortBySize(array $items, callable $getSize): array
+    {
+        usort($items, function ($a, $b) use ($getSize) {
+            $ka = $this->sizeSortKey($getSize($a));
+            $kb = $this->sizeSortKey($getSize($b));
+
+            return $ka <=> $kb;
+        });
+
+        return array_values($items);
+    }
+
+    /**
+     * @return array{0:int,1:float,2:string}
+     */
+    public function sizeSortKey(?string $size): array
+    {
+        $raw = trim((string) $size);
+        $normalized = strtoupper(preg_replace('/[\s_\-]+/', '', $raw) ?? '');
+
+        static $named = [
+            'ONESIZE' => 5.0,
+            'OSFA' => 5.0,
+            'OS' => 5.0,
+            'ONE' => 5.0,
+            'XXXS' => 10.0,
+            '3XS' => 10.0,
+            'XXS' => 20.0,
+            '2XS' => 20.0,
+            'XS' => 30.0,
+            'S' => 40.0,
+            'SM' => 40.0,
+            'SMALL' => 40.0,
+            'M' => 50.0,
+            'MD' => 50.0,
+            'MED' => 50.0,
+            'MEDIUM' => 50.0,
+            'L' => 60.0,
+            'LG' => 60.0,
+            'LARGE' => 60.0,
+            'XL' => 70.0,
+            'XLG' => 70.0,
+            'XXL' => 80.0,
+            '2XL' => 80.0,
+            '2X' => 80.0,
+            'XXXL' => 90.0,
+            '3XL' => 90.0,
+            '3X' => 90.0,
+            'XXXXL' => 100.0,
+            '4XL' => 100.0,
+            '4X' => 100.0,
+            '5XL' => 110.0,
+            '5X' => 110.0,
+            '6XL' => 120.0,
+            '6X' => 120.0,
+            '7XL' => 130.0,
+            '7X' => 130.0,
+            '8XL' => 140.0,
+            '8X' => 140.0,
+        ];
+
+        if ($normalized !== '' && isset($named[$normalized])) {
+            return [0, $named[$normalized], $raw];
+        }
+
+        // e.g. 9XL, 10XL
+        if (preg_match('/^(\d+)X(?:L|LG|LGE)?$/', $normalized, $m)) {
+            return [0, 60.0 + ((float) $m[1] * 10.0), $raw];
+        }
+
+        // Pure numeric (waist / chest / EU)
+        if (preg_match('/^(\d+(?:\.\d+)?)$/', $normalized, $m)) {
+            return [1, (float) $m[1], $raw];
+        }
+
+        // Leading number groups: 3-4, 28/30, 9/11
+        if (preg_match('/^(\d+(?:\.\d+)?)/', $normalized, $m)) {
+            return [1, (float) $m[1], $raw];
+        }
+
+        return [2, 0.0, strtolower($raw)];
     }
 
     private function resolveImageUrl(?string $path): string
