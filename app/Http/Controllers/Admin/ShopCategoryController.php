@@ -64,6 +64,30 @@ class ShopCategoryController extends Controller
             ->with('success', 'Category VAT settings saved.');
     }
 
+    public function updateAll(Request $request): RedirectResponse
+    {
+        $this->syncFromCatalog();
+
+        $validated = $request->validate([
+            'vat_enabled' => ['nullable'],
+            'vat_percent' => ['nullable', 'numeric', 'min:0', 'max:100'],
+        ]);
+
+        $vatEnabled = $request->boolean('vat_enabled');
+        $vatPercent = isset($validated['vat_percent'])
+            ? (float) $validated['vat_percent']
+            : 20.0;
+
+        ShopCategorySetting::query()->update([
+            'vat_enabled' => $vatEnabled,
+            'vat_percent' => $vatPercent,
+        ]);
+
+        return redirect()
+            ->route('admin.products-shop.categories.index')
+            ->with('success', 'VAT settings applied to all categories.');
+    }
+
     private function syncFromCatalog(): void
     {
         foreach ($this->catalog->getCategories() as $category) {
