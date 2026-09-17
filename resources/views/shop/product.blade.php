@@ -16,7 +16,7 @@ product-page
 
 @push('styles')
 <link rel="stylesheet" href="{{ asset('assets/css/shop-theme.css') }}?v=1.1">
-<link rel="stylesheet" href="{{ asset('assets/css/product-detail.css') }}?v=2.3">
+<link rel="stylesheet" href="{{ asset('assets/css/product-detail.css') }}?v=2.4">
 @endpush
 
 @section('content')
@@ -83,37 +83,30 @@ product-page
 
             @if(!empty($bulkDiscounts))
                 @php
-                    $baseGarment = (float) $product['min_price'];
-                    $displayDeco = (float) ($decoration['display_decoration_fee'] ?? \App\Services\ShopPricingService::displayIncludedDecorationFee());
                     $lowestFrom = (int) collect($bulkDiscounts)->min('qty_from');
                     $showBaseRow = $lowestFrom > 1;
                 @endphp
                 <div class="pd-bulk-pricing" id="pdBulkPricing">
                     @if($showBaseRow)
                     <div class="pd-bulk-row pd-bulk-row--base">
-                        <span class="pd-bulk-price">£{{ number_format($baseGarment + $displayDeco, 2) }}</span>
-                        <span class="pd-bulk-badge pd-bulk-badge--muted">Base</span>
-                        <span class="pd-bulk-qty">1+ items</span>
+                        <span class="pd-bulk-badge pd-bulk-badge--muted">No discount</span>
+                        <span class="pd-bulk-qty">1–{{ $lowestFrom - 1 }} items</span>
                     </div>
                     @endif
                     @foreach($bulkDiscounts as $tier)
                         @php
-                            $tierGarment = round($baseGarment * (1 - ((float) $tier['discount_percent'] / 100)), 2);
-                            $tierDisplay = $tierGarment + $displayDeco;
                             $saveLabel = rtrim(rtrim(number_format((float) $tier['discount_percent'], 2), '0'), '.');
                         @endphp
                         <div class="pd-bulk-row"
                              data-from="{{ $tier['qty_from'] }}"
                              data-to="{{ $tier['qty_to'] }}">
-                            <span class="pd-bulk-price">£{{ number_format($tierDisplay, 2) }}</span>
                             <span class="pd-bulk-badge">SAVE {{ $saveLabel }}%</span>
                             <span class="pd-bulk-qty">{{ $tier['qty_from'] }}–{{ $tier['qty_to'] }} items</span>
                         </div>
                     @endforeach
-                    <p class="pd-bulk-note">Discount is based on total quantity across all sizes. Decoration are charged at full rate.</p>
+                    <p class="pd-bulk-note">Discount applies to the combined garment total for all sizes selected. Decorations are charged at full rate.</p>
                 </div>
             @endif
-
             @if($product['brand'] || $product['type'])
                 <p class="pd-short-desc">
                     @if($product['brand'])<strong>{{ $product['brand'] }}</strong>@endif
@@ -175,6 +168,10 @@ product-page
                         <span>Estimated Total <small class="pd-vat-note">(ex. VAT)</small></span>
                         <strong id="pdEstTotal" class="pd-est-total">£0.00</strong>
                     </div>
+                </div>
+                <div class="pd-bulk-saving is-hidden" id="pdBulkSaving" hidden aria-live="polite">
+                    <i class="bi bi-tag-fill"></i>
+                    <span>You save <strong id="pdBulkSavingAmount">£0.00</strong> on garments with this quantity</span>
                 </div>
             </div>
 
@@ -449,5 +446,5 @@ window.SHOP_ROUTES = {
 };
 </script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-<script src="{{ asset('assets/js/product-detail.js') }}?v=2.3"></script>
+<script src="{{ asset('assets/js/product-detail.js') }}?v=2.4"></script>
 @endpush

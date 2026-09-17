@@ -142,22 +142,25 @@
 
   function recalcTotal() {
     let total = 0;
-    let amount = 0;
+    let garmentSubtotal = 0;
     const displayMarkup = productData.display_decoration_included
       || productData.pricing?.display_included_decoration
       || 0;
-    const discountPercent = getBulkDiscountPercent(getTotalQtyPreview());
 
     document.querySelectorAll('#pd-detail .pd-qty-input').forEach(inp => {
       const v = parseInt(inp.value, 10);
       const baseUnit = parseFloat(inp.dataset.unitPrice || productData.min_price || 0);
-      const discounted = applyBulkDiscount(baseUnit, discountPercent);
-      const unit = discounted + displayMarkup;
       if (!isNaN(v) && v > 0) {
         total += v;
-        amount += v * unit;
+        garmentSubtotal += v * baseUnit;
       }
     });
+
+    const discountPercent = getBulkDiscountPercent(total);
+    const discountAmount = discountPercent > 0
+      ? Math.round(garmentSubtotal * (discountPercent / 100) * 100) / 100
+      : 0;
+    let amount = Math.round((garmentSubtotal - discountAmount + (total * displayMarkup)) * 100) / 100;
 
     const logoSetupChecked = document.getElementById('pdLogoSetup')?.checked;
     if (logoSetupChecked) {
@@ -170,6 +173,7 @@
         ? formatMoney(amount) + VAT_NOTE
         : formatMoney(0);
     }
+    updateBulkSaving(discountAmount, discountPercent);
     highlightBulkTier(total);
     if (typeof syncCtaForQuantity === 'function') {
       syncCtaForQuantity();
@@ -196,9 +200,24 @@
     return 0;
   }
 
-  function applyBulkDiscount(unitPrice, percent) {
-    if (!percent || percent <= 0) return unitPrice;
-    return Math.round(unitPrice * (1 - percent / 100) * 100) / 100;
+  function applyBulkDiscountToTotal(garmentSubtotal, percent) {
+    if (!percent || percent <= 0 || garmentSubtotal <= 0) return garmentSubtotal;
+    return Math.round(garmentSubtotal * (1 - percent / 100) * 100) / 100;
+  }
+
+  function updateBulkSaving(amount, percent) {
+    const wrap = document.getElementById('pdBulkSaving');
+    const amountEl = document.getElementById('pdBulkSavingAmount');
+    if (!wrap || !amountEl) return;
+
+    if (amount > 0 && percent > 0) {
+      amountEl.textContent = `\u00A3${amount.toFixed(2)}`;
+      wrap.hidden = false;
+      wrap.classList.remove('is-hidden');
+    } else {
+      wrap.hidden = true;
+      wrap.classList.add('is-hidden');
+    }
   }
 
   function highlightBulkTier(qty) {
@@ -407,24 +426,30 @@
     const sizeBreakdown = [];
     let totalQty = 0;
     let primarySize = '';
+    let garmentSubtotal = 0;
 
     document.querySelectorAll('#pdSizeQtyGrid .pd-size-row-item').forEach(row => {
       const input = row.querySelector('.pd-qty-input');
       const val = parseInt(input?.value || '0', 10);
       if (val > 0) {
+        const baseUnit = parseFloat(input?.dataset.unitPrice || productData.min_price || 0);
         totalQty += val;
+        garmentSubtotal += baseUnit * val;
         if (!primarySize) primarySize = row.dataset.size;
         sizeBreakdown.push({
           size: row.dataset.size,
           qty: val,
-          unit_price: parseFloat(input?.dataset.unitPrice || productData.min_price || 0),
+          unit_price: baseUnit,
         });
       }
     });
 
     const discountPercent = getBulkDiscountPercent(totalQty);
+    const discountedTotal = applyBulkDiscountToTotal(garmentSubtotal, discountPercent);
+    const factor = garmentSubtotal > 0 ? (discountedTotal / garmentSubtotal) : 1;
+
     sizeBreakdown.forEach(row => {
-      row.unit_price = applyBulkDiscount(row.unit_price, discountPercent);
+      row.unit_price = Math.round(row.unit_price * factor * 100) / 100;
     });
 
     return { sizeBreakdown, totalQty, primarySize };

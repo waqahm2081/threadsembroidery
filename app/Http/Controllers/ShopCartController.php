@@ -121,8 +121,8 @@ class ShopCartController extends Controller
         $discountPercent = $this->bulkDiscounts->percentForQty($validated['style_code'], $totalQty);
 
         if ($breakdown !== []) {
-            $priced = [];
-            $weighted = 0.0;
+            $bases = [];
+            $garmentTotal = 0.0;
 
             foreach ($breakdown as $row) {
                 $base = $this->resolveVariantUnitPrice(
@@ -131,14 +131,24 @@ class ShopCartController extends Controller
                     $row['size'] ?? null,
                     (float) ($row['unit_price'] ?? 0)
                 );
-                $unit = $this->bulkDiscounts->applyPercent($base, $discountPercent);
                 $qty = (int) $row['qty'];
+                $bases[] = ['size' => $row['size'], 'qty' => $qty, 'base' => $base];
+                $garmentTotal += $base * $qty;
+            }
+
+            $discountedTotal = $this->bulkDiscounts->applyPercent($garmentTotal, $discountPercent);
+            $factor = $garmentTotal > 0 ? ($discountedTotal / $garmentTotal) : 1.0;
+
+            $priced = [];
+            $weighted = 0.0;
+            foreach ($bases as $row) {
+                $unit = round($row['base'] * $factor, 2);
                 $priced[] = [
                     'size' => $row['size'],
-                    'qty' => $qty,
+                    'qty' => $row['qty'],
                     'unit_price' => $unit,
                 ];
-                $weighted += $unit * $qty;
+                $weighted += $unit * $row['qty'];
             }
 
             $validated['size_breakdown'] = $priced;
@@ -150,7 +160,10 @@ class ShopCartController extends Controller
                 $validated['size'] ?? null,
                 (float) $validated['unit_price']
             );
-            $validated['unit_price'] = $this->bulkDiscounts->applyPercent($base, $discountPercent);
+            $validated['unit_price'] = $this->bulkDiscounts->applyPercent($base * $totalQty, $discountPercent);
+            if ($totalQty > 0) {
+                $validated['unit_price'] = round(((float) $validated['unit_price']) / $totalQty, 2);
+            }
         }
 
         if ($discountPercent > 0) {

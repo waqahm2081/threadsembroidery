@@ -178,22 +178,16 @@
   background: #fff;
 }
 #pd-detail .pd-bulk-row{
-  display: grid;
-  grid-template-columns: minmax(72px,auto) minmax(88px,auto) 1fr;
-  gap: 10px 14px;
+  display: flex;
   align-items: center;
+  justify-content: space-between;
+  gap: 12px;
   padding: 11px 14px;
   border-bottom: 1px solid rgba(0,0,0,.07);
   transition: background .15s ease;
 }
 #pd-detail .pd-bulk-row:last-of-type{ border-bottom: 0; }
 #pd-detail .pd-bulk-row.is-active{ background: rgba(232,88,32,.06); }
-#pd-detail .pd-bulk-price{
-  font-weight: 700;
-  font-size: 1.05rem;
-  color: #1a7a3c;
-  font-variant-numeric: tabular-nums;
-}
 #pd-detail .pd-bulk-badge{
   display: inline-flex;
   align-items: center;
@@ -213,7 +207,6 @@
   color: #666;
 }
 #pd-detail .pd-bulk-qty{
-  text-align: right;
   color: #333;
   font-size: .92rem;
   font-weight: 600;
@@ -227,17 +220,21 @@
   border-top: 1px solid rgba(0,0,0,.07);
   background: #fafafa;
 }
-@media (max-width: 520px){
-  #pd-detail .pd-bulk-row{
-    grid-template-columns: 1fr auto;
-    grid-template-areas:
-      "price badge"
-      "qty qty";
-  }
-  #pd-detail .pd-bulk-price{ grid-area: price; }
-  #pd-detail .pd-bulk-badge{ grid-area: badge; justify-self: end; }
-  #pd-detail .pd-bulk-qty{ grid-area: qty; text-align: left; }
+#pd-detail .pd-bulk-saving{
+  display: flex;
+  align-items: center;
+  gap: .45rem;
+  margin-top: .75rem;
+  padding: .7rem .9rem;
+  border-radius: 10px;
+  background: rgba(26,122,60,.08);
+  color: #1a7a3c;
+  font-size: .88rem;
+  font-weight: 600;
 }
+#pd-detail .pd-bulk-saving.is-hidden{ display: none !important; }
+#pd-detail .pd-bulk-saving i{ font-size: 1rem; }
+#pd-detail .pd-bulk-saving strong{ font-weight: 800; }
 
 #pd-detail .pd-price-from { font-family: var(--font-body); font-size: 0.75rem; color: #999; text-transform: uppercase; letter-spacing: 0.06em; }
 #pd-detail .pd-price { font-family: var(--font-head); font-weight: 800; font-size: 2rem; color: #0d0d0d; letter-spacing: -0.03em; line-height: 1; }
