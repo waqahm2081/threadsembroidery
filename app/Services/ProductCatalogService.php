@@ -311,8 +311,10 @@ class ProductCatalogService
                 // Prefer plain front shot for customizer; model shot is fallback.
                 $frontRaw = $row->image_front ?: $row->image_model;
                 $backRaw = $row->image_back ?: null;
+                $sideRaw = $row->image_side ?: null;
                 $frontUrl = $this->resolveOptionalImageUrl($frontRaw);
                 $backUrl = $this->resolveOptionalImageUrl($backRaw) ?: $frontUrl;
+                $sideUrl = $this->resolveOptionalImageUrl($sideRaw);
 
                 $colours[$code] = [
                     'code' => $code,
@@ -328,9 +330,17 @@ class ProductCatalogService
                     // Plain catalogue images for the live customizer (per colourway)
                     'image_front' => $frontUrl,
                     'image_back' => $backUrl,
+                    'image_side' => $sideUrl,
+                    'has_sleeve_image' => (bool) $sideUrl,
                     'has_plain_photo' => (bool) $frontUrl,
                     'sizes' => [],
                 ];
+            } elseif (empty($colours[$code]['image_side']) && ! empty($row->image_side)) {
+                $sideUrl = $this->resolveOptionalImageUrl($row->image_side);
+                if ($sideUrl) {
+                    $colours[$code]['image_side'] = $sideUrl;
+                    $colours[$code]['has_sleeve_image'] = true;
+                }
             }
 
             $colours[$code]['sizes'][] = [

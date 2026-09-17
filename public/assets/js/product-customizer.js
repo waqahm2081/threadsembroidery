@@ -44,6 +44,7 @@ document.addEventListener('DOMContentLoaded', function () {
   const garmentImages = {
     front: customizerData.customizer_image || customizerData.fallback_customizer_front || '',
     back: customizerData.customizer_image_back || customizerData.fallback_customizer_back || '',
+    sleeve: '',
   };
 
   const state = {
@@ -57,6 +58,7 @@ document.addEventListener('DOMContentLoaded', function () {
     qty: customizerData.default_qty || 1,
     view: 'front',
     placement: null,
+    placements: [],
     placementLabel: null,
     allowedViews: null,
     layers: [],
@@ -142,9 +144,10 @@ document.addEventListener('DOMContentLoaded', function () {
       || colour?.image_front
       || garmentImages.back
       || fallbackBack;
+    const sleeve = colour?.image_side || '';
     const usesPlainPhoto = !!(colour?.has_plain_photo || colour?.image_front);
 
-    return { front, back, usesPlainPhoto };
+    return { front, back, sleeve, usesPlainPhoto };
   }
 
   function syncGarmentImagesFromColour() {
@@ -152,11 +155,19 @@ document.addEventListener('DOMContentLoaded', function () {
     const resolved = resolveGarmentImagesForColour(colour);
     garmentImages.front = resolved.front;
     garmentImages.back = resolved.back;
+    garmentImages.sleeve = resolved.sleeve;
     state.usesPlainPhoto = resolved.usesPlainPhoto;
   }
 
   function getGarmentImageForView(view) {
-    return view === 'back' ? garmentImages.back : garmentImages.front;
+    if (view === 'back') return garmentImages.back;
+    if (view === 'sleeve') return garmentImages.sleeve || garmentImages.front;
+    return garmentImages.front;
+  }
+
+  function hasSleeveImage() {
+    const colour = getColourRecord(state.colourCode);
+    return !!(colour?.has_sleeve_image || colour?.image_side || garmentImages.sleeve);
   }
 
   function updateGarmentImageSrc() {
@@ -361,6 +372,14 @@ document.addEventListener('DOMContentLoaded', function () {
 
       syncGarmentImagesFromColour();
       updateGarmentImageSrc();
+
+      // Drop sleeve if this colourway has no sleeve image
+      if (state.placements.includes('sleeve') && !hasSleeveImage()) {
+        applyPlacements(state.placements.filter(k => k !== 'sleeve'));
+      } else if (state.placements.length) {
+        applyViewToggleRestrictions();
+      }
+
       updateSummary();
     });
   }
@@ -440,11 +459,22 @@ document.addEventListener('DOMContentLoaded', function () {
   }
 
   /* ============================================================
-     4b. DECORATION PLACEMENT — modal on load
+     4b. DECORATION PLACEMENT — modal on load (single or multi)
      ============================================================ */
   const pcApp = document.getElementById('pc-app');
   const placementModalEl = document.getElementById('pcPlacementModal');
+  const placementTabsEl = document.getElementById('pcPlacementTabs');
+  const placementConfirmBtn = document.getElementById('pcPlacementConfirmBtn');
+  const placementFeeTotalEl = document.getElementById('pcPlacementFeeTotal');
   let placementModal = null;
+  let pendingPlacements = [];
+
+  function isMultiSelectMode() {
+    const flag = customizerData.decoration?.multi_select;
+    if (typeof flag === 'boolean') return flag;
+    const options = document.getElementById('pcPlacementOptions');
+    return options?.dataset.multiSelect === '1';
+  }
 
   function getDefaultLayerPosition(type) {
     if (state.placement === 'left_chest' || state.placement === 'front_embroidery') {
@@ -472,10 +502,15 @@ document.addEventListener('DOMContentLoaded', function () {
         ? { x: 52, y: 34, w: 20, h: 12 }
         : { x: 54, y: 32, w: 16, h: 18 };
     }
-    if (state.placement === 'back_print' || state.placement === 'back_embroidery') {
+    if (state.placement === 'back' || state.placement === 'back_print' || state.placement === 'back_embroidery') {
       return type === 'text'
         ? { x: 25, y: 28, w: 50, h: 14 }
         : { x: 22, y: 22, w: 56, h: 40 };
+    }
+    if (state.placement === 'sleeve') {
+      return type === 'text'
+        ? { x: 36, y: 30, w: 28, h: 12 }
+        : { x: 38, y: 28, w: 24, h: 28 };
     }
     if (state.placement === 'rucksack_top_print' || state.placement === 'rucksack_top_embroidery') {
       return type === 'text'
@@ -507,11 +542,36 @@ document.addEventListener('DOMContentLoaded', function () {
     return raw.some(m => methods.includes(m));
   }
 
-  function filterPlacementOptions() {
-    const methods = getSelectedMethods();
-    const buttons = placementModalEl
+  function getPlacementButtons() {
+    return placementModalEl
       ? Array.from(placementModalEl.querySelectorAll('[data-placement]'))
       : [];
+  }
+
+  function updateSleeveAvailability() {
+    const sleeveOk = hasSleeveImage();
+    getPlacementButtons().forEach(btn => {
+      if (btn.dataset.requiresSleeve !== '1') return;
+      const unavailable = btn.querySelector('.pcm-placement-unavailable');
+      if (sleeveOk) {
+        btn.classList.remove('is-unavailable');
+        btn.disabled = false;
+        btn.removeAttribute('aria-disabled');
+        if (unavailable) unavailable.hidden = true;
+      } else {
+        btn.classList.add('is-unavailable');
+        btn.classList.remove('is-selected');
+        btn.disabled = true;
+        btn.setAttribute('aria-disabled', 'true');
+        if (unavailable) unavailable.hidden = false;
+        pendingPlacements = pendingPlacements.filter(k => k !== btn.dataset.placement);
+      }
+    });
+  }
+
+  function filterPlacementOptions() {
+    const methods = getSelectedMethods();
+    const buttons = getPlacementButtons();
 
     buttons.forEach(btn => {
       const show = placementMatchesMethods(btn, methods);
@@ -530,27 +590,102 @@ document.addEventListener('DOMContentLoaded', function () {
       visible = buttons;
     }
 
-    return visible;
+    updateSleeveAvailability();
+    refreshPlacementFeesDisplay();
+    return visible.filter(btn => !btn.hidden);
+  }
+
+  function refreshPlacementFeesDisplay() {
+    getPlacementButtons().forEach(btn => {
+      if (btn.hidden) return;
+      const key = btn.dataset.placement;
+      const priceEl = btn.querySelector('.pcm-placement-price');
+      if (!priceEl || !key) return;
+      const fee = getPlacementsFeeAmount([key]);
+      priceEl.textContent = `£${fee.toFixed(2)} + VAT`;
+      btn.dataset.fee = fee.toFixed(2);
+    });
+  }
+
+  function placementLabelForKey(key) {
+    const pa = window.TEDesignPrintArea;
+    const fromPa = pa?.getPlacement?.(key)?.label;
+    if (fromPa) return fromPa;
+    const btn = getPlacementButtons().find(b => b.dataset.placement === key);
+    return btn?.querySelector('.pcm-placement-label')?.textContent?.trim() || key;
+  }
+
+  function updatePendingFeeTotal() {
+    if (!placementFeeTotalEl) return;
+    const fee = getPlacementsFeeAmount(pendingPlacements);
+    placementFeeTotalEl.textContent = `£${fee.toFixed(2)}`;
+    if (placementConfirmBtn) {
+      placementConfirmBtn.disabled = pendingPlacements.length === 0;
+    }
+  }
+
+  function syncPendingSelectionUI() {
+    getPlacementButtons().forEach(btn => {
+      const key = btn.dataset.placement;
+      btn.classList.toggle('is-selected', pendingPlacements.includes(key));
+    });
+    updatePendingFeeTotal();
   }
 
   function applyViewToggleRestrictions() {
     [viewToggle, viewToggleTop].forEach(toggle => {
       if (!toggle) return;
       toggle.querySelectorAll('[data-view]').forEach(btn => {
-        const allowed = !state.allowedViews || state.allowedViews.includes(btn.dataset.view);
-        btn.disabled = !allowed;
+        const view = btn.dataset.view;
+        const allowed = !state.allowedViews || state.allowedViews.includes(view);
+        btn.hidden = view === 'sleeve' ? !allowed : false;
+        const enabled = allowed;
+        btn.disabled = !enabled;
+        if (!enabled && btn.classList.contains('active') && state.allowedViews?.length) {
+          // leave active state to setView
+        }
       });
     });
   }
 
-  function applyPlacement(key) {
+  function computeAllowedViews(keys) {
+    const pa = window.TEDesignPrintArea;
+    const views = [];
+    keys.forEach(key => {
+      const placement = pa?.getPlacement?.(key);
+      (placement?.allowedViews || []).forEach(v => {
+        if (!views.includes(v)) views.push(v);
+      });
+    });
+    return views.length ? views : ['front', 'back'];
+  }
+
+  function renderPlacementTabs() {
+    if (!placementTabsEl) return;
+    const multi = state.placements.length > 1;
+    placementTabsEl.hidden = !multi;
+    placementTabsEl.innerHTML = '';
+    if (!multi) return;
+
+    state.placements.forEach(key => {
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'pcc-placement-tab' + (key === state.placement ? ' active' : '');
+      btn.dataset.placement = key;
+      btn.textContent = placementLabelForKey(key);
+      btn.addEventListener('click', () => activatePlacement(key));
+      placementTabsEl.appendChild(btn);
+    });
+  }
+
+  function activatePlacement(key, { preserveLayers = true } = {}) {
     const pa = window.TEDesignPrintArea;
     const placement = pa ? pa.getPlacement(key) : null;
     if (!placement) return;
 
     state.placement = key;
-    state.placementLabel = placement.label;
-    state.allowedViews = placement.allowedViews;
+    state.placementLabel = state.placements.map(placementLabelForKey).join(' + ');
+    state.allowedViews = computeAllowedViews(state.placements);
 
     if (printArea && pa) {
       pa.applyToElement(printArea, placement.printArea);
@@ -559,26 +694,59 @@ document.addEventListener('DOMContentLoaded', function () {
       pa.applyClip(layersContainer, placement.printArea);
     }
 
-    setView(placement.view);
+    setView(placement.view, { syncPlacement: false });
     applyViewToggleRestrictions();
+    renderPlacementTabs();
 
     if (pcApp) pcApp.classList.remove('pc-awaiting-placement');
-    if (summaryPlacement) summaryPlacement.textContent = placement.label;
+    if (summaryPlacement) summaryPlacement.textContent = state.placementLabel || placement.label;
 
-    state.layers = state.layers.filter(l => state.allowedViews.includes(l.view));
+    if (!preserveLayers) {
+      state.layers = state.layers.filter(l => state.placements.includes(l.placement || l._legacyPlacement));
+    }
+
+    // Drop layers whose view is no longer allowed
+    state.layers = state.layers.filter(l => {
+      const layerPlacement = l.placement || key;
+      if (state.placements.length && !state.placements.includes(layerPlacement) && l.placement) {
+        return false;
+      }
+      return !state.allowedViews || state.allowedViews.includes(l.view);
+    });
+
     renderLayers();
     renderLayersList();
     updateSummary();
   }
 
+  function applyPlacements(keys) {
+    const unique = [...new Set((keys || []).filter(Boolean))];
+    if (!unique.length) return;
+
+    // Remove sleeve if image disappeared
+    const filtered = unique.filter(k => {
+      if (k !== 'sleeve') return true;
+      return hasSleeveImage();
+    });
+    if (!filtered.length) return;
+
+    state.placements = filtered;
+    activatePlacement(filtered[0], { preserveLayers: true });
+  }
+
+  function applyPlacement(key) {
+    applyPlacements([key]);
+  }
+
   function initPlacementModal() {
     const decoration = customizerData.decoration || {};
     const visible = filterPlacementOptions();
+    const multi = isMultiSelectMode();
 
     // Auto-apply when modal should be skipped, or only one option remains
     const autoKey = decoration.auto_placement
       || (decoration.skip_modal && visible[0]?.dataset.placement)
-      || (visible.length === 1 ? visible[0].dataset.placement : null);
+      || (!multi && visible.length === 1 ? visible[0].dataset.placement : null);
 
     if (autoKey) {
       applyPlacement(autoKey);
@@ -588,26 +756,48 @@ document.addEventListener('DOMContentLoaded', function () {
     if (pcApp) pcApp.classList.add('pc-awaiting-placement');
 
     if (!placementModalEl || typeof bootstrap === 'undefined') {
-      // Fallback: first available placement
       if (visible[0]) applyPlacement(visible[0].dataset.placement);
       return;
     }
 
     placementModal = new bootstrap.Modal(placementModalEl);
+    pendingPlacements = [];
+    syncPendingSelectionUI();
     placementModal.show();
 
-    placementModalEl.querySelectorAll('[data-placement]').forEach(btn => {
+    getPlacementButtons().forEach(btn => {
       btn.addEventListener('click', function () {
-        if (btn.hidden) return;
-        applyPlacement(btn.dataset.placement);
+        if (btn.hidden || btn.disabled || btn.classList.contains('is-unavailable')) return;
+        const key = btn.dataset.placement;
+
+        if (!multi) {
+          applyPlacement(key);
+          placementModal.hide();
+          updateSummary();
+          return;
+        }
+
+        if (pendingPlacements.includes(key)) {
+          pendingPlacements = pendingPlacements.filter(k => k !== key);
+        } else {
+          pendingPlacements = [...pendingPlacements, key];
+        }
+        syncPendingSelectionUI();
+      });
+    });
+
+    if (placementConfirmBtn) {
+      placementConfirmBtn.addEventListener('click', function () {
+        if (!pendingPlacements.length) return;
+        applyPlacements(pendingPlacements);
         placementModal.hide();
         updateSummary();
       });
-    });
+    }
   }
 
   function requirePlacement() {
-    if (state.placement) return true;
+    if (state.placement || state.placements.length) return true;
     if (placementModal) placementModal.show();
     return false;
   }
@@ -615,7 +805,7 @@ document.addEventListener('DOMContentLoaded', function () {
   /* ============================================================
      5. VIEW TOGGLE (Front / Back) — synced left panel + toolbar
      ============================================================ */
-  function setView(view) {
+  function setView(view, { syncPlacement = true } = {}) {
     if (state.allowedViews && !state.allowedViews.includes(view)) return;
 
     state.view = view;
@@ -627,6 +817,24 @@ document.addEventListener('DOMContentLoaded', function () {
         b.classList.toggle('active', b.dataset.view === view);
       });
     });
+
+    if (syncPlacement && state.placements.length) {
+      const pa = window.TEDesignPrintArea;
+      const current = pa?.getPlacement?.(state.placement);
+      const currentFits = current && (
+        current.view === view || (current.allowedViews || []).includes(view)
+      );
+      if (!currentFits) {
+        const match = state.placements.find(key => {
+          const p = pa?.getPlacement?.(key);
+          return p && (p.view === view || (p.allowedViews || []).includes(view));
+        });
+        if (match) {
+          activatePlacement(match);
+          return;
+        }
+      }
+    }
 
     renderLayers();
   }
@@ -698,6 +906,7 @@ document.addEventListener('DOMContentLoaded', function () {
       id: state.nextId++,
       type: 'image',
       view: state.view,
+      placement: state.placement,
       x: pos.x, y: pos.y,
       w: pos.w, h: pos.h,
       src: src,
@@ -773,13 +982,14 @@ document.addEventListener('DOMContentLoaded', function () {
 
       // Stagger new layers slightly so they don't all stack exactly on
       // top of one another.
-      const offset = (state.layers.filter(l => l.type === 'text' && l.view === state.view).length % 5) * 4;
+      const offset = (state.layers.filter(l => l.type === 'text' && l.placement === state.placement).length % 5) * 4;
       const pos = getDefaultLayerPosition('text');
 
       const layer = {
         id: state.nextId++,
         type: 'text',
         view: state.view,
+        placement: state.placement,
         x: pos.x + offset, y: pos.y + offset,
         w: pos.w, h: pos.h,
         text: text,
@@ -851,11 +1061,18 @@ document.addEventListener('DOMContentLoaded', function () {
     return el;
   }
 
+  function layerMatchesActivePlacement(layer) {
+    if (!state.placement) return layer.view === state.view;
+    if (layer.placement) return layer.placement === state.placement;
+    // Legacy layers without placement tag: show on matching view
+    return layer.view === state.view;
+  }
+
   function renderLayers() {
     layersContainer.innerHTML = '';
 
     state.layers
-      .filter(l => l.view === state.view)
+      .filter(layerMatchesActivePlacement)
       .forEach(layer => {
         const el = buildLayerElement(layer, layer.id === state.selectedLayerId);
 
@@ -1070,8 +1287,10 @@ document.addEventListener('DOMContentLoaded', function () {
 
       const label = document.createElement('span');
       label.className = 'pcl-layer-row-label';
-      const sideTag = layer.view === 'back' ? ' (Back)' : ' (Front)';
-      label.textContent = (layer.type === 'image' ? (layer.name || 'Artwork') : layer.text) + sideTag;
+      const placeTag = layer.placement
+        ? ` (${placementLabelForKey(layer.placement)})`
+        : (layer.view === 'back' ? ' (Back)' : layer.view === 'sleeve' ? ' (Sleeve)' : ' (Front)');
+      label.textContent = (layer.type === 'image' ? (layer.name || 'Artwork') : layer.text) + placeTag;
 
       const del = document.createElement('button');
       del.className = 'pcl-layer-row-del';
@@ -1085,7 +1304,9 @@ document.addEventListener('DOMContentLoaded', function () {
 
       li.addEventListener('click', (e) => {
         if (e.target.closest('.pcl-layer-row-del')) return;
-        if (layer.view !== state.view) {
+        if (layer.placement && layer.placement !== state.placement) {
+          activatePlacement(layer.placement);
+        } else if (layer.view !== state.view) {
           setView(layer.view);
         }
         selectLayer(layer.id);
@@ -1125,13 +1346,28 @@ document.addEventListener('DOMContentLoaded', function () {
   /* ============================================================
      13. PRICING & SUMMARY
      ============================================================ */
-  function getPlacementFee() {
-    if (!state.placement) return 0;
+  function getPlacementsFeeAmount(keys) {
+    const list = Array.isArray(keys) && keys.length
+      ? keys
+      : (state.placements.length ? state.placements : (state.placement ? [state.placement] : []));
+    if (!list.length) return 0;
+    const methods = getSelectedMethods();
     const pa = window.TEDesignPrintArea;
-    if (pa && typeof pa.getPlacementFee === 'function') {
-      return pa.getPlacementFee(state.placement);
+    if (pa && typeof pa.getPlacementsFee === 'function') {
+      return pa.getPlacementsFee(list, methods);
     }
-    return PLACEMENT_FEES[state.placement] || 0;
+    return list.reduce((sum, key) => {
+      if (key === 'back') {
+        return sum + (methods.includes('embroidery')
+          ? (PLACEMENT_FEES.back_embroidery || 8)
+          : (PLACEMENT_FEES.back_print || PLACEMENT_FEES.back || 6));
+      }
+      return sum + (PLACEMENT_FEES[key] || 0);
+    }, 0);
+  }
+
+  function getPlacementFee() {
+    return getPlacementsFeeAmount(state.placements.length ? state.placements : (state.placement ? [state.placement] : []));
   }
 
   function calculateUnitPriceExVat() {
@@ -1156,6 +1392,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
     if (summaryGarment)  summaryGarment.textContent = state.garmentLabel;
     if (summaryColour)   summaryColour.textContent = state.colourName;
+    if (summaryPlacement) summaryPlacement.textContent = state.placementLabel || '—';
     if (summaryElements) summaryElements.textContent = state.layers.length;
     if (summaryTotal)    summaryTotal.innerHTML = formatPrice(lineSubtotal) + VAT_NOTE_HTML;
 
@@ -1266,8 +1503,10 @@ document.addEventListener('DOMContentLoaded', function () {
       colour: { name: state.colourName, hex: state.colourHex, code: state.colourCode },
       customizer_image: garmentImages.front || customizerData.customizer_image || null,
       customizer_image_back: garmentImages.back || customizerData.customizer_image_back || null,
+      customizer_image_sleeve: garmentImages.sleeve || null,
       canvas_width: canvas.getBoundingClientRect().width,
-      decoration_placement: state.placement,
+      decoration_placement: state.placements[0] || state.placement,
+      decoration_placements: state.placements.length ? state.placements : (state.placement ? [state.placement] : []),
       decoration_placement_label: state.placementLabel,
       decoration_methods: getSelectedMethods(),
       print_area: getPrintAreaBounds(),

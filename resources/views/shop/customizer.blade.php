@@ -29,7 +29,7 @@ pc-body
 
 @push('styles')
 <link rel="stylesheet" href="{{ asset('assets/css/shop-theme.css') }}?v=1.1">
-<link rel="stylesheet" href="{{ asset('assets/css/product-customizer.css') }}?v=1.5">
+<link rel="stylesheet" href="{{ asset('assets/css/product-customizer.css') }}?v=1.6">
 @endpush
 
 @section('content')
@@ -259,12 +259,15 @@ pc-body
                     <div class="pcc-view-toggle" id="pcViewToggleTop">
                         <button class="pcc-view-btn active" data-view="front"><i class="bi bi-person-standing" aria-hidden="true"></i> <span>Front</span></button>
                         <button class="pcc-view-btn" data-view="back"><i class="bi bi-person-standing pcc-view-icon--back" aria-hidden="true"></i> <span>Back</span></button>
+                        <button class="pcc-view-btn" data-view="sleeve" hidden><i class="bi bi-hand-index" aria-hidden="true"></i> <span>Sleeve</span></button>
                     </div>
                     <div class="pcc-toolbar-actions">
                         <button class="pcc-tool-btn" id="pcUndoBtn" title="Remove selected element"><i class="bi bi-trash3"></i></button>
                         <button class="pcc-tool-btn" id="pcResetBtn" title="Clear all design elements"><i class="bi bi-arrow-counterclockwise"></i></button>
                     </div>
                 </div>
+
+                <div class="pcc-placement-tabs" id="pcPlacementTabs" hidden></div>
 
                 <div class="pcc-canvas-wrap">
                     <div class="pcc-canvas" id="pcCanvas">
@@ -292,25 +295,48 @@ pc-body
                 <div class="modal-header pcm-placement-header">
                     <div>
                         <h5 class="modal-title pcm-placement-title" id="pcPlacementModalLabel">
-                            <i class="bi bi-bounding-box"></i> Choose Decoration Area
+                            <i class="bi bi-bounding-box"></i> Choose Decoration Area{{ !empty($decoration['multi_select']) ? 's' : '' }}
                         </h5>
-                        <p class="pcm-placement-sub">Select where your design will be applied on the garment.</p>
+                        <p class="pcm-placement-sub" id="pcPlacementModalSub">
+                            @if(!empty($decoration['multi_select']))
+                                Select one or more positions. You’ll design each location separately. Price increases with each position.
+                            @else
+                                Select where your design will be applied on the garment.
+                            @endif
+                        </p>
                     </div>
                 </div>
                 <div class="modal-body pcm-placement-body">
-                    <div class="pcm-placement-options" id="pcPlacementOptions">
+                    <div class="pcm-placement-options" id="pcPlacementOptions"
+                         data-multi-select="{{ !empty($decoration['multi_select']) ? '1' : '0' }}">
                         @foreach(($decoration['placements'] ?? []) as $placement)
                         <button type="button" class="pcm-placement-option"
                                 data-placement="{{ $placement['key'] }}"
-                                data-methods="{{ implode(',', $placement['methods'] ?? []) }}">
+                                data-methods="{{ implode(',', $placement['methods'] ?? []) }}"
+                                data-requires-sleeve="{{ !empty($placement['requires_sleeve_image']) ? '1' : '0' }}"
+                                data-fee="{{ number_format((float) $placement['fee'], 2, '.', '') }}">
+                            <span class="pcm-placement-check" aria-hidden="true"><i class="bi bi-check-lg"></i></span>
                             <span class="pcm-placement-icon"><i class="bi bi-{{ $placement['icon'] ?? 'bounding-box' }}"></i></span>
-                            <span class="pcm-placement-label">{{ $placement['label'] }}</span>
-                            <span class="pcm-placement-desc">{{ $placement['desc'] }}</span>
-                            <span class="pcm-placement-price">£{{ number_format((float) $placement['fee'], 2) }} + VAT</span>
+                            <span class="pcm-placement-copy">
+                                <span class="pcm-placement-label">{{ $placement['label'] }}</span>
+                                <span class="pcm-placement-desc">{{ $placement['desc'] }}</span>
+                                <span class="pcm-placement-unavailable" hidden>Sleeve position printing not available</span>
+                                <span class="pcm-placement-price">£{{ number_format((float) $placement['fee'], 2) }} + VAT</span>
+                            </span>
                         </button>
                         @endforeach
                     </div>
                 </div>
+                @if(!empty($decoration['multi_select']))
+                <div class="modal-footer pcm-placement-footer">
+                    <div class="pcm-placement-fee-total">
+                        Decoration: <strong id="pcPlacementFeeTotal">£0.00</strong> <span class="pc-vat-note">+ VAT</span>
+                    </div>
+                    <button type="button" class="pcm-placement-confirm" id="pcPlacementConfirmBtn" disabled>
+                        Continue with selected positions
+                    </button>
+                </div>
+                @endif
             </div>
         </div>
     </div>
@@ -392,7 +418,7 @@ pc-body
 @endphp
 window.__CUSTOMIZER_DATA__ = @json($customizerData);
 </script>
-<script src="{{ asset('assets/js/design-print-area.js') }}?v=1.3"></script>
+<script src="{{ asset('assets/js/design-print-area.js') }}?v=1.4"></script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-<script src="{{ asset('assets/js/product-customizer.js?v=2.7') }}"></script>
+<script src="{{ asset('assets/js/product-customizer.js?v=2.8') }}"></script>
 @endpush

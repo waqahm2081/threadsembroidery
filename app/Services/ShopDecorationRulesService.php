@@ -18,6 +18,7 @@ class ShopDecorationRulesService
      *     logo_setup_available: bool,
      *     skip_modal: bool,
      *     auto_placement: ?string,
+     *     multi_select: bool,
      *     placements: list<array<string, mixed>>,
      *     display_decoration_fee: float
      * }
@@ -28,7 +29,14 @@ class ShopDecorationRulesService
         $catalog = self::placementCatalog();
 
         return match ($group) {
-            'tshirt', 'polo', 'hoodie', 'hi_vis' => self::build(
+            'tshirt' => self::build(
+                $group,
+                ['print', 'embroidery'],
+                ['left_chest', 'right_chest', 'back', 'sleeve'],
+                $catalog,
+                multiSelect: true
+            ),
+            'polo', 'hoodie', 'hi_vis' => self::build(
                 $group,
                 ['print', 'embroidery'],
                 ['left_chest', 'back_print', 'back_embroidery'],
@@ -225,6 +233,23 @@ class ShopDecorationRulesService
                 'methods' => ['print', 'embroidery'],
                 'fee' => $fees['right_chest'] ?? 3.50,
             ],
+            'back' => [
+                'key' => 'back',
+                'label' => 'Back',
+                'desc' => 'Full back print or embroidery area',
+                'icon' => 'person',
+                'methods' => ['print', 'embroidery'],
+                'fee' => $fees['back'] ?? 6.00,
+            ],
+            'sleeve' => [
+                'key' => 'sleeve',
+                'label' => 'Sleeve',
+                'desc' => 'Print or embroidery on the sleeve',
+                'icon' => 'hand-index',
+                'methods' => ['print', 'embroidery'],
+                'fee' => $fees['sleeve'] ?? 3.50,
+                'requires_sleeve_image' => true,
+            ],
             'front_print' => [
                 'key' => 'front_print',
                 'label' => 'Front Print',
@@ -345,6 +370,7 @@ class ShopDecorationRulesService
         array $catalog,
         bool $skipModal = false,
         ?string $autoPlacement = null,
+        bool $multiSelect = false,
     ): array {
         $placements = [];
         foreach ($placementKeys as $key) {
@@ -364,6 +390,7 @@ class ShopDecorationRulesService
             'logo_setup_available' => in_array('embroidery', $methods, true),
             'skip_modal' => $skipModal,
             'auto_placement' => $autoPlacement,
+            'multi_select' => $multiSelect,
             'placements' => $placements,
             'display_decoration_fee' => $displayFee,
         ];

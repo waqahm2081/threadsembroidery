@@ -18,8 +18,10 @@ class ShopPricingService
         'right_chest' => 3.50,
         'front_print' => 3.50,
         'front_embroidery' => 3.50,
+        'back' => 6.00,
         'back_print' => 6.00,
         'back_embroidery' => 8.00,
+        'sleeve' => 3.50,
         'apron_left' => 3.50,
         'apron_right' => 3.50,
         'apron_middle' => 3.50,
@@ -82,13 +84,50 @@ class ShopPricingService
         return round(self::cartVatRate($cart) * 100, 2);
     }
 
-    public static function placementFee(?string $placement): float
+    /**
+     * @param  list<string>|null  $methods
+     */
+    public static function placementFee(?string $placement, ?array $methods = null): float
     {
         if (! $placement) {
             return 0.0;
         }
 
+        // Unified "back" placement: print vs embroidery fee depends on method
+        if ($placement === 'back') {
+            $methods = is_array($methods) ? $methods : [];
+            if (in_array('embroidery', $methods, true)) {
+                return (float) (self::PLACEMENT_FEES['back_embroidery'] ?? 8.00);
+            }
+
+            return (float) (self::PLACEMENT_FEES['back_print'] ?? 6.00);
+        }
+
         return (float) (self::PLACEMENT_FEES[$placement] ?? 0);
+    }
+
+    /**
+     * Sum decoration fees for one or more placements.
+     *
+     * @param  list<string>|string|null  $placements
+     * @param  list<string>|null  $methods
+     */
+    public static function placementsFee(array|string|null $placements, ?array $methods = null): float
+    {
+        if ($placements === null || $placements === '') {
+            return 0.0;
+        }
+
+        if (is_string($placements)) {
+            $placements = [$placements];
+        }
+
+        $total = 0.0;
+        foreach (array_unique(array_filter($placements)) as $key) {
+            $total += self::placementFee((string) $key, $methods);
+        }
+
+        return round($total, 2);
     }
 
     public static function logoSetupFee(bool $selected): float

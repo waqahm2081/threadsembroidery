@@ -213,7 +213,13 @@ class ShopCartController extends Controller
         }
 
         $placement = $designData['decoration_placement'] ?? null;
-        $decorationFee = ShopPricingService::placementFee($placement);
+        $placements = $designData['decoration_placements'] ?? null;
+        if (! is_array($placements) || $placements === []) {
+            $placements = $placement ? [$placement] : [];
+        }
+        $methods = $designData['decoration_methods'] ?? null;
+        $methods = is_array($methods) ? $methods : null;
+        $decorationFee = ShopPricingService::placementsFee($placements, $methods);
         $designDir = 'shop-designs/'.$item->id;
         $assetPaths = $this->persistDesignAssets($designData, $designDir);
 

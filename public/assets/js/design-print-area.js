@@ -10,8 +10,10 @@
     right_chest: 3.50,
     front_print: 3.50,
     front_embroidery: 3.50,
+    back: 6.00,
     back_print: 6.00,
     back_embroidery: 8.00,
+    sleeve: 3.50,
     apron_left: 3.50,
     apron_right: 3.50,
     apron_middle: 3.50,
@@ -50,6 +52,12 @@
       allowedViews: ['front'],
       printArea: { x: 51, y: 20, w: 18, h: 20, centered: false },
     },
+    back: {
+      label: 'Back',
+      view: 'back',
+      allowedViews: ['back'],
+      printArea: { x: 51, y: 12, w: 38, h: 84, centered: true },
+    },
     back_print: {
       label: 'Back Print',
       view: 'back',
@@ -61,6 +69,12 @@
       view: 'back',
       allowedViews: ['back'],
       printArea: { x: 51, y: 12, w: 38, h: 84, centered: true },
+    },
+    sleeve: {
+      label: 'Sleeve',
+      view: 'sleeve',
+      allowedViews: ['sleeve'],
+      printArea: { x: 38, y: 22, w: 28, h: 36, centered: true },
     },
     apron_left: {
       label: 'Left Side',
@@ -263,8 +277,18 @@
     return PLACEMENTS[key] || null;
   }
 
-  function getPlacementFee(key) {
+  function getPlacementFee(key, methods) {
+    if (key === 'back') {
+      const list = Array.isArray(methods) ? methods : [];
+      if (list.includes('embroidery')) return PLACEMENT_FEES.back_embroidery || 8;
+      return PLACEMENT_FEES.back_print || 6;
+    }
     return PLACEMENT_FEES[key] || 0;
+  }
+
+  function getPlacementsFee(keys, methods) {
+    if (!Array.isArray(keys) || !keys.length) return 0;
+    return keys.reduce((sum, key) => sum + getPlacementFee(key, methods), 0);
   }
 
   window.TEDesignPrintArea = {
@@ -285,5 +309,6 @@
     styleImageLayerElement,
     getPlacement,
     getPlacementFee,
+    getPlacementsFee,
   };
 })();
