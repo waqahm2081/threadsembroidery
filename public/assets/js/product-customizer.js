@@ -78,7 +78,6 @@ document.addEventListener('DOMContentLoaded', function () {
 
   const topSize         = document.getElementById('pctSize');
   const topQty          = document.getElementById('pctQty');
-  const topPrice        = document.getElementById('pctPrice');
 
   const viewToggle      = document.getElementById('pcViewToggle');       // left panel (if present)
   const viewToggleTop   = document.getElementById('pcViewToggleTop');    // canvas toolbar
@@ -113,6 +112,10 @@ document.addEventListener('DOMContentLoaded', function () {
   const summaryColour    = document.getElementById('pcSummaryColour');
   const summaryPlacement = document.getElementById('pcSummaryPlacement');
   const summaryElements  = document.getElementById('pcSummaryElements');
+  const summaryGarmentTotal = document.getElementById('pcSummaryGarmentTotal');
+  const summaryDecorationTotal = document.getElementById('pcSummaryDecorationTotal');
+  const summaryLogoSetupRow = document.getElementById('pcSummaryLogoSetupRow');
+  const summaryLogoSetup = document.getElementById('pcSummaryLogoSetup');
   const summaryTotal    = document.getElementById('pcSummaryTotal');
 
   const addToCartBtn    = document.getElementById('pcAddToCartBtn');
@@ -124,6 +127,10 @@ document.addEventListener('DOMContentLoaded', function () {
   const pcmSize         = document.getElementById('pcmSize');
   const pcmQty          = document.getElementById('pcmQty');
   const pcmElements     = document.getElementById('pcmElements');
+  const pcmGarmentTotal = document.getElementById('pcmGarmentTotal');
+  const pcmDecorationTotal = document.getElementById('pcmDecorationTotal');
+  const pcmLogoSetupRow = document.getElementById('pcmLogoSetupRow');
+  const pcmLogoSetup    = document.getElementById('pcmLogoSetup');
   const pcmTotal        = document.getElementById('pcmTotal');
 
   let activeTextColour  = '#ffffff';
@@ -1391,12 +1398,24 @@ document.addEventListener('DOMContentLoaded', function () {
     return getPlacementsFeeAmount(state.placements.length ? state.placements : (state.placement ? [state.placement] : []));
   }
 
+  function calculateGarmentTotalExVat() {
+    return state.basePrice * state.qty;
+  }
+
+  function calculateDecorationTotalExVat() {
+    return getPlacementFee() * state.qty;
+  }
+
+  function calculateLogoSetupExVat() {
+    return hasLogoSetup ? LOGO_SETUP_FEE : 0;
+  }
+
   function calculateUnitPriceExVat() {
     return state.basePrice + getPlacementFee();
   }
 
   function calculateLineSubtotalExVat() {
-    return (calculateUnitPriceExVat() * state.qty) + (hasLogoSetup ? LOGO_SETUP_FEE : 0);
+    return calculateGarmentTotalExVat() + calculateDecorationTotalExVat() + calculateLogoSetupExVat();
   }
 
   const VAT_NOTE_HTML = ' <small class="pc-vat-note">+ VAT</small>';
@@ -1408,16 +1427,20 @@ document.addEventListener('DOMContentLoaded', function () {
   }
 
   function updateSummary() {
-    const unitPrice = calculateUnitPriceExVat();
+    const garmentTotal = calculateGarmentTotalExVat();
+    const decorationTotal = calculateDecorationTotalExVat();
+    const logoSetup = calculateLogoSetupExVat();
     const lineSubtotal = calculateLineSubtotalExVat();
 
     if (summaryGarment)  summaryGarment.textContent = state.garmentLabel;
     if (summaryColour)   summaryColour.textContent = state.colourName;
     if (summaryPlacement) summaryPlacement.textContent = state.placementLabel || '—';
     if (summaryElements) summaryElements.textContent = state.layers.length;
+    if (summaryGarmentTotal) summaryGarmentTotal.innerHTML = formatPrice(garmentTotal);
+    if (summaryDecorationTotal) summaryDecorationTotal.innerHTML = formatPrice(decorationTotal);
+    if (summaryLogoSetupRow) summaryLogoSetupRow.style.display = logoSetup > 0 ? '' : 'none';
+    if (summaryLogoSetup) summaryLogoSetup.innerHTML = formatPrice(logoSetup);
     if (summaryTotal)    summaryTotal.innerHTML = formatPrice(lineSubtotal) + VAT_NOTE_HTML;
-
-    if (topPrice) topPrice.textContent = `£${unitPrice.toFixed(2)} + VAT`;
   }
 
   /* ============================================================
@@ -1855,6 +1878,10 @@ document.addEventListener('DOMContentLoaded', function () {
     pcmSize.textContent    = getSizeDisplay();
     pcmQty.textContent     = state.qty;
     pcmElements.textContent = visibleLayers.length;
+    if (pcmGarmentTotal) pcmGarmentTotal.innerHTML = formatPrice(calculateGarmentTotalExVat());
+    if (pcmDecorationTotal) pcmDecorationTotal.innerHTML = formatPrice(calculateDecorationTotalExVat());
+    if (pcmLogoSetupRow) pcmLogoSetupRow.style.display = calculateLogoSetupExVat() > 0 ? '' : 'none';
+    if (pcmLogoSetup) pcmLogoSetup.innerHTML = formatPrice(calculateLogoSetupExVat());
     pcmTotal.innerHTML     = formatPrice(calculateLineSubtotalExVat()) + VAT_NOTE_HTML;
   }
 

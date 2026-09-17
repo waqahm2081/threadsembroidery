@@ -8,7 +8,7 @@ cart-page
 
 @push('styles')
 <link rel="stylesheet" href="{{ asset('assets/css/shop-theme.css') }}?v=1.1">
-<link rel="stylesheet" href="{{ asset('assets/css/cart-checkout.css') }}?v=1.9">
+<link rel="stylesheet" href="{{ asset('assets/css/cart-checkout.css') }}?v=2.0">
 @endpush
 
 @section('content')
@@ -81,9 +81,6 @@ cart-page
                                 @if($item->placementLabel())
                                     <div class="cc-item-addon">
                                         <i class="bi bi-bounding-box"></i> {{ $item->placementLabel() }}
-                                        @if($item->decoration_fee > 0)
-                                            (+&pound;{{ number_format($item->decoration_fee, 2) }}/unit)
-                                        @endif
                                     </div>
                                 @endif
                                 @if($item->size_breakdown && count($item->size_breakdown) > 1)
@@ -106,7 +103,32 @@ cart-page
                                 </div>
                             </div>
                             <div class="cc-item-actions">
-                                <div class="cc-item-price">&pound;{{ number_format($item->lineTotal(), 2) }}</div>
+                                @php
+                                    $garmentTotal = (float) $item->unit_price * (int) $item->quantity;
+                                    $decorationTotal = (float) $item->decoration_fee * (int) $item->quantity;
+                                    $logoSetup = (float) $item->logo_setup_fee;
+                                    $lineTotal = $item->lineTotal();
+                                @endphp
+                                <div class="cc-item-price-breakdown">
+                                    <div class="cc-price-row">
+                                        <span>Garments</span>
+                                        <strong>&pound;{{ number_format($garmentTotal, 2) }}</strong>
+                                    </div>
+                                    <div class="cc-price-row">
+                                        <span>Printing / embroidery</span>
+                                        <strong>&pound;{{ number_format($decorationTotal, 2) }}</strong>
+                                    </div>
+                                    @if($logoSetup > 0)
+                                    <div class="cc-price-row">
+                                        <span>Logo set up</span>
+                                        <strong>&pound;{{ number_format($logoSetup, 2) }}</strong>
+                                    </div>
+                                    @endif
+                                    <div class="cc-price-row cc-price-row-total">
+                                        <span>Total</span>
+                                        <strong>&pound;{{ number_format($lineTotal, 2) }}</strong>
+                                    </div>
+                                </div>
                                 <button type="button" class="cc-remove-btn" data-remove-item="{{ $item->id }}" aria-label="Remove item">
                                     <i class="bi bi-trash3"></i>
                                 </button>

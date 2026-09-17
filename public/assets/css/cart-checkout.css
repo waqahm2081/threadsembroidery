@@ -199,6 +199,11 @@
     grid-column: 1 / -1;
     flex-direction: row !important;
     justify-content: space-between;
+    align-items: flex-start;
+  }
+  .cc-item-price-breakdown {
+    min-width: 0;
+    flex: 1;
   }
 }
 
@@ -342,12 +347,51 @@ button.cc-customize-link:hover {
   flex-direction: column;
   align-items: flex-end;
   gap: 0.75rem;
+  min-width: 160px;
 }
 
 .cc-item-price {
   font-size: 1.1rem;
   font-weight: 700;
   color: #1a1a2e;
+}
+
+.cc-item-price-breakdown {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  width: 100%;
+  min-width: 170px;
+  text-align: right;
+}
+
+.cc-price-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 0.75rem;
+  font-size: 0.8rem;
+  color: #666;
+}
+
+.cc-price-row strong {
+  color: #1a1a2e;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.cc-price-row-total {
+  margin-top: 0.2rem;
+  padding-top: 0.35rem;
+  border-top: 1px solid #eee;
+  font-size: 0.9rem;
+  color: #1a1a2e;
+}
+
+.cc-price-row-total strong {
+  font-weight: 800;
+  color: var(--c-primary, #ee6023);
+  font-size: 1.05rem;
 }
 
 .cc-remove-btn {

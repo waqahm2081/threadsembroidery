@@ -29,7 +29,7 @@ pc-body
 
 @push('styles')
 <link rel="stylesheet" href="{{ asset('assets/css/shop-theme.css') }}?v=1.1">
-<link rel="stylesheet" href="{{ asset('assets/css/product-customizer.css') }}?v=1.6">
+<link rel="stylesheet" href="{{ asset('assets/css/product-customizer.css') }}?v=1.7">
 @endpush
 
 @section('content')
@@ -56,10 +56,6 @@ pc-body
             </div>
 
             <div class="pct-right">
-                <div class="pct-price-box">
-                    <span class="pct-price-label">Unit Price</span>
-                    <span class="pct-price-value" id="pctPrice">£{{ $priceWhole }}.{{ $priceDecimal }} + VAT</span>
-                </div>
                 <button class="pct-cart-btn" id="pcAddToCartBtn">
                     <i class="bi bi-cart-plus"></i>
                     <span>Add to Cart</span>
@@ -244,6 +240,19 @@ pc-body
                             <strong id="pcSummaryElements">0</strong>
                         </div>
                         <div class="pcl-summary-divider"></div>
+                        <div class="pcl-summary-row">
+                            <span>Garments <small class="pc-vat-note">(qty)</small></span>
+                            <strong id="pcSummaryGarmentTotal">£{{ $priceWhole }}.{{ $priceDecimal }}</strong>
+                        </div>
+                        <div class="pcl-summary-row">
+                            <span>Printing / embroidery</span>
+                            <strong id="pcSummaryDecorationTotal">£0.00</strong>
+                        </div>
+                        <div class="pcl-summary-row" id="pcSummaryLogoSetupRow" style="display:none">
+                            <span>Logo set up</span>
+                            <strong id="pcSummaryLogoSetup">£0.00</strong>
+                        </div>
+                        <div class="pcl-summary-divider"></div>
                         <div class="pcl-summary-row pcl-summary-total">
                             <span>Estimated Total <small class="pc-vat-note">(ex. VAT)</small></span>
                             <strong id="pcSummaryTotal">£{{ $priceWhole }}.{{ $priceDecimal }} <small class="pc-vat-note">+ VAT</small></strong>
@@ -377,6 +386,10 @@ pc-body
                         <div class="pcm-detail-row"><span>Quantity</span><strong id="pcmQty">{{ $defaultQty }}</strong></div>
                         <div class="pcm-detail-row"><span>Design Elements</span><strong id="pcmElements">0</strong></div>
                         <div class="pcm-detail-divider"></div>
+                        <div class="pcm-detail-row"><span>Garments</span><strong id="pcmGarmentTotal">£{{ $priceWhole }}.{{ $priceDecimal }}</strong></div>
+                        <div class="pcm-detail-row"><span>Printing / embroidery</span><strong id="pcmDecorationTotal">£0.00</strong></div>
+                        <div class="pcm-detail-row" id="pcmLogoSetupRow" style="display:none"><span>Logo set up</span><strong id="pcmLogoSetup">£0.00</strong></div>
+                        <div class="pcm-detail-divider"></div>
                         <div class="pcm-detail-row pcm-detail-total"><span>Estimated Total <small class="pc-vat-note">(ex. VAT)</small></span><strong id="pcmTotal">£{{ $priceWhole }}.{{ $priceDecimal }} <small class="pc-vat-note">+ VAT</small></strong></div>
                     </div>
                 </div>
@@ -430,5 +443,5 @@ window.__CUSTOMIZER_DATA__ = @json($customizerData);
 </script>
 <script src="{{ asset('assets/js/design-print-area.js') }}?v=1.7"></script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-<script src="{{ asset('assets/js/product-customizer.js?v=2.12') }}"></script>
+<script src="{{ asset('assets/js/product-customizer.js?v=2.13') }}"></script>
 @endpush
