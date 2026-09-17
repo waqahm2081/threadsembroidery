@@ -8,7 +8,7 @@ cart-page
 
 @push('styles')
 <link rel="stylesheet" href="{{ asset('assets/css/shop-theme.css') }}?v=1.1">
-<link rel="stylesheet" href="{{ asset('assets/css/cart-checkout.css') }}?v=1.8">
+<link rel="stylesheet" href="{{ asset('assets/css/cart-checkout.css') }}?v=1.9">
 @endpush
 
 @section('content')
@@ -159,7 +159,8 @@ cart-page
             </div>
             <div class="cdm-body">
                 <div class="cdm-preview-wrap">
-                    <div class="cdm-preview-canvas" id="cdmPreviewCanvas">
+                    <div class="cdm-preview-gallery" id="cdmPreviewGallery"></div>
+                    <div class="cdm-preview-canvas" id="cdmPreviewCanvas" hidden>
                         <img class="cdm-garment-img" id="cdmGarmentImg" src="" alt="Garment preview">
                         <div class="cdm-layers" id="cdmLayers"></div>
                     </div>
@@ -182,6 +183,6 @@ window.SHOP_ROUTES = {
   checkout_url: @json(route('shop.checkout')),
 };
 </script>
-<script src="{{ asset('assets/js/design-print-area.js') }}?v=1.2"></script>
-<script src="{{ asset('assets/js/cart-checkout.js') }}?v=2.1"></script>
+<script src="{{ asset('assets/js/design-print-area.js') }}?v=1.7"></script>
+<script src="{{ asset('assets/js/cart-checkout.js') }}?v=2.2"></script>
 @endpush

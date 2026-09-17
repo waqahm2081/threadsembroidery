@@ -79,6 +79,69 @@ class DesignPreview
     }
 
     /**
+     * All composited mockup paths (preview-*), preserving order.
+     *
+     * @param  array<int, mixed>|null  $assetPaths
+     * @param  array<string, mixed>|null  $designData
+     * @return list<string>
+     */
+    public static function resolveAllPaths(
+        ?string $designFilePath,
+        ?array $assetPaths = null,
+        ?array $designData = null,
+    ): array {
+        $found = [];
+        $seen = [];
+
+        $push = function (?string $path) use (&$found, &$seen): void {
+            if (! self::isMockupPath($path)) {
+                return;
+            }
+            if (isset($seen[$path])) {
+                return;
+            }
+            $seen[$path] = true;
+            $found[] = $path;
+        };
+
+        // Prefer explicit per-placement map when present
+        $byPlacement = $designData['preview_by_placement'] ?? null;
+        if (is_array($byPlacement)) {
+            foreach ($byPlacement as $path) {
+                if (is_string($path)) {
+                    $push($path);
+                }
+            }
+        }
+
+        foreach ($assetPaths ?? [] as $path) {
+            if (is_string($path)) {
+                $push($path);
+            }
+        }
+
+        $push($designFilePath);
+
+        return $found;
+    }
+
+    /**
+     * @param  array<int, mixed>|null  $assetPaths
+     * @param  array<string, mixed>|null  $designData
+     * @return list<string>
+     */
+    public static function resolveAllUrls(
+        ?string $designFilePath,
+        ?array $assetPaths = null,
+        ?array $designData = null,
+    ): array {
+        return array_map(
+            fn (string $path) => asset('storage/'.$path),
+            self::resolveAllPaths($designFilePath, $assetPaths, $designData)
+        );
+    }
+
+    /**
      * @param  array<int, mixed>|null  $assetPaths
      * @param  array<string, mixed>|null  $designData
      */
@@ -87,8 +150,8 @@ class DesignPreview
         ?array $assetPaths = null,
         ?array $designData = null,
     ): ?string {
-        $path = self::resolvePath($designFilePath, $assetPaths, $designData);
+        $urls = self::resolveAllUrls($designFilePath, $assetPaths, $designData);
 
-        return $path ? asset('storage/'.$path) : null;
+        return $urls[0] ?? null;
     }
 }

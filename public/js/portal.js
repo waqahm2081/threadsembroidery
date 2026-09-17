@@ -382,6 +382,114 @@
       </div>`;
     }
 
+    function closeShopDesignModal(){
+      const modal = document.getElementById('portalShopDesignModal');
+      if (!modal) return;
+      modal.hidden = true;
+      document.body.style.overflow = '';
+    }
+
+    function openShopDesignModal(preview){
+      const modal = document.getElementById('portalShopDesignModal');
+      const gallery = document.getElementById('portalShopDesignGallery');
+      const title = document.getElementById('portalShopDesignTitle');
+      const sub = document.getElementById('portalShopDesignSub');
+      if (!modal || !gallery) return;
+
+      const data = preview.design_data || {};
+      const placement = data.decoration_placement_label || '';
+      const colourName = preview.colour_name || data.colour?.name || '';
+      if (title) title.textContent = preview.title || 'Your Design';
+      if (sub) sub.textContent = [colourName, placement].filter(Boolean).join(' · ') || 'Custom design preview';
+      gallery.innerHTML = '';
+
+      const keys = (() => {
+        const fromData = Array.isArray(data.decoration_placements) ? data.decoration_placements.filter(Boolean) : [];
+        if (fromData.length) return [...new Set(fromData)];
+        const map = preview.preview_by_placement || {};
+        const fromMap = Object.keys(map);
+        if (fromMap.length) return fromMap;
+        if (data.decoration_placement) return [data.decoration_placement];
+        return [...new Set((data.layers || []).map(l => l.placement || l.view || 'front'))];
+      })();
+
+      const byPlacement = preview.preview_by_placement || {};
+      const saved = keys.map(k => ({ key: k, url: byPlacement[k] })).filter(r => r.url && /preview-/i.test(r.url));
+      const labelFor = (key) => window.TEDesignPrintArea?.getPlacement?.(key)?.label
+        || String(key || '').replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+
+      if (saved.length > 1 || (saved.length && keys.length > 1)) {
+        saved.forEach(row => {
+          const panel = document.createElement('div');
+          panel.className = 'portal-design-panel';
+          panel.innerHTML = `<div class="portal-design-panel-label">${esc(labelFor(row.key))}</div>`;
+          const img = document.createElement('img');
+          img.src = row.url;
+          img.alt = labelFor(row.key);
+          panel.appendChild(img);
+          gallery.appendChild(panel);
+        });
+      } else if (keys.length) {
+        keys.forEach(key => {
+          const pa = window.TEDesignPrintArea;
+          const placementDef = pa?.getPlacement?.(key);
+          const view = placementDef?.view || (String(key).includes('back') ? 'back' : key === 'sleeve' ? 'sleeve' : 'front');
+          const front = preview.customizer_image || data.customizer_image || '';
+          const back = preview.customizer_image_back || data.customizer_image_back || front;
+          const sleeve = preview.customizer_image_sleeve || data.customizer_image_sleeve || front;
+          const garment = view === 'back' ? back : (view === 'sleeve' ? sleeve : front);
+          const layers = (data.layers || []).filter(l => l.placement ? l.placement === key : (l.view || 'front') === view);
+
+          const panel = document.createElement('div');
+          panel.className = 'portal-design-panel';
+          panel.innerHTML = `<div class="portal-design-panel-label">${esc(labelFor(key))}</div>`;
+          const canvas = document.createElement('div');
+          canvas.className = 'portal-design-canvas';
+          const gImg = document.createElement('img');
+          gImg.src = garment;
+          gImg.alt = labelFor(key);
+          canvas.appendChild(gImg);
+          const layersEl = document.createElement('div');
+          layersEl.className = 'portal-design-layers';
+          if (pa && placementDef?.printArea) pa.applyClip(layersEl, placementDef.printArea);
+          layers.forEach(layer => {
+            const el = document.createElement('div');
+            el.className = 'cdm-layer-item';
+            el.style.left = (layer.x || 0) + '%';
+            el.style.top = (layer.y || 0) + '%';
+            el.style.width = (layer.w || 20) + '%';
+            el.style.height = (layer.h || 20) + '%';
+            if (layer.type === 'image') {
+              const img = document.createElement('img');
+              img.src = layer.src || (layer.asset_path ? `${preview.storage_base}/${layer.asset_path}` : '');
+              el.appendChild(img);
+            } else {
+              el.textContent = layer.text || '';
+              el.style.color = layer.colour || '#fff';
+              el.style.fontWeight = layer.fontWeight || '700';
+              el.style.fontFamily = layer.font || 'sans-serif';
+              el.style.fontSize = Math.max(10, (layer.fontSize || 14) * 0.55) + 'px';
+            }
+            layersEl.appendChild(el);
+          });
+          canvas.appendChild(layersEl);
+          panel.appendChild(canvas);
+          gallery.appendChild(panel);
+        });
+      } else if (preview.preview_url) {
+        const panel = document.createElement('div');
+        panel.className = 'portal-design-panel';
+        const img = document.createElement('img');
+        img.src = preview.preview_url;
+        img.alt = 'Design preview';
+        panel.appendChild(img);
+        gallery.appendChild(panel);
+      }
+
+      modal.hidden = false;
+      document.body.style.overflow = 'hidden';
+    }
+
     function shopOrderDetail(o){
       const ship = o.shipping || {};
       const shipLine = [ship.line1, ship.city, ship.state, ship.postcode].filter(Boolean).join(', ');
@@ -390,11 +498,15 @@
         ? null
         : [billing.company, billing.line1, billing.city, billing.state, billing.postcode].filter(Boolean).join(', ');
 
-      const itemsHtml = (o.items || []).map(item => {
+      const itemsHtml = (o.items || []).map((item, idx) => {
         const extras = [];
         if (item.logo_setup_fee > 0) extras.push('Logo setup');
         if (item.decoration_fee > 0) extras.push('Decoration');
+        if (item.placement_label) extras.push(item.placement_label);
         const sizeText = shopSizeLabel(item);
+        const designBtn = item.has_design
+          ? `<button type="button" class="btn btn--ghost btn--sm" data-shop-design="${esc(o.id)}" data-shop-design-idx="${idx}"><i class="bi bi-eye"></i> View Design</button>`
+          : '';
         return `
         <div class="order-item">
           <div class="flex justify-between gap-2">
@@ -402,6 +514,7 @@
               <b>${esc(item.product_title)}</b>
               <div class="sub muted">${[item.colour_name, sizeText].filter(Boolean).map(x => esc(x)).join(' · ')}</div>
               ${extras.length ? `<div class="muted" style="font-size:.8rem;margin-top:.2rem">${esc(extras.join(' · '))}</div>` : ''}
+              ${designBtn ? `<div style="margin-top:.45rem">${designBtn}</div>` : ''}
             </div>
             <div style="text-align:right;flex:none">
               <div class="order-total">${money(item.total)}</div>
@@ -430,6 +543,21 @@
         ${shipLine ? `<div style="margin-top:1.2rem"><h3 style="font-size:1rem;margin-bottom:.4rem">Delivery</h3><p class="muted" style="margin:0">${esc(shipLine)}</p>${o.billing_same_as_shipping ? '<p class="muted" style="font-size:.8rem;margin-top:.3rem">Billing same as shipping</p>' : ''}</div>` : ''}
         ${billingLine ? `<div style="margin-top:1rem"><h3 style="font-size:1rem;margin-bottom:.4rem">Billing</h3><p class="muted" style="margin:0">${esc(billingLine)}</p></div>` : ''}
         ${o.notes ? `<div style="margin-top:1rem"><h3 style="font-size:1rem;margin-bottom:.4rem">Notes</h3><p class="muted" style="margin:0">${esc(o.notes)}</p></div>` : ''}
+      </div>
+      <div class="portal-design-modal" id="portalShopDesignModal" hidden>
+        <div class="portal-design-backdrop" data-close-shop-design></div>
+        <div class="portal-design-dialog" role="dialog" aria-modal="true">
+          <div class="portal-design-header">
+            <div>
+              <h5 id="portalShopDesignTitle">Your Design</h5>
+              <p class="portal-design-sub" id="portalShopDesignSub"></p>
+            </div>
+            <button type="button" class="portal-design-close" data-close-shop-design aria-label="Close"><i class="bi bi-x-lg"></i></button>
+          </div>
+          <div class="portal-design-body">
+            <div class="portal-design-gallery" id="portalShopDesignGallery"></div>
+          </div>
+        </div>
       </div>`;
     }
 
@@ -818,6 +946,16 @@
       main.querySelectorAll('[data-view-shop-order]').forEach(b => b.onclick = () => render('shopOrderDetail', b.dataset.viewShopOrder));
       main.querySelectorAll('[data-view-enquiry]').forEach(b => b.onclick = () => render('enquiryDetail', b.dataset.viewEnquiry));
       main.querySelectorAll('[data-reorder]').forEach(b => b.onclick = () => reorder(b.dataset.reorder));
+      main.querySelectorAll('[data-shop-design]').forEach(btn => {
+        btn.onclick = () => {
+          const order = shopOrders().find(x => String(x.id) === String(btn.dataset.shopDesign));
+          const item = order?.items?.[Number(btn.dataset.shopDesignIdx)];
+          if (item?.design) openShopDesignModal(item.design);
+        };
+      });
+      main.querySelectorAll('[data-close-shop-design]').forEach(btn => {
+        btn.onclick = closeShopDesignModal;
+      });
       if (view !== 'artwork') bindArtButtons(main);
       wirePasswordToggles(main);
 

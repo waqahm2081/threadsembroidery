@@ -43,6 +43,7 @@ class ShopCartController extends Controller
                         ?? ($item->design_data['customizer_image'] ?? asset('assets/images/customizer/tshirtcustom.png')),
                     'customizer_image_back' => $item->design_data['customizer_image_back']
                         ?? asset('assets/images/customizer/tshirtcustom-back.png'),
+                    'customizer_image_sleeve' => $item->design_data['customizer_image_sleeve'] ?? null,
                     'product_image' => $item->product_image ?? null,
                     'size_breakdown' => $item->size_breakdown,
                     'quantity' => $item->quantity,
@@ -53,6 +54,17 @@ class ShopCartController extends Controller
                         $item->design_assets,
                         $item->design_data
                     ),
+                    'preview_urls' => DesignPreview::resolveAllUrls(
+                        $item->design_file_path,
+                        $item->design_assets,
+                        $item->design_data
+                    ),
+                    'preview_by_placement' => collect($item->design_data['preview_by_placement'] ?? [])
+                        ->mapWithKeys(fn ($path, $key) => [
+                            $key => is_string($path) ? asset('storage/'.$path) : null,
+                        ])
+                        ->filter()
+                        ->all(),
                 ],
             ])
             ->all();
@@ -198,6 +210,10 @@ class ShopCartController extends Controller
             'size' => ['nullable', 'string'],
             'colour_name' => ['nullable', 'string'],
             'preview_image' => ['nullable', 'file', 'mimes:png,jpg,jpeg,svg,webp', 'max:40960'],
+            'preview_images' => ['nullable', 'array'],
+            'preview_images.*' => ['file', 'mimes:png,jpg,jpeg,svg,webp', 'max:40960'],
+            'preview_placement_keys' => ['nullable', 'array'],
+            'preview_placement_keys.*' => ['nullable', 'string', 'max:64'],
             'print_image' => ['nullable', 'file', 'mimes:png,jpg,jpeg,svg,webp', 'max:40960'],
             'artwork_file' => ['nullable', 'file', 'mimes:png,jpg,jpeg,svg,webp', 'max:40960'],
         ]);
@@ -237,6 +253,29 @@ class ShopCartController extends Controller
         }
 
         $previewPath = null;
+        $previewByPlacement = [];
+
+        if ($request->hasFile('preview_images')) {
+            foreach ($request->file('preview_images') as $index => $file) {
+                if (! $file) {
+                    continue;
+                }
+                $placementKey = preg_replace(
+                    '/[^a-z0-9_]/',
+                    '',
+                    strtolower((string) $request->input("preview_placement_keys.$index", "pos$index"))
+                ) ?: "pos$index";
+                $stored = $file->storeAs(
+                    $designDir,
+                    'preview-'.$placementKey.'-'.Str::uuid().'.'.$file->getClientOriginalExtension(),
+                    'public'
+                );
+                $previewByPlacement[$placementKey] = $stored;
+                $assetPaths[] = $stored;
+                $previewPath ??= $stored;
+            }
+        }
+
         if ($request->hasFile('preview_image')) {
             $previewPath = $request->file('preview_image')->storeAs(
                 $designDir,
@@ -244,8 +283,12 @@ class ShopCartController extends Controller
                 'public'
             );
             $assetPaths[] = $previewPath;
-        } elseif (! empty($designData['artwork']['asset_path'])) {
+        } elseif ($previewPath === null && ! empty($designData['artwork']['asset_path'])) {
             $previewPath = $designData['artwork']['asset_path'];
+        }
+
+        if ($previewByPlacement !== []) {
+            $designData['preview_by_placement'] = $previewByPlacement;
         }
 
         $printPath = null;

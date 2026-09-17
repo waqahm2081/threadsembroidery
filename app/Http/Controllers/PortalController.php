@@ -538,18 +538,49 @@ class PortalController extends Controller
                 'state' => $order->billing_state,
                 'postcode' => $order->billing_zip,
             ],
-            'items' => $order->items->map(fn ($item) => [
-                'product_title' => $item->product_title,
-                'style_code' => $item->style_code,
-                'colour_name' => $item->colour_name,
-                'size' => $item->size,
-                'size_breakdown' => $item->size_breakdown,
-                'quantity' => $item->quantity,
-                'unit_price' => (float) $item->unit_price,
-                'decoration_fee' => (float) $item->decoration_fee,
-                'logo_setup_fee' => (float) $item->logo_setup_fee,
-                'total' => (float) $item->line_total,
-            ])->values()->all(),
+            'items' => $order->items->map(function ($item) {
+                $data = is_array($item->design_data) ? $item->design_data : [];
+                $hasDesign = $data !== [] || ! empty($item->design_file_path);
+                $previewUrls = \App\Support\DesignPreview::resolveAllUrls(
+                    $item->design_file_path,
+                    $item->design_assets,
+                    $data
+                );
+                $previewByPlacement = collect($data['preview_by_placement'] ?? [])
+                    ->filter(fn ($p) => is_string($p) && $p !== '')
+                    ->mapWithKeys(fn ($path, $key) => [$key => asset('storage/'.$path)])
+                    ->all();
+
+                return [
+                    'product_title' => $item->product_title,
+                    'style_code' => $item->style_code,
+                    'colour_name' => $item->colour_name,
+                    'size' => $item->size,
+                    'size_breakdown' => $item->size_breakdown,
+                    'quantity' => $item->quantity,
+                    'unit_price' => (float) $item->unit_price,
+                    'decoration_fee' => (float) $item->decoration_fee,
+                    'logo_setup_fee' => (float) $item->logo_setup_fee,
+                    'total' => (float) $item->line_total,
+                    'placement_label' => $data['decoration_placement_label'] ?? null,
+                    'has_design' => $hasDesign,
+                    'design' => $hasDesign ? [
+                        'title' => $item->product_title,
+                        'colour_hex' => $item->colour_hex ?? ($data['colour']['hex'] ?? '#ffffff'),
+                        'colour_name' => $item->colour_name ?? ($data['colour']['name'] ?? ''),
+                        'customizer_image' => $data['customizer_image'] ?? null,
+                        'customizer_image_back' => $data['customizer_image_back'] ?? null,
+                        'customizer_image_sleeve' => $data['customizer_image_sleeve'] ?? null,
+                        'size_breakdown' => $item->size_breakdown,
+                        'quantity' => $item->quantity,
+                        'design_data' => $data,
+                        'storage_base' => asset('storage'),
+                        'preview_url' => $previewUrls[0] ?? null,
+                        'preview_urls' => $previewUrls,
+                        'preview_by_placement' => $previewByPlacement,
+                    ] : null,
+                ];
+            })->values()->all(),
         ];
     }
 }

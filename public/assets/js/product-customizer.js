@@ -1547,10 +1547,29 @@ document.addEventListener('DOMContentLoaded', function () {
 
     try {
       try {
-        const previewBlob = await exportPreviewBlob();
-        if (previewBlob) {
-          formData.append('preview_image', previewBlob, 'preview.png');
+        const placementKeys = state.placements.length
+          ? [...state.placements]
+          : (state.placement ? [state.placement] : []);
+        const activeBefore = state.placement;
+
+        // Clear modal layer DOM so export uses state.layers (placement-accurate)
+        if (pcmLayers) pcmLayers.innerHTML = '';
+
+        for (const key of placementKeys) {
+          activatePlacement(key);
+          await new Promise(resolve => requestAnimationFrame(() => setTimeout(resolve, 40)));
+          const blob = await exportPreviewBlob();
+          if (blob) {
+            formData.append('preview_images[]', blob, `preview-${key}.png`);
+            formData.append('preview_placement_keys[]', key);
+            if (!formData.has('preview_image')) {
+              formData.append('preview_image', blob, 'preview.png');
+            }
+          }
         }
+
+        if (activeBefore) activatePlacement(activeBefore);
+
         const printBlob = await exportPrintArtworkBlob();
         if (printBlob) {
           formData.append('print_image', printBlob, 'print-artwork.png');
@@ -1725,8 +1744,8 @@ document.addEventListener('DOMContentLoaded', function () {
         }
       }
     } else {
-      // Fallback: render from state.layers with the same % coordinate system
-      const visibleLayers = state.layers.filter(l => l.view === state.view);
+      // Fallback: render from state.layers for the active placement only
+      const visibleLayers = state.layers.filter(layerMatchesActivePlacement);
       for (const layer of visibleLayers) {
         if (pa && bounds && !pa.intersects(layer, bounds)) continue;
         const lx = (layer.x / 100) * w;

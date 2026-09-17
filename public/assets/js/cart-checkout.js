@@ -235,13 +235,54 @@
       const back = preview.customizer_image_back
         || data.customizer_image_back
         || front;
-      return view === 'back' ? back : front;
+      const sleeve = preview.customizer_image_sleeve
+        || data.customizer_image_sleeve
+        || front;
+      if (view === 'back') return back;
+      if (view === 'sleeve') return sleeve;
+      return front;
     }
 
     function resolveLayerSrc(layer, storageBase) {
       if (layer.src) return layer.src;
       if (layer.asset_path) return storageBase + '/' + layer.asset_path;
       return '';
+    }
+
+    function placementKeysFromData(data, preview) {
+      const fromData = Array.isArray(data.decoration_placements)
+        ? data.decoration_placements.filter(Boolean)
+        : [];
+      if (fromData.length) return [...new Set(fromData)];
+
+      const byPlacement = preview?.preview_by_placement || data.preview_by_placement || {};
+      const fromMap = Object.keys(byPlacement || {});
+      if (fromMap.length) return fromMap;
+
+      if (data.decoration_placement) return [data.decoration_placement];
+
+      const views = [...new Set((data.layers || []).map(l => l.placement || l.view || 'front').filter(Boolean))];
+      return views.length ? views : ['front'];
+    }
+
+    function placementLabel(key, data) {
+      const pa = window.TEDesignPrintArea;
+      const fromPa = pa?.getPlacement?.(key)?.label;
+      if (fromPa) return fromPa;
+      if (data.decoration_placement_label && (!data.decoration_placements || data.decoration_placements.length <= 1)) {
+        return data.decoration_placement_label;
+      }
+      return String(key || '').replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+    }
+
+    function layersForPlacement(data, key) {
+      const pa = window.TEDesignPrintArea;
+      const placement = pa?.getPlacement?.(key);
+      const view = placement?.view || key;
+      return (data.layers || []).filter(l => {
+        if (l.placement) return l.placement === key;
+        return (l.view || 'front') === view;
+      });
     }
 
     function hexToRgb(hex) {
@@ -334,90 +375,98 @@
       if (!url || typeof url !== 'string') return false;
       const trimmed = url.trim();
       if (!trimmed || /\.json(\?|#|$)/i.test(trimmed)) return false;
-      // Only composited customizer exports — never raw artwork/print plates
       return /preview-/i.test(trimmed);
     }
 
-    function showSavedMockup(url) {
-      if (!artworkEl || !isFullMockupUrl(url)) return false;
-
-      if (previewCanvas) previewCanvas.style.display = 'none';
-      artworkEl.style.display = 'flex';
-      artworkEl.innerHTML = '';
-
-      const img = document.createElement('img');
-      img.src = url;
-      img.alt = 'Saved design preview';
-      img.draggable = false;
-      artworkEl.appendChild(img);
-      return true;
-    }
-
-    function renderLiveMockup(preview, data) {
-      const colourHex = preview.colour_hex || data.colour?.hex || '#ffffff';
-      const view = data.view || 'front';
-
-      if (artworkEl) {
-        artworkEl.style.display = 'none';
-        artworkEl.innerHTML = '';
-      }
-      if (previewCanvas) previewCanvas.style.display = '';
-
-      const pa = window.TEDesignPrintArea;
-      const printBounds = pa ? pa.resolveBounds(data.print_area) : null;
-      const scaleFactor = pa
-        ? pa.scaleFromReference(data.canvas_width || 620, previewCanvas, 280)
-        : 1;
-      const layers = (data.layers || [])
-        .filter(l => (l.view || 'front') === view)
-        .filter(l => !pa || !printBounds || pa.intersects(l, printBounds));
-
-      if (garmentImg) {
-        const garmentSrc = resolveGarmentImage(preview, data, view);
-        garmentImg.referrerPolicy = 'no-referrer';
-        garmentImg.alt = preview.title || 'Garment preview';
-        garmentImg.onerror = function () {
-          if (garmentImg.dataset.fallbackApplied === '2') return;
-          if (garmentImg.dataset.fallbackApplied === '1') {
-            garmentImg.dataset.fallbackApplied = '2';
-            garmentImg.src = preview.product_image
-              || '/assets/images/customizer/tshirtcustom.png';
+    function wireGarmentFallback(img, garmentSrc, preview) {
+      img.onerror = function () {
+        if (img.dataset.fallbackApplied === '2') return;
+        if (img.dataset.fallbackApplied === '1') {
+          img.dataset.fallbackApplied = '2';
+          img.src = preview.product_image || '/assets/images/customizer/tshirtcustom.png';
+          return;
+        }
+        img.dataset.fallbackApplied = '1';
+        try {
+          const u = new URL(garmentSrc, window.location.origin);
+          if (u.origin !== window.location.origin) {
+            img.src = '/shop/media-proxy?url=' + encodeURIComponent(u.href);
             return;
           }
-          garmentImg.dataset.fallbackApplied = '1';
-          // Retry via same-origin proxy (fixes hotlink/CORS display failures)
-          try {
-            const u = new URL(garmentSrc, window.location.origin);
-            if (u.origin !== window.location.origin) {
-              garmentImg.src = '/shop/media-proxy?url=' + encodeURIComponent(u.href);
-              return;
-            }
-          } catch { /* fall through */ }
-          garmentImg.dataset.fallbackApplied = '2';
-          garmentImg.src = preview.product_image
-            || '/assets/images/customizer/tshirtcustom.png';
-        };
-        delete garmentImg.dataset.fallbackApplied;
-        garmentImg.removeAttribute('crossorigin');
-        garmentImg.src = garmentSrc || preview.product_image || '/assets/images/customizer/tshirtcustom.png';
-        garmentImg.style.filter = computeGarmentFilter(colourHex);
-      }
+        } catch { /* fall through */ }
+        img.dataset.fallbackApplied = '2';
+        img.src = preview.product_image || '/assets/images/customizer/tshirtcustom.png';
+      };
+    }
 
-      if (layersEl) {
-        layersEl.innerHTML = '';
-        if (pa && printBounds) pa.applyClip(layersEl, printBounds);
-        layers.forEach(layer => {
-          layersEl.appendChild(buildLayerElement(layer, preview.storage_base, scaleFactor));
-        });
-      }
+    function createLivePanel(preview, data, key) {
+      const pa = window.TEDesignPrintArea;
+      const placement = pa?.getPlacement?.(key);
+      const view = placement?.view || (key === 'back' || key === 'back_print' || key === 'back_embroidery' ? 'back' : key === 'sleeve' ? 'sleeve' : 'front');
+      const printBounds = placement?.printArea || (pa ? pa.resolveBounds(data.print_area) : null);
+      const layers = layersForPlacement(data, key);
+      const colourHex = preview.colour_hex || data.colour?.hex || '#ffffff';
 
-      return layers.length;
+      const panel = document.createElement('div');
+      panel.className = 'cdm-preview-panel';
+
+      const label = document.createElement('div');
+      label.className = 'cdm-preview-panel-label';
+      label.textContent = placementLabel(key, data);
+      panel.appendChild(label);
+
+      const canvas = document.createElement('div');
+      canvas.className = 'cdm-preview-canvas';
+
+      const img = document.createElement('img');
+      img.className = 'cdm-garment-img';
+      img.alt = placementLabel(key, data);
+      img.draggable = false;
+      img.referrerPolicy = 'no-referrer';
+      const garmentSrc = resolveGarmentImage(preview, data, view);
+      delete img.dataset.fallbackApplied;
+      img.removeAttribute('crossorigin');
+      wireGarmentFallback(img, garmentSrc, preview);
+      img.src = garmentSrc || preview.product_image || '/assets/images/customizer/tshirtcustom.png';
+      img.style.filter = computeGarmentFilter(colourHex);
+      canvas.appendChild(img);
+
+      const layersEl = document.createElement('div');
+      layersEl.className = 'cdm-layers';
+      const scaleFactor = pa ? pa.scaleFromReference(data.canvas_width || 620, canvas, 240) : 1;
+      if (pa && printBounds) pa.applyClip(layersEl, printBounds);
+      layers.forEach(layer => {
+        layersEl.appendChild(buildLayerElement(layer, preview.storage_base, scaleFactor));
+      });
+      canvas.appendChild(layersEl);
+      panel.appendChild(canvas);
+      return { panel, layerCount: layers.length };
+    }
+
+    function createSavedPanel(url, labelText) {
+      const panel = document.createElement('div');
+      panel.className = 'cdm-preview-panel';
+      if (labelText) {
+        const label = document.createElement('div');
+        label.className = 'cdm-preview-panel-label';
+        label.textContent = labelText;
+        panel.appendChild(label);
+      }
+      const img = document.createElement('img');
+      img.className = 'cdm-saved-mockup';
+      img.src = url;
+      img.alt = labelText || 'Saved design preview';
+      img.draggable = false;
+      panel.appendChild(img);
+      return panel;
     }
 
     function openDesignPreview(preview) {
       const data = preview.design_data || {};
       const colourName = preview.colour_name || data.colour?.name || '';
       const placement = data.decoration_placement_label || '';
+      const keys = placementKeysFromData(data, preview);
+      const galleryEl = document.getElementById('cdmPreviewGallery');
 
       if (titleEl) {
         titleEl.innerHTML = '<i class="bi bi-palette"></i> ' + escapeHtml(preview.title || 'Your Design');
@@ -427,12 +476,36 @@
         subtitleEl.textContent = parts.length ? parts.join(' · ') : 'Custom design preview';
       }
 
-      // Prefer full product+design composite. Only use a saved image if it is a
-      // true mockup export (preview-*). Never show raw uploaded artwork alone.
+      if (artworkEl) {
+        artworkEl.style.display = 'none';
+        artworkEl.innerHTML = '';
+      }
+      if (previewCanvas) previewCanvas.hidden = true;
+      if (galleryEl) galleryEl.innerHTML = '';
+
       let layerCount = (data.layers || []).length;
-      const usedSaved = showSavedMockup(preview.preview_url);
-      if (!usedSaved) {
-        layerCount = renderLiveMockup(preview, data) || layerCount;
+      const byPlacement = preview.preview_by_placement || {};
+      const savedMulti = keys
+        .map(key => ({ key, url: byPlacement[key] }))
+        .filter(row => isFullMockupUrl(row.url));
+
+      const multi = keys.length > 1 || savedMulti.length > 1;
+
+      if (savedMulti.length && (multi || !data.layers?.length)) {
+        savedMulti.forEach(row => {
+          galleryEl?.appendChild(createSavedPanel(row.url, placementLabel(row.key, data)));
+        });
+      } else if (multi || (data.layers || []).length) {
+        // Live rebuild — supports existing multi-position designs that only saved one mockup
+        let rendered = 0;
+        keys.forEach(key => {
+          const { panel, layerCount: count } = createLivePanel(preview, data, key);
+          galleryEl?.appendChild(panel);
+          rendered += count;
+        });
+        if (rendered) layerCount = rendered;
+      } else if (isFullMockupUrl(preview.preview_url)) {
+        galleryEl?.appendChild(createSavedPanel(preview.preview_url, placement || null));
       }
 
       if (detailsEl) {

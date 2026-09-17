@@ -1113,12 +1113,45 @@ button.cc-customize-link:hover {
   justify-content: center;
 }
 
+.cdm-preview-gallery {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  justify-content: center;
+  width: 100%;
+}
+
+.cdm-preview-panel {
+  flex: 1 1 180px;
+  max-width: 260px;
+}
+
+.cdm-preview-panel-label {
+  text-align: center;
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: #1a1a2e;
+  margin-bottom: 0.45rem;
+}
+
 .cdm-preview-canvas {
   position: relative;
   width: 100%;
   max-width: 280px;
   aspect-ratio: 4 / 5;
   margin: 0 auto;
+}
+
+.cdm-preview-panel .cdm-preview-canvas {
+  max-width: none;
+}
+
+.cdm-preview-panel img.cdm-saved-mockup {
+  width: 100%;
+  aspect-ratio: 4 / 5;
+  object-fit: contain;
+  background: #fff;
+  border-radius: 8px;
 }
 
 .cdm-garment-img {

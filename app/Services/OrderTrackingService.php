@@ -240,6 +240,7 @@ class OrderTrackingService
             'colour_name' => $item->colour_name ?? ($data['colour']['name'] ?? ''),
             'customizer_image' => $data['customizer_image'] ?? asset('assets/images/customizer/tshirtcustom.png'),
             'customizer_image_back' => $data['customizer_image_back'] ?? asset('assets/images/customizer/tshirtcustom-back.png'),
+            'customizer_image_sleeve' => $data['customizer_image_sleeve'] ?? null,
             'size_breakdown' => $item->size_breakdown,
             'quantity' => $item->quantity,
             'design_data' => $data,
@@ -249,6 +250,15 @@ class OrderTrackingService
                 $item->design_assets ?? null,
                 $data
             ),
+            'preview_urls' => DesignPreview::resolveAllUrls(
+                $item->design_file_path,
+                $item->design_assets ?? null,
+                $data
+            ),
+            'preview_by_placement' => collect($data['preview_by_placement'] ?? [])
+                ->filter(fn ($p) => is_string($p) && $p !== '')
+                ->mapWithKeys(fn ($path, $key) => [$key => asset('storage/'.$path)])
+                ->all(),
         ];
     }
 }
