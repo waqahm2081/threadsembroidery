@@ -60,6 +60,7 @@ class ShopCartController extends Controller
             'subtotal' => $cart->subtotal(),
             'vat' => $cart->vatAmount(),
             'total' => $cart->total(),
+            'vatPercent' => $cart->vatPercent(),
             'designPreviews' => $designPreviews,
         ]);
     }

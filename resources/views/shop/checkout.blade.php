@@ -189,7 +189,7 @@ checkout-page
                             <strong>&pound;{{ number_format($subtotal, 2) }}</strong>
                         </div>
                         <div class="cc-summary-row">
-                            <span>VAT ({{ \App\Services\ShopPricingService::vatPercent() }}%)</span>
+                            <span>@if(($vatPercent ?? 0) > 0)VAT ({{ rtrim(rtrim(number_format($vatPercent, 2), '0'), '.') }}%)@else VAT (not charged)@endif</span>
                             <strong>&pound;{{ number_format($vat, 2) }}</strong>
                         </div>
                         <div class="cc-summary-row cc-summary-total">

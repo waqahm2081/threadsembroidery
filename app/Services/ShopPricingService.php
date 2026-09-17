@@ -4,9 +4,11 @@ namespace App\Services;
 
 use App\Models\ShopCart;
 use App\Models\ShopCartItem;
+use App\Models\ShopCategorySetting;
 
 class ShopPricingService
 {
+    /** Fallback rate only when explicitly requested; cart VAT is category-driven. */
     public const VAT_RATE = 0.20;
 
     public const LOGO_SETUP_FEE = 12.00;
@@ -46,6 +48,40 @@ class ShopPricingService
         return (int) round(self::VAT_RATE * 100);
     }
 
+    /**
+     * Effective VAT rate for a cart: max percent among VAT-enabled categories
+     * represented in the cart. Zero when none apply.
+     */
+    public static function cartVatRate(ShopCart $cart): float
+    {
+        $slugs = $cart->items
+            ->pluck('category_slug')
+            ->filter(fn ($s) => is_string($s) && $s !== '')
+            ->unique()
+            ->values()
+            ->all();
+
+        if ($slugs === []) {
+            return 0.0;
+        }
+
+        $maxPercent = ShopCategorySetting::query()
+            ->whereIn('slug', $slugs)
+            ->where('vat_enabled', true)
+            ->max('vat_percent');
+
+        if ($maxPercent === null || (float) $maxPercent <= 0) {
+            return 0.0;
+        }
+
+        return ((float) $maxPercent) / 100;
+    }
+
+    public static function cartVatPercent(ShopCart $cart): float
+    {
+        return round(self::cartVatRate($cart) * 100, 2);
+    }
+
     public static function placementFee(?string $placement): float
     {
         if (! $placement) {
@@ -70,14 +106,20 @@ class ShopPricingService
         return (float) $cart->items->sum(fn (ShopCartItem $item) => self::itemLineSubtotal($item));
     }
 
-    public static function vatAmount(float $subtotalExVat): float
+    public static function vatAmount(float $subtotalExVat, ?float $rate = null): float
     {
-        return round($subtotalExVat * self::VAT_RATE, 2);
+        $rate ??= self::VAT_RATE;
+
+        if ($rate <= 0) {
+            return 0.0;
+        }
+
+        return round($subtotalExVat * $rate, 2);
     }
 
-    public static function totalIncVat(float $subtotalExVat): float
+    public static function totalIncVat(float $subtotalExVat, ?float $rate = null): float
     {
-        return round($subtotalExVat + self::vatAmount($subtotalExVat), 2);
+        return round($subtotalExVat + self::vatAmount($subtotalExVat, $rate), 2);
     }
 
     /**

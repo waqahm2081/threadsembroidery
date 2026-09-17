@@ -50,7 +50,13 @@ checkout-page
                     <strong>&pound;{{ number_format($order->subtotal, 2) }}</strong>
                 </div>
                 <div class="cc-summary-row">
-                    <span>VAT ({{ \App\Services\ShopPricingService::vatPercent() }}%)</span>
+                    <span>
+                        @if((float) $order->vat_amount > 0 && (float) $order->subtotal > 0)
+                            VAT ({{ rtrim(rtrim(number_format(((float) $order->vat_amount / (float) $order->subtotal) * 100, 2), '0'), '.') }}%)
+                        @else
+                            VAT (not charged)
+                        @endif
+                    </span>
                     <strong>&pound;{{ number_format($order->vat_amount, 2) }}</strong>
                 </div>
                 <div class="cc-summary-row cc-summary-total">

@@ -800,6 +800,11 @@ class ProductCatalogService
         return $this->resolveOptionalImageUrl($path) ?? asset('assets/images/prod1.jpg');
     }
 
+    public function imageUrl(?string $path): ?string
+    {
+        return $this->resolveOptionalImageUrl($path);
+    }
+
     private function resolveOptionalImageUrl(?string $path): ?string
     {
         if (! $path) {

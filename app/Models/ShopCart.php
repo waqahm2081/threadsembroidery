@@ -34,13 +34,23 @@ class ShopCart extends Model
         return ShopPricingService::cartSubtotalExVat($this);
     }
 
+    public function vatRate(): float
+    {
+        return ShopPricingService::cartVatRate($this);
+    }
+
+    public function vatPercent(): float
+    {
+        return ShopPricingService::cartVatPercent($this);
+    }
+
     public function vatAmount(): float
     {
-        return ShopPricingService::vatAmount($this->subtotal());
+        return ShopPricingService::vatAmount($this->subtotal(), $this->vatRate());
     }
 
     public function total(): float
     {
-        return ShopPricingService::totalIncVat($this->subtotal());
+        return ShopPricingService::totalIncVat($this->subtotal(), $this->vatRate());
     }
 }

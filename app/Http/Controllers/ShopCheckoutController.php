@@ -35,6 +35,7 @@ class ShopCheckoutController extends Controller
             'subtotal' => $cart->subtotal(),
             'vat' => $cart->vatAmount(),
             'total' => $cart->total(),
+            'vatPercent' => $cart->vatPercent(),
             'user' => auth()->user(),
         ]);
     }
@@ -68,8 +69,8 @@ class ShopCheckoutController extends Controller
 
         $billingSame = $request->boolean('billing_same_as_shipping', true);
         $subtotalExVat = $cart->subtotal();
-        $vatAmount = ShopPricingService::vatAmount($subtotalExVat);
-        $total = ShopPricingService::totalIncVat($subtotalExVat);
+        $vatAmount = $cart->vatAmount();
+        $total = $cart->total();
 
         $this->stripe->assertPaid($validated['payment_intent_id'], (float) $total);
 

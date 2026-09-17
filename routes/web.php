@@ -5,7 +5,9 @@ use App\Http\Controllers\Admin\SchoolController as AdminSchoolController;
 use App\Http\Controllers\Admin\SchoolProductCategoryController as AdminSchoolCategoryController;
 use App\Http\Controllers\Admin\SchoolProductController as AdminSchoolProductController;
 use App\Http\Controllers\Admin\SchoolUniformOrderController as AdminSchoolUniformOrderController;
+use App\Http\Controllers\Admin\ShopCategoryController as AdminShopCategoryController;
 use App\Http\Controllers\Admin\ShopOrderController as AdminShopOrderController;
+use App\Http\Controllers\Admin\ShopProductController as AdminShopProductController;
 use App\Http\Controllers\Api\PublicUniformShopController;
 use App\Http\Controllers\Api\UniformShopController;
 use App\Http\Controllers\UniformShopPageController;
@@ -147,6 +149,17 @@ Route::prefix('admin')->name('admin.')->group(function () {
         Route::post('/product-quotes', [AdminProductQuoteController::class, 'store'])->name('product-quotes.store');
         Route::get('/product-quotes/{productQuote}', [AdminProductQuoteController::class, 'show'])->name('product-quotes.show');
         Route::delete('/product-quotes/{productQuote}', [AdminProductQuoteController::class, 'destroy'])->name('product-quotes.destroy');
+
+        // Products Shop (PenCarrie catalogue)
+        Route::prefix('products-shop')->name('products-shop.')->group(function () {
+            Route::redirect('/', '/admin/products-shop/products');
+            Route::get('/categories', [AdminShopCategoryController::class, 'index'])->name('categories.index');
+            Route::get('/categories/{shopCategory}/edit', [AdminShopCategoryController::class, 'edit'])->name('categories.edit');
+            Route::put('/categories/{shopCategory}', [AdminShopCategoryController::class, 'update'])->name('categories.update');
+            Route::get('/products', [AdminShopProductController::class, 'index'])->name('products.index');
+            Route::get('/products/{styleCode}/edit', [AdminShopProductController::class, 'edit'])->name('products.edit');
+            Route::put('/products/{styleCode}', [AdminShopProductController::class, 'update'])->name('products.update');
+        });
 
         // Uniform Shop admin
         Route::resource('schools', AdminSchoolController::class)->except(['show']);

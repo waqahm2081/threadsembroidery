@@ -36,6 +36,9 @@
       <a href="{{ route('admin.bulk-enquiries.index') }}" class="{{ $nav === 'bulk-enquiries' ? 'active' : '' }}"><i class="bi bi-envelope-plus"></i> Bulk Enquiries</a>
       <a href="{{ route('admin.customizer') }}" class="{{ $nav === 'customizer' ? 'active' : '' }}"><i class="bi bi-sliders"></i> Product Customizer</a>
       <a href="{{ route('admin.product-quotes.index') }}" class="{{ $nav === 'product-quotes' ? 'active' : '' }}"><i class="bi bi-file-earmark-text"></i> Product Quotes</a>
+      <div class="ad-nav-divider">Products Shop</div>
+      <a href="{{ route('admin.products-shop.products.index') }}" class="{{ $nav === 'products-shop-products' ? 'active' : '' }}"><i class="bi bi-bag"></i> Products</a>
+      <a href="{{ route('admin.products-shop.categories.index') }}" class="{{ $nav === 'products-shop-categories' ? 'active' : '' }}"><i class="bi bi-tags"></i> Categories</a>
       <div class="ad-nav-divider">Uniform Shop</div>
       <a href="{{ route('admin.schools.index') }}" class="{{ $nav === 'schools' ? 'active' : '' }}"><i class="bi bi-building"></i> Schools</a>
       <a href="{{ route('admin.school-categories.index') }}" class="{{ $nav === 'school-categories' ? 'active' : '' }}"><i class="bi bi-tags"></i> Categories</a>
